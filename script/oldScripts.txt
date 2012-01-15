@@ -1,0 +1,432 @@
+-- utils.lua
+-- Core script
+-- File contains different tools to simplify object creation
+
+-- merge data from <super> and <default> and write to registry
+local threatLevel=1
+Threat=
+{
+	createFail=2,
+	wrongArgument=1,
+}
+local trace=debugTrace
+function problem(level,message)
+	if level>=threatLevel then
+		error('Error:'..message..'\n'..debug.traceback())
+	else
+		trace('Warning:'..message)
+	end
+end
+
+function mergeTables(target,source)
+	for key,val in pairs(source) do
+		if target[key]==nil then target[key]=val end
+	end
+	return target
+end
+
+exec('./script/utilsDynamics.lua')
+exec('./script/utilsFx.lua')
+-- describes default hardpoint and writes custom fields
+function _Mount(super)
+	local result=
+	{
+		pose={0,0,0},		-- pose relative to unit
+		bExtern=true,		-- placed externally on the hull
+		auto=false,			-- true=device here is controlled by other device
+		index=-1			-- mount index
+	}
+	for key,val in pairs(super) do
+		result[key]=val
+	end
+	return result
+end
+
+-- make custom lua data for Device
+function DeviceProxy(super)
+	local default=
+	{
+		controls={},
+		onInit=function(self) end,
+		onCreate=function(self,object) end,
+		manualControl=function(self,unit,slot)	end,
+	}
+	return mergeTables(super,default)
+end
+
+--[[
+Инвокеры нужны чтобы вручную управлять устройством. Для каждого типа команд свой тип инвокера.
+Общими параметрами для любого инвокера является номер устройства и номер порта этого устройства
+При наступлении события с клавиатуры-мыши вызывается Pilot:onControl, который перебирает
+все записанные инвокеры. Если параметры события совпадают с требуемыми для инвокера
+(нужная кнопка), то инвокер вызывает соответствующее действие соответствующего устройства
+]]--
+function invokerAction(port,keyAction)
+	return
+		function(pilot,deviceID)
+			pilot:invokerAction(deviceID,port,keyAction)
+		end
+end
+function invokerValue(port,keyLeft,keyRight)
+	return
+		function(pilot,deviceID)
+			pilot:invokerParam(deviceID,port,keyLeft,keyRight)
+		end
+end
+function invokerTarget(port,keySet,keyUpdate,keyReset)
+	return
+		function(pilot,deviceID)
+			pilot:invokerTarget(deviceID,port,keySet,keyUpdate,keyReset)
+		end
+end
+-- new invoker set
+function _invokerAction(port,keyAction)
+	return
+		function(pilot,deviceID)
+			pilot:invokerAction(deviceID,port,keyAction)
+		end
+end
+function _invokerValue(port,keyLeft,keyRight)
+	return
+		function(pilot,deviceID)
+			pilot:invokerParam(deviceID,port,keyLeft,keyRight)
+		end
+end
+function _invokerTarget(port,keySet,keyUpdate,keyReset)
+	return
+		function(pilot,deviceID)
+			pilot:invokerTarget(deviceID,port,keySet,keyUpdate,keyReset)
+		end
+end
+-- device at sourceMount takes control of device at targetMount
+function connect(sourceMount,targetMount)
+	return
+		function(unit,unitDef)	-- unit - pointer to unit, unitDef - lua proxy
+			debugTrace("lua connect\n")
+			local controller=unit:getDevice(unitDef.mounts[sourceMount].index)
+			local controlled=unit:getDevice(unitDef.mounts[targetMount].index)
+			if connectDevices(controller,controlled) then
+				unitDef.mounts[targetMount].auto=true
+			end
+		end
+end
+-- make custon lua data for ItemDef
+function ItemProxy(super)
+	local default=
+	{
+		onInit=function(self) -- add all hardpoints to UnitDef. Also inserts devices, if there were any
+			debugTrace("ItemProxy::onInit{}")
+		end,
+		-- called when new Object is created.
+		onCreate=function(self,object)
+			debugTrace("ItemProxy::onCreate{")
+			-- Create solid
+			if self.solid~=nil then
+				debugTrace("ItemProxy::onCreate: add solid")
+				self.solid(object)
+			end
+			debugTrace("}ItemProxy::onCreate")
+		end,
+	}
+	return mergeTables(super,default)
+end
+-- make custom lua data for UnitDef
+function UnitProxy(super)
+	local default=
+	{
+		--[[initMounts=function(self)
+			self.imounts={}
+			self.object:clearMounts()
+			local i=0
+			for mkey,mount in pairs(self.mounts) do
+				self.imounts[i]=mount
+				mount.index=i
+				self.object:addMount(mount.pose[1],mount.pose[2],mount.pose[3],mount.bExtern)
+				if mount.device~=nil then
+					self.object:addDevice(mount.device:base(),i)
+				end
+				--for dkey,device in pairs(mount.devices) do
+				--self.object:addDevice(device:base(),i)
+				--end
+				i=i+1
+			end
+		end,]]--
+		-- is called after UnitDef constructor, in Object2 proxy
+		onInit=function(self) -- add all hardpoints to UnitDef. Also inserts devices, if there were any
+			debugTrace("UnitProxy::onInit")
+			--self:initMounts()
+		end,
+		manualControl=function(self,unit,i)
+			local device=unit:getDevice(i)
+			debugTrace("devtype="..type(device))
+			local definition=device:getDefinition()
+			local devData=regGet(definition.lua)
+			for kcmd,invoker in pairs(devData.controls) do
+				debugTrace("adding invoker")
+				invoker(unit.pilot,i)
+				--unit.pilot:addKeyDown(k,i,cmd)
+			end
+		end,
+		-- called when new Unit is created. <unit> contains hard pointer to unit.
+		onCreate=function(self,unit)
+			debugTrace("UnitProxy::onCreate")
+			debugTrace("self.type="..type(self))
+			debugTrace("unit.type="..type(unit))
+			debugTrace("self.name="..self.name)
+			-- Create solid
+			if self.solid~=nil then
+				debugTrace("UnitProxy::onCreate: add solid")
+				self.solid(unit)
+			end
+			-- Create devices
+			self.imounts={}
+			--self.object:clearMounts()
+
+			if self.mounts~=nil then
+				debugTrace("add mount")
+				local i=0
+				for mkey,mount in pairs(self.mounts) do
+					self.imounts[i]=mount
+					mount.index=i
+					unit:addMount(mount.pose[1],mount.pose[2],mount.pose[3],mount.bExtern)
+
+					if mount.device~=nil then
+						local device=mount.device:create()
+						unit:addDevice(device,i)
+					end
+					--for dkey,device in pairs(mount.devices) do
+					--self.object:addDevice(device:base(),i)
+					--end
+					i=i+1
+				end
+			end
+			-- Attach automatic control
+			local count=unit:getDeviceCount()-1
+
+			if self.assembly~=nil then
+				for key,val in pairs(self.assembly) do
+					val(unit,self)
+				end
+			end
+			-- Attach manual control
+			for i=0,count do
+				if not self.imounts[i].auto then
+					self:manualControl(unit,i)
+				end
+			end
+		end,
+	}
+	return mergeTables(super,default)
+end
+
+local tracer=nil
+
+function setTracer(newTracer)
+	tracer=newTracer
+end
+-- simple way to print table contents.
+function print_table(name,table,tracer)
+	for q,v in pairs(table) do
+		local t=type(v)
+		local msg =''
+		if t=='number' or t=='string' then
+			msg=v
+		elseif t=='function' then
+			msg='<function>'
+		elseif t=='table' then
+			msg='<'..tostring(v)..'>'
+		elseif t=='userdata' then
+			msg='<userdata>'
+		end
+		tracer('>' .. name .. '[' .. q .. ']=' .. msg)
+	end
+end
+-- copy data from lua table <source> to tolua++ binded object <target>
+function copySoftToHard(target,source)
+	if type(source)~='table' then
+		problem(Threat.wrongArgument,"copySoftToHard: source is not a table")
+	end
+	for q,v in pairs(source) do
+		if q=='lua' then	-- луатаблица, хранимая в реестре
+			target.lua=regStore(v)
+		elseif type(v)=='table' and type(target[q])=='userdata' then	-- копируем структуру
+			copySoftToHard(target[q],v)
+		elseif type(v)=='table' then								-- копируем массив
+			local i=0
+			for q1,v1 in pairs(v) do
+				target[tostring(q)][i]=v1
+				i=i+1
+			end
+		else													-- обычное поле
+			target[q]=v
+		end
+	end
+end
+-- эта штука создаёт объект из новой версии definition->object
+function Object2(creator,manager)
+	return function(super)
+		local class=creator:new(manager)
+		if class==nil then
+			problem(Threat.createFail,'Object2:Can not create')
+			return {}
+		end
+		copySoftToHard(class,super)
+		class:init()
+		return class
+	end
+end
+function initCreator(classDef,manager)
+	return
+		function(data)
+			return Object2(classDef,manager)(data)
+		end
+end
+
+function initDevice(creator)
+	if creator==nil then
+		problem(Threat.wrongArgument,'initDevice: wrong className')
+		return nil
+	end
+	return
+		function(data)
+			return
+			{
+				creator=creator,
+				data=data,
+				create=function(self)
+					debugTrace('luaDevice::create(){')
+					local object=self.creator(world.gameObjects.deviceManager)
+					if object==nil then
+						problem(Threat.createFail,'luaDevice::create() Can not create object')
+						return nil
+					end
+					copySoftToHard(object,self.data)
+					debugTrace('}luaDevice::create()')
+					return object
+				end,
+			}
+		end
+end
+
+function initObject(creator)
+	if creator==nil then
+		problem(Threat.wrongArgument,'initObject: wrong className')
+		return nil
+	end
+	return
+		function(super)
+			trace('create object')
+			local class=creator(world.gameObjects)
+			if class==nil then
+				problem(Threat.createFail,'initObject:Can not create')
+				return {}
+			end
+			copySoftToHard(class,super)
+			class:init()
+			--if not (class.base==nil) then
+			--	debugTrace("casting to base")
+			--	class=class:base()
+			--end
+
+			return class
+		end
+end
+
+WeaponTurret	=initDevice(TiGa.WeaponTurret,world.gameObjects.deviceManager)
+TurretControl	=initDevice(TiGa.TurretDriver,world.gameObjects.deviceManager)
+WeaponBeam		=initDevice(TiGa.Weapon,world.gameObjects.deviceManager)
+WeaponProjectile=initDevice(TiGa.Weapon,world.gameObjects.deviceManager)
+--Turret		=initDevice(TiGa.Turret,world.gameObjects.deviceManager)
+MoverVehicle	=initDevice(TiGa.MoverVehicle,world.gameObjects.deviceManager)
+MoverCharacter	=initDevice(TiGa.MoverCharacter,world.gameObjects.deviceManager)
+
+Projectile	=initObject(TiGa.ProjectileDef)
+Unit		=initObject(TiGa.UnitDef)
+Item		=initObject(TiGa.ItemDef)
+--Body		=initObject(TiGa.BodyDef)
+
+-- creates item using definition <def> at <position,direction> for <player>
+createItem=function(def,position,direction,player)
+	local self=world
+	debugTrace('-createItem')
+	local item=self.gameObjects:create(Items[def]) --self.Items[def]:create()
+	item:setPosition(position[1],position[2])
+	item:setDirection(direction[1],direction[2])
+	return item
+end
+-- creates unit, assigning control to it
+createUnit=function(def,position,direction,player,ai,aiArg)
+	local self=world
+	debugTrace('-createUnit')
+	--local unit=self:addUnit(self.Units[def]:create())
+	local unit=self.gameObjects:create(Units[def])
+	if unit~=nil then
+		if player==nil then player=0 end
+		--[[
+		if ai==nil then ai=createCommandAI end
+		unit:setPlayer(player)
+		-- тупой тулуа не игнорирует пустые элементы
+		if aiArg == nil then
+			unit:setAI(ai(unit))
+		else
+			unit:setAI(ai(unit,aiArg))
+		end]]--
+		unit:setPosition(position[1],position[2])
+		unit:setDirection(direction[1],direction[2])
+	end
+	return unit
+end
+
+
+
+function script1()
+	print 'x1'
+	wait(2)
+	print 'x2'
+	wait(5)
+	print 'x3'
+end
+function script2()
+	wait(1)
+	print 'y1'
+	wait(2)
+	print 'y2'
+	wait(5)
+	print 'y3'
+end
+
+runThread=coroutine.wrap
+
+local timerTbl={}
+
+function scrTimer( t )
+	local cf=timerTbl[t]
+	if cf~=nil then
+	  timerTbl[t]=nil
+	  for _,v in ipairs(cf) do
+		 coroutine.resume(v,time)
+	  end
+	end
+end
+
+function wait( delay )
+	if delay<1 then return end
+	local t=now+delay
+	local tbl=timerTbl[t]
+	if tbl==nil then
+		tbl={} timerTbl[t]=tbl
+	end
+	table.insert(tbl,coroutine.running())
+	coroutine.yield()
+end
+
+timeStart = os.time()
+now = timeStart
+
+runThread(script1)()
+runThread(script2)()
+
+while os.time()<timeStart + 20 do
+   scrTimer( os.time() )
+  --print (now)
+end

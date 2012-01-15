@@ -1,0 +1,36 @@
+SWIG_Lua_add_class_details
+	for each base
+		SWIG_Lua_add_class_details
+	install base types
+	SWIG_Lua_add_class_variable
+
+
+
+
+
+
+
+swig_typedef structure
+{
+	type = string,
+	base = table
+	{
+		name = swig_typedef,
+		...
+	}
+	members = table
+	{
+		[0] = {
+			name = string,
+			type = string,
+			get = function,
+			set = function,
+		},
+		[1] = ...
+	}
+	base_full = table{...},
+	children = table{...},
+	children_full = table{...},
+	.get = table{...},
+	.set = table{...},
+}

@@ -1,0 +1,7 @@
+depends("basic")
+depends("robotics")
+include("models.lua")
+include("projectiles.lua")
+include("devices.lua")
+include("items.lua")
+include("units.lua")
