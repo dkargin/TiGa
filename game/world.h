@@ -58,8 +58,8 @@ struct Level
 	// derrived level parameters
 	Solid * body;									/// solid root
 	Raster<Tile> blocks;							/// 
-	pathProject::Builder::MapBuilderImage * pathing;			/// pathCore map builder
-	pathProject::MapBuilderQuad * quadder;		/// quad map builder
+	pathProject::Builder::MapBuilderImage * pathing;/// pathCore map builder
+	pathProject::MapBuilderQuad * quadder;			/// quad map builder
 	FxPointer background;	
 
 	Level(World & world);

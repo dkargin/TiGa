@@ -6,6 +6,8 @@
 #include "iup.h"
 #include "../LuaBox/src/iup_class.h"
 #include "../LuaBox/src/iup_register.h"
+
+#ifdef USE_IUP
 #pragma comment(lib, "Comctl32.lib")
 #pragma comment(lib, "lua51static_mt.lib")
 #pragma comment(lib, "iupcore.lib")
@@ -18,7 +20,7 @@
 #pragma comment(lib, "iupluagl51.lib")
 #pragma comment(lib, "opengl32.lib")
 #pragma comment(lib, "iupluacontrols51.lib")
-
+#endif
 #include "iuplua.h"
 #include "iupgl.h"
 #include "iupluagl.h"
@@ -28,10 +30,10 @@
 int regStore(lua_State *l);	// store top stack object in lua registry
 int regGet(lua_State *l);	// get object from lua registry
 int regFree(lua_State *l);	// free lua registry object
-
+/*
 Ihandle * IupHGE(Ihandle * child);
 void iupRegisterHGE();
-
+*/
 Core * core = NULL;
 World * world = NULL;
 HGE * hge = 0;
@@ -85,8 +87,6 @@ Core::Core(const char * baseScript)
 
 	hgeRuns = false;
 	iupRuns = false;
-
-	//initIup();
 }
 
 Core::~Core()
@@ -99,18 +99,21 @@ Core::~Core()
 		hge->System_Shutdown();
 		hge->Release();
 	}	
+#ifdef USE_IUP
 	if( iupRuns )
 		IupClose();
+#endif
 }
 
 void Core::initIup()
 {
 	iupRuns = false;
-
+#ifdef USE_IUP
 	iuplua_open(scripter.getVM());
 	iupgllua_open(scripter.getVM());
 
 	IupImageLibOpen();
+#endif
 	//iupRegisterHGE();
 	//iupcontrolslua_open(l);
 	//cdlua_open(L);
@@ -247,8 +250,10 @@ void Core::onUpdate()
 		//if(world && !core->worldPaused())
 		//	world->update(dt);
 	}
+#ifdef USE_IUP
 	if(iupRuns)
 		IupLoopStep();
+#endif
 }
 
 void Core::onRender()
@@ -327,6 +332,7 @@ void Core::runSystem()
 	scripter.runScript(true);
 
 	bool _isDataInitialized = false;
+#ifdef USE_IUP
 	while(iupRuns && (IupLoopStep() != IUP_CLOSE))
 	{
 		iupRuns = true;
@@ -342,6 +348,7 @@ void Core::runSystem()
 		}
 		updateWorld();		
 	}
+#endif
 	iupRuns = false;
 	printf("Main IUP loop ended\n");
 	runHGE();

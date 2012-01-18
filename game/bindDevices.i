@@ -108,17 +108,25 @@ struct ThrusterControlDef : public MoverDef
 	ThrusterControlDef(ObjectManager & manager);
 };
 
-struct WeaponDef: public DeviceDef
+struct WeaponData
 {
 	float timeShootDelay;	// задержка между выстрелами
 	float timeShootDuration;// длительность выстрела, для лучевых оружий
 	float timeReload;		// время перезарядки оружия
-	float muzzleOffset;		
-	int burstSize;
-	float burstDelay;
-	float spread;	
+	float muzzleOffset;		// откуда создаётся снаряд
 	int maxAmmo;			
 	float maxRange;			// max range
+	float spread;			// projectile spread, degrees
+	int barrels;			
+	float barrelDistance;	// distance between barrels
+	int animations;			// number of animations	
+	int burstSize;			// количество снарядов в одном залпе
+	float burstDelay;		// задержка между выстрелами в залпе
+};
+
+struct WeaponDef: public DeviceDef
+{
+	WeaponData weaponData;
 	FxEffect * fxShoot;	
 	ProjectileDef * projectile;	
 	WeaponDef(ObjectManager & manager);
@@ -126,7 +134,7 @@ struct WeaponDef: public DeviceDef
 
 struct Weapon: public Device
 {	
-	
+	WeaponData weaponData;
 	float time;				// текущий счётчик	
 	int ammo;
 	bool fire;			

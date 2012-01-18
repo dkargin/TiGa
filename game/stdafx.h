@@ -37,10 +37,11 @@
 #define FrostTools_Use_Asserts
 #define FrostTools_Use_System
 #define FrostTools_Use_Threads
-#define FrostTools_Use_Raster
-#define FrostTools_Use_AutoPtr
-#define FrostTools_Use_Files
+#include <frosttools/logger.hpp>
 #include <frostTools/frostTools.h>
+#include <frosttools/autoptr.hpp>
+#include <frosttools/raster.hpp>
+#include <frosttools/sysFiles.hpp>
 
 #include <pathProject.h>
 #include <pathDrawer.h>
@@ -52,8 +53,6 @@
 #include <hgeparticle.h>
 #include <hgeresource.h>
 #include <hgeguictrls.h>
-
-
 
 #define LUABOX_BINDER_SWIG
 #include <scripter.hpp>

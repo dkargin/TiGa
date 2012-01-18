@@ -101,9 +101,9 @@ class Core
 {
 public:
 	LogFILE logger;
-	bool setHGEViewport(Ihandle * handle);
+	//bool setHGEViewport(Ihandle * handle);
 	void startHGEChild(unsigned int HWND);	// run HGE as child window
-	Ihandle * startHGE();	
+	void * startHGE();	
 	void runHGE();							// run HGE host
 	void createWorld();						// create world
 	void worldPause(bool pause);
