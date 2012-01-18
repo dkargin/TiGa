@@ -510,8 +510,8 @@ bool CmdTakeItem::check(Unit *unit)
 	if(getState()==Wait)
 		return true;
 	
-	Pose::pos2 ipos = item->getPosition();
-	Pose::pos2 upos = unit->getPosition();
+	Pose::pos ipos = item->getPosition();
+	Pose::pos upos = unit->getPosition();
 	return vecDistance(ipos,upos) < minDist && item->state == Item::placeLand;
 }
 

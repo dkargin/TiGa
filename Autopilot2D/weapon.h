@@ -13,10 +13,28 @@ public:
 	virtual void onInstallWeapon(Weapon * object,int mount)=0;
 };
 
+struct WeaponData
+{
+	float timeShootDelay;	// задержка между выстрелами
+	float timeShootDuration;// длительность выстрела, для лучевых оружий
+	float timeReload;		// время перезарядки оружия
+	float muzzleOffset;		// откуда создаётся снаряд
+	int maxAmmo;			
+	float maxRange;			// max range
+	float spread;			// projectile spread, degrees
+	int barrels;			
+	float barrelDistance;	// distance between barrels
+	int animations;			// number of animations	
+	int burstSize;			// количество снарядов в одном залпе
+	float burstDelay;		// задержка между выстрелами в залпе
+	WeaponData();
+};
+
 class Weapon: public Device
 {
 	WeaponDef * definition;
 public:	
+	WeaponData weaponData;
 	float time;				// текущий счётчик	
 	int ammo;
 	bool fire;				
@@ -47,18 +65,7 @@ private:
 class WeaponDef: public DeviceDef
 {
 public:
-	float timeShootDelay;	// задержка между выстрелами
-	float timeShootDuration;// длительность выстрела, для лучевых оружий
-	float timeReload;		// время перезарядки оружия
-	float muzzleOffset;		// откуда создаётся снаряд
-	int maxAmmo;			
-	float maxRange;			// max range
-	float spread;			// projectile spread, degrees
-	int barrels;			
-	float barrelDistance;	// distance between barrels
-	int animations;			// number of animations	
-	int burstSize;			// количество снарядов в одном залпе
-	float burstDelay;		// задержка между выстрелами в залпе
+	WeaponData weaponData;
 	// параметры прожектильного оружия
 	ProjectileDef *projectile;
 

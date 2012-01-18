@@ -59,16 +59,16 @@ typedef Pose2z Pose;
 class PoseIn
 {
 public:
-	virtual const Pose::pos2 & getPosition() const =0;
-	virtual Pose::vec2 getDirection() const=0;
+	virtual const Pose::pos & getPosition() const =0;
+	virtual Pose::vec getDirection() const=0;
 	virtual Pose getPose()const=0;
 };
 
 class PoseOut
 {
 public:
-	virtual void setPosition(const Pose::pos2 &pos)=0;
-	virtual void setDirection(const Pose::vec2 &dir)=0;
+	virtual void setPosition(const Pose::pos &pos)=0;
+	virtual void setDirection(const Pose::vec &dir)=0;
 	virtual void setPose(const Pose &pose)=0;
 };
 
@@ -176,14 +176,14 @@ public:
 	void attachBody(b2Body * s);
 	const b2Body  * getBody() const;
 	b2Body  * getBody();
-	const Pose::pos2 & getPosition() const;
-	Pose::vec2 getDirection() const;
-	void setPosition(const Pose::pos2 &pos);
-	void setDirection(const Pose::vec2 &dir);
+	const Pose::pos & getPosition() const;
+	Pose::vec getDirection() const;
+	void setPosition(const Pose::pos &pos);
+	void setDirection(const Pose::vec &dir);
 	void setPose(const Pose &pose);
 	Pose getPose() const;
 
-	Pose::vec2 getVelocityLinear() const
+	Pose::vec getVelocityLinear() const
 	{
 		const b2Body * body = getBody();
 		if(body)

@@ -47,7 +47,7 @@ class ThrusterControl: public Mover
 {
 public:
 	ThrusterControl(ThrusterControlDef * def);
-	void directionControl(const Pose::vec2& direction, float speed);
+	void directionControl(const Pose::vec & direction, float speed);
 	//virtual float getMaxVelocity(int dir) const { return dir? definition->speedLinear : definition->speedAngular; }
 	bool validCommand(int port,DeviceCmd cmd)const;
 	int readState(IO::StreamIn &buffer);

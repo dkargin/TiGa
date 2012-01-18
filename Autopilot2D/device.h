@@ -150,7 +150,7 @@ public:
 	
 	// pose operation
 	virtual const Pose::pos& getPosition() const;
-	virtual Pose::vec2 getDirection() const;
+	virtual Pose::vec getDirection() const;
 	virtual const Pose& getPose()const;
 	virtual Pose getGlobalPose() const;
 protected:

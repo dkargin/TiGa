@@ -8,8 +8,6 @@ class WeaponTurret;
 class WeaponTurretDef;
 //typedef DevicePair<WeaponTurretDef,WeaponTurret,WeaponPair> WeaponTurretPair;
 
-
-
 class TurretDriver;
 class WeaponTurret: public Weapon//, virtual public ProtoImpl<WeaponTurret,Device>
 {
@@ -34,9 +32,9 @@ public:
 
 	virtual void update(float dt);	
 	virtual float getCurrentAngle() const;					// get current muzzle angle
-	virtual float getAngleTo(const Pose::pos2 &v) const;	// get angle to a given vector
+	virtual float getAngleTo(const Pose::pos &v) const;	// get angle to a given vector
 	virtual Pose getMuzzlePose();
-	bool canReach(const Pose::pos2 &v) const;				// if vector is in reachable zone
+	bool canReach(const Pose::pos &v) const;				// if vector is in reachable zone
 	bool fullTurn()const;							// if region [-180,180] is reachable
 	
 	DeviceDef * getDefinition();
@@ -47,6 +45,7 @@ public:
 	int execute_Direction(int port,DeviceCmd action,float value);
 	
 };
+
 class WeaponTurretDef: public WeaponDef
 {
 public:
@@ -74,8 +73,8 @@ class TurretDriverDef;
 struct TrackingInfo
 {
 	GameObjectPtr object;
-	Pose::pos2 pos;	// target position
-	Pose::vec2 vel;	// target velocity
+	Pose::pos pos;	// target position
+	Pose::vec vel;	// target velocity
 	float size;		// target size
 };
 
@@ -106,7 +105,7 @@ public:
 	DeviceDef * getDefinition();
 	bool validCommand(int port,DeviceCmd cmd)const;
 	virtual bool canControl(Device * device) const;
-	virtual int execute_Target(int port,DeviceCmd subtype,const Pose::pos2 &target);
+	virtual int execute_Target(int port,DeviceCmd subtype,const Pose::pos &target);
 
 	virtual void onInstallDevice(Device::Pointer device, int id);
 

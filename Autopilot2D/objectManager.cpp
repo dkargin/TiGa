@@ -134,8 +134,8 @@ void ObjectManager::loadState(IO::StreamIn & stream)
 
 bool ObjectManager::canSee(const Pose & pose, float range, float fov, GameObject * object)
 {
-	Pose::dir2 sourceDir = pose.getDirection();
-	Pose::vec2 delta = object->getPosition() - pose.getPosition(); 
+	Pose::dir sourceDir = pose.getDirection();
+	Pose::vec delta = object->getPosition() - pose.getPosition(); 
 
 	float distance = delta.length();
 
@@ -391,7 +391,7 @@ void ObjectManager::raycast(const Pose &ray,float range,RayHits & hits)
 	std::sort(hits.begin(),hits.end(),RayHitInfo::compare);
 }
 
-GameObjectPtr ObjectManager::objectAtPoint(const Pose::pos2 & pos)
+GameObjectPtr ObjectManager::objectAtPoint(const Pose::pos & pos)
 {
 	auto objects = objectsAtRange(pos,0);
 	return objects.empty()? NULL : objects.front();	

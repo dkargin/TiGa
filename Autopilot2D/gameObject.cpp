@@ -70,7 +70,7 @@ void SolidObject::updateSolidPose()
 	}
 }
 
-void SolidObject::setDirection(const Pose::vec2 &dir)
+void SolidObject::setDirection(const Pose::vec &dir)
 {
 	pose.setDirection(dir);
 	updateSolidPose();	

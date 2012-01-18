@@ -52,7 +52,7 @@ int WeaponTurret::execute_Direction(int port,DeviceCmd action,float value)
 
 Pose WeaponTurret::getMuzzlePose()
 {
-	return getGlobalPose() * Pose(vec2f(0.0f),getCurrentAngle()*3.1415/180.0) * Pose(vec2f(definition->muzzleOffset,0),0);
+	return getGlobalPose() * Pose(vec2f(0.0f),getCurrentAngle()*3.1415/180.0) * Pose(vec2f(weaponData.muzzleOffset,0),0);
 }
 
 void WeaponTurret::update(float dt)
@@ -60,7 +60,7 @@ void WeaponTurret::update(float dt)
 	Weapon::update(dt);
 	effects.setPose(pose * Pose(vec2f(0,0),getCurrentAngle()*3.1415/180.0));
 	
-	angle+=(direction*definition->velocity*dt);
+	angle+=(direction * definition->velocity*dt);
 	if(angle<-180)
 		angle+=360;
 	if(angle> 180)
@@ -76,13 +76,13 @@ float WeaponTurret::getCurrentAngle() const
 	return angle;
 }
 
-float WeaponTurret::getAngleTo(const Pose::pos2 &vec) const
+float WeaponTurret::getAngleTo(const Pose::pos &vec) const
 {
-	Pose::pos2 v = getGlobalPose().projectPos(vec);
+	Pose::pos v = getGlobalPose().projectPos(vec);
 	return atan2(v[1],v[0])*180.0f/M_PI;
 }
 
-bool WeaponTurret::canReach(const Pose::pos2 &v) const
+bool WeaponTurret::canReach(const Pose::pos &v) const
 {
 	float angle = getAngleTo(v);
 	return fabs(angle) < definition->dimensions;
@@ -213,7 +213,7 @@ bool TargetingSystem::validCommand(int port,DeviceCmd cmd)const
 	return port == portTarget && cmdIsTarget(cmd);
 }
 
-int TargetingSystem::execute_Target(int port,DeviceCmd subtype,const Pose::pos2 &target)
+int TargetingSystem::execute_Target(int port,DeviceCmd subtype,const Pose::pos &target)
 {
 	if(port != portTarget)
 		return 0;

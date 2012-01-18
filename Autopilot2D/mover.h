@@ -56,7 +56,7 @@ public:
 	virtual void setDriver(Driver * d);
 	virtual void clearDriver();	
 
-	virtual void directionControl(const Pose::vec2& direction, float speed) = 0;
+	virtual void directionControl(const Pose::vec& direction, float speed) = 0;
 	virtual float getMaxVelocity(int dir) const { return 0.f;}
 #ifdef DEVICE_RENDER
 	virtual void render(HGE * hge);

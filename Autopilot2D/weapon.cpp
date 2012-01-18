@@ -5,19 +5,24 @@
 #include "unit.h"
 #include "projectile.h"
 
-///////////////////////////////////////////////////////
-// Basic weapon definition
-///////////////////////////////////////////////////////
-
-WeaponDef::WeaponDef(DeviceManager &m):DeviceDef(m),/*beam(NULL),*/projectile(NULL),/*weaponType(weaponProjectile),*/timeShootDuration(1.f),timeShootDelay(1.f)
+WeaponData::WeaponData()
 {
-	//beamWidth = 1;
+	timeShootDuration = 1.f;
+	timeShootDelay = 1.f;
 	burstSize = 1;
 	burstDelay = 0;
 	spread = 0.03;
 	maxRange=1000;
 	barrels=1;
 	animations=1;
+}
+///////////////////////////////////////////////////////
+// Basic weapon definition
+///////////////////////////////////////////////////////
+
+WeaponDef::WeaponDef(DeviceManager &m):DeviceDef(m),/*beam(NULL),*/projectile(NULL)/*weaponType(weaponProjectile),*/
+{
+	//beamWidth = 1;	
 	invokerAction(0,HGEK_SPACE);
 }
 
@@ -40,20 +45,16 @@ float WeaponDef::getEffectiveRange()const
 ///////////////////////////////////////////////////////
 // Basic weapon
 ///////////////////////////////////////////////////////
-//Weapon::Weapon(DeviceManager * manager)
-//:Device(manager),time(0),fire(false)
-//{}
 Weapon::Weapon(WeaponDef *def,IO::StreamIn * buffer)
 :Device(def),definition(def),time(0),fire(false)/*,beam(NULL)*/,weaponState(stateReady)
 {	
+	memcpy(&weaponData, &def->weaponData,sizeof(weaponData));
 	burstLeft = 0;
 	if(def->fxShoot)
 	{
 		fxShoot = def->fxShoot->clone();
 		effects.attach(fxShoot);
 	}
-	//if(def->beam)
-	//	beam=dynamic_cast<FxBeam*>(effects.attach(def->beam->clone()));
 }
 
 Weapon::~Weapon()
@@ -99,11 +100,11 @@ void Weapon::shoot()
 
 void Weapon::doShoot(float dt)
 {
-	Pose spread(0,0,frand(definition->spread)*M_PI/180);
+	Pose spread(0,0,frand(weaponData.spread)*M_PI/180);
 	if(/*definition->weaponType==WeaponDef::weaponProjectile && */definition->projectile)
 	{
 		/// this conversion seems to be bad. Maybe better to use definition->construct ?
-		Projectile *object=dynamic_cast<Projectile*>(definition->projectile->create(NULL));
+		Projectile *object = dynamic_cast<Projectile*>(definition->projectile->create(NULL));
 		assert(object);
 
 		object->Source = getMaster();	/// let ignore out unit for collisions
@@ -137,7 +138,7 @@ void Weapon::updateBurst(float dt)
 	time -= dt;
 	while(burstLeft && time < 0.f)
 	{
-		time += definition->burstDelay;
+		time += weaponData.burstDelay;
 		burstLeft --;
 		doShoot(dt);		
 	}
@@ -148,7 +149,7 @@ void Weapon::updateBurst(float dt)
 			beam->stop();
 			beam->show(false);
 		}*/
-		time += definition->timeShootDelay;
+		time += weaponData.timeShootDelay;
 		weaponState = stateDelay;			
 	}
 }
@@ -176,7 +177,7 @@ bool Weapon::validCommand(int port,DeviceCmd cmd)const
 
 Pose Weapon::getMuzzlePose()
 {
-	return getGlobalPose()*Pose(definition->muzzleOffset,0,0);
+	return getGlobalPose()*Pose(weaponData.muzzleOffset,0,0);
 }
 
 int Weapon::execute_Action(int port)
@@ -204,8 +205,8 @@ int Weapon::execute_Action(int port)
 			
 			if(object)object->setPose(getMuzzlePose()*spread);			
 		}*/
-		time=definition->burstDelay;
-		burstLeft = definition->burstSize;
+		time = weaponData.burstDelay;
+		burstLeft = weaponData.burstSize;
 		weaponState = stateBurst;
 	}
 	return 1;	

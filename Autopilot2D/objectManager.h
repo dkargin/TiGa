@@ -418,8 +418,8 @@ public:
 		scene->RayCast(&raycaster,b2conv(ray.position),b2conv(ray.position + maxRange * ray.getDirection()));
 	}
 
-	GameObjectPtr objectAtPoint(const Pose::pos2 & pos);							/// get object in specific position
-	ObjectList objectsAtRange(const Pose::pos2 & pos,float distance);			/// get objects in circle area
+	GameObjectPtr objectAtPoint(const Pose::pos & pos);							/// get object in specific position
+	ObjectList objectsAtRange(const Pose::pos & pos,float distance);			/// get objects in circle area
 	ObjectList objectsAtSight(const Pose & pose, float distance,float fov);		/// get objects in vision segment
 
 	//virtual void updatePerception(Perception * p,float dt);
