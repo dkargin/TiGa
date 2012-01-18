@@ -1,0 +1,17 @@
+
+/obj
+/*/obj
+/*/*/obj
+
+*.ilk
+/*/*.ilk
+
+*.pdb
+/*/*.pdb
+*.log
+/*/*.log
+
+/game/bind.cpp
+*.exe
+*.exp
+*.lib

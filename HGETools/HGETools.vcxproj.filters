@@ -1,0 +1,133 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="native HGE">
+      <UniqueIdentifier>{1affd4f4-35f1-4075-b74e-4f89e8b2bbe8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="FX">
+      <UniqueIdentifier>{1dbd104d-3ca2-4b49-970a-2f0966428d07}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="UI">
+      <UniqueIdentifier>{c70cfb51-4ac8-4a42-a1d4-22558e5c7628}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="src\ReadMe.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="fxObjects.h">
+      <Filter>FX</Filter>
+    </ClInclude>
+    <ClInclude Include="src\stdafx.h" />
+    <ClInclude Include="hgeguictrls.h">
+      <Filter>UI</Filter>
+    </ClInclude>
+    <ClInclude Include="hgegui.h">
+      <Filter>UI</Filter>
+    </ClInclude>
+    <ClInclude Include="hgeanim.h">
+      <Filter>native HGE</Filter>
+    </ClInclude>
+    <ClInclude Include="hgecolor.h">
+      <Filter>native HGE</Filter>
+    </ClInclude>
+    <ClInclude Include="hgedistort.h">
+      <Filter>native HGE</Filter>
+    </ClInclude>
+    <ClInclude Include="hgefont.h">
+      <Filter>native HGE</Filter>
+    </ClInclude>
+    <ClInclude Include="hgeparticle.h">
+      <Filter>native HGE</Filter>
+    </ClInclude>
+    <ClInclude Include="hgerect.h">
+      <Filter>native HGE</Filter>
+    </ClInclude>
+    <ClInclude Include="hgeresource.h">
+      <Filter>native HGE</Filter>
+    </ClInclude>
+    <ClInclude Include="hgesprite.h">
+      <Filter>native HGE</Filter>
+    </ClInclude>
+    <ClInclude Include="hgestrings.h">
+      <Filter>native HGE</Filter>
+    </ClInclude>
+    <ClInclude Include="hgevector.h">
+      <Filter>native HGE</Filter>
+    </ClInclude>
+    <ClInclude Include="parser.h">
+      <Filter>native HGE</Filter>
+    </ClInclude>
+    <ClInclude Include="resources.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\resources.cpp" />
+    <ClCompile Include="src\stdafx.cpp" />
+    <ClCompile Include="src\fxAnimation.cpp">
+      <Filter>FX</Filter>
+    </ClCompile>
+    <ClCompile Include="src\fxParticles.cpp">
+      <Filter>FX</Filter>
+    </ClCompile>
+    <ClCompile Include="src\fxBeam.cpp">
+      <Filter>FX</Filter>
+    </ClCompile>
+    <ClCompile Include="src\fxManager.cpp">
+      <Filter>FX</Filter>
+    </ClCompile>
+    <ClCompile Include="src\hgegui.cpp">
+      <Filter>UI</Filter>
+    </ClCompile>
+    <ClCompile Include="src\hgeguictrls.cpp">
+      <Filter>UI</Filter>
+    </ClCompile>
+    <ClCompile Include="src\hgeanim.cpp">
+      <Filter>native HGE</Filter>
+    </ClCompile>
+    <ClCompile Include="src\parser.cpp">
+      <Filter>native HGE</Filter>
+    </ClCompile>
+    <ClCompile Include="src\hgecolor.cpp">
+      <Filter>native HGE</Filter>
+    </ClCompile>
+    <ClCompile Include="src\hgedistort.cpp">
+      <Filter>native HGE</Filter>
+    </ClCompile>
+    <ClCompile Include="src\hgefont.cpp">
+      <Filter>native HGE</Filter>
+    </ClCompile>
+    <ClCompile Include="src\hgeparticle.cpp">
+      <Filter>native HGE</Filter>
+    </ClCompile>
+    <ClCompile Include="src\hgepmanager.cpp">
+      <Filter>native HGE</Filter>
+    </ClCompile>
+    <ClCompile Include="src\hgerect.cpp">
+      <Filter>native HGE</Filter>
+    </ClCompile>
+    <ClCompile Include="src\hgeresource.cpp">
+      <Filter>native HGE</Filter>
+    </ClCompile>
+    <ClCompile Include="src\hgesprite.cpp">
+      <Filter>native HGE</Filter>
+    </ClCompile>
+    <ClCompile Include="src\hgestrings.cpp">
+      <Filter>native HGE</Filter>
+    </ClCompile>
+    <ClCompile Include="src\hgevector.cpp">
+      <Filter>native HGE</Filter>
+    </ClCompile>
+    <ClCompile Include="src\fxSound.cpp">
+      <Filter>FX</Filter>
+    </ClCompile>
+    <ClCompile Include="src\fxSprite.cpp">
+      <Filter>FX</Filter>
+    </ClCompile>
+    <ClCompile Include="src\fxEffect.cpp">
+      <Filter>FX</Filter>
+    </ClCompile>
+    <ClCompile Include="src\fxRenderQueue.cpp">
+      <Filter>FX</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>

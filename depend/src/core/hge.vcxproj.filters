@@ -1,0 +1,113 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{02f075b0-2c70-4c85-9bdf-0dbeddd18a53}</UniqueIdentifier>
+      <Extensions>cpp;c;cxx;rc;def;r;odl;idl;hpj;bat</Extensions>
+    </Filter>
+    <Filter Include="Source Files\ZLIB">
+      <UniqueIdentifier>{037d75f0-0abd-41c7-9041-c1425a491a3b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{7addb75c-c282-4561-bd21-8f0eee2951bf}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl</Extensions>
+    </Filter>
+    <Filter Include="Source Files\SOIL">
+      <UniqueIdentifier>{7700f2d9-e1b5-4121-903e-eedf51e59e34}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="demo.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="graphics.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ini.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="input.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="random.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="resource.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="sound.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="system.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="timer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ZLIB\adler32.c">
+      <Filter>Source Files\ZLIB</Filter>
+    </ClCompile>
+    <ClCompile Include="ZLIB\crc32.c">
+      <Filter>Source Files\ZLIB</Filter>
+    </ClCompile>
+    <ClCompile Include="ZLIB\inffast.c">
+      <Filter>Source Files\ZLIB</Filter>
+    </ClCompile>
+    <ClCompile Include="ZLIB\inflate.c">
+      <Filter>Source Files\ZLIB</Filter>
+    </ClCompile>
+    <ClCompile Include="ZLIB\inftrees.c">
+      <Filter>Source Files\ZLIB</Filter>
+    </ClCompile>
+    <ClCompile Include="ZLIB\ioapi.c">
+      <Filter>Source Files\ZLIB</Filter>
+    </ClCompile>
+    <ClCompile Include="ZLIB\trees.c">
+      <Filter>Source Files\ZLIB</Filter>
+    </ClCompile>
+    <ClCompile Include="ZLIB\uncompr.c">
+      <Filter>Source Files\ZLIB</Filter>
+    </ClCompile>
+    <ClCompile Include="ZLIB\unzip.c">
+      <Filter>Source Files\ZLIB</Filter>
+    </ClCompile>
+    <ClCompile Include="ZLIB\zutil.c">
+      <Filter>Source Files\ZLIB</Filter>
+    </ClCompile>
+    <ClCompile Include="power.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="SOIL\image_DXT.c">
+      <Filter>Source Files\SOIL</Filter>
+    </ClCompile>
+    <ClCompile Include="SOIL\SOIL.c">
+      <Filter>Source Files\SOIL</Filter>
+    </ClCompile>
+    <ClCompile Include="SOIL\stb_image_aug.c">
+      <Filter>Source Files\SOIL</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\include\hge.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="hge_impl.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="SOIL\stbi_DDS_aug_c.h">
+      <Filter>Source Files\SOIL</Filter>
+    </ClInclude>
+    <ClInclude Include="SOIL\image_DXT.h">
+      <Filter>Source Files\SOIL</Filter>
+    </ClInclude>
+    <ClInclude Include="SOIL\SOIL.h">
+      <Filter>Source Files\SOIL</Filter>
+    </ClInclude>
+    <ClInclude Include="SOIL\stb_image_aug.h">
+      <Filter>Source Files\SOIL</Filter>
+    </ClInclude>
+    <ClInclude Include="SOIL\stbi_DDS_aug.h">
+      <Filter>Source Files\SOIL</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>

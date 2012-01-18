@@ -1,0 +1,146 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{c13c01cc-ca2a-4e7f-8cab-b84c107f12dc}</UniqueIdentifier>
+      <Extensions>cpp;c;cxx;rc;def;r;odl;idl;hpj;bat</Extensions>
+    </Filter>
+    <Filter Include="Source Files\ZLIB">
+      <UniqueIdentifier>{22ac7cbd-047e-4bfc-8c18-e7336ecb2c86}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\libPNG">
+      <UniqueIdentifier>{42e03e18-26c5-402f-a03e-e509f17e7da6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{34670a52-1140-4060-878b-b9e5ceff3e81}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl</Extensions>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="optimized_texture.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="RectPlacement.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="sprite_object.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="texasm.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="texture_assembler.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="writePNG.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ZLIB\adler32.c">
+      <Filter>Source Files\ZLIB</Filter>
+    </ClCompile>
+    <ClCompile Include="ZLIB\compress.c">
+      <Filter>Source Files\ZLIB</Filter>
+    </ClCompile>
+    <ClCompile Include="ZLIB\crc32.c">
+      <Filter>Source Files\ZLIB</Filter>
+    </ClCompile>
+    <ClCompile Include="ZLIB\deflate.c">
+      <Filter>Source Files\ZLIB</Filter>
+    </ClCompile>
+    <ClCompile Include="ZLIB\gzio.c">
+      <Filter>Source Files\ZLIB</Filter>
+    </ClCompile>
+    <ClCompile Include="ZLIB\infback.c">
+      <Filter>Source Files\ZLIB</Filter>
+    </ClCompile>
+    <ClCompile Include="ZLIB\inffast.c">
+      <Filter>Source Files\ZLIB</Filter>
+    </ClCompile>
+    <ClCompile Include="ZLIB\inflate.c">
+      <Filter>Source Files\ZLIB</Filter>
+    </ClCompile>
+    <ClCompile Include="ZLIB\inftrees.c">
+      <Filter>Source Files\ZLIB</Filter>
+    </ClCompile>
+    <ClCompile Include="ZLIB\trees.c">
+      <Filter>Source Files\ZLIB</Filter>
+    </ClCompile>
+    <ClCompile Include="ZLIB\uncompr.c">
+      <Filter>Source Files\ZLIB</Filter>
+    </ClCompile>
+    <ClCompile Include="ZLIB\zutil.c">
+      <Filter>Source Files\ZLIB</Filter>
+    </ClCompile>
+    <ClCompile Include="libPNG\png.c">
+      <Filter>Source Files\libPNG</Filter>
+    </ClCompile>
+    <ClCompile Include="libPNG\pngerror.c">
+      <Filter>Source Files\libPNG</Filter>
+    </ClCompile>
+    <ClCompile Include="libPNG\pnggccrd.c">
+      <Filter>Source Files\libPNG</Filter>
+    </ClCompile>
+    <ClCompile Include="libPNG\pngget.c">
+      <Filter>Source Files\libPNG</Filter>
+    </ClCompile>
+    <ClCompile Include="libPNG\pngmem.c">
+      <Filter>Source Files\libPNG</Filter>
+    </ClCompile>
+    <ClCompile Include="libPNG\pngpread.c">
+      <Filter>Source Files\libPNG</Filter>
+    </ClCompile>
+    <ClCompile Include="libPNG\pngread.c">
+      <Filter>Source Files\libPNG</Filter>
+    </ClCompile>
+    <ClCompile Include="libPNG\pngrio.c">
+      <Filter>Source Files\libPNG</Filter>
+    </ClCompile>
+    <ClCompile Include="libPNG\pngrtran.c">
+      <Filter>Source Files\libPNG</Filter>
+    </ClCompile>
+    <ClCompile Include="libPNG\pngrutil.c">
+      <Filter>Source Files\libPNG</Filter>
+    </ClCompile>
+    <ClCompile Include="libPNG\pngset.c">
+      <Filter>Source Files\libPNG</Filter>
+    </ClCompile>
+    <ClCompile Include="libPNG\pngtrans.c">
+      <Filter>Source Files\libPNG</Filter>
+    </ClCompile>
+    <ClCompile Include="libPNG\pngvcrd.c">
+      <Filter>Source Files\libPNG</Filter>
+    </ClCompile>
+    <ClCompile Include="libPNG\pngwio.c">
+      <Filter>Source Files\libPNG</Filter>
+    </ClCompile>
+    <ClCompile Include="libPNG\pngwrite.c">
+      <Filter>Source Files\libPNG</Filter>
+    </ClCompile>
+    <ClCompile Include="libPNG\pngwtran.c">
+      <Filter>Source Files\libPNG</Filter>
+    </ClCompile>
+    <ClCompile Include="libPNG\pngwutil.c">
+      <Filter>Source Files\libPNG</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="gfx_object.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="optimized_texture.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="RectPlacement.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="sprite_object.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="texasm.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="texture_assembler.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>

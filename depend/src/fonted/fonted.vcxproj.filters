@@ -1,0 +1,137 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{c2fca23b-08c9-477c-98f3-72590482096d}</UniqueIdentifier>
+      <Extensions>cpp;c;cxx;rc;def;r;odl;idl;hpj;bat</Extensions>
+    </Filter>
+    <Filter Include="Source Files\libPNG">
+      <UniqueIdentifier>{b2508a89-66a2-4b8b-a9da-20042c529f7d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\ZLIB">
+      <UniqueIdentifier>{ee2a8e22-b2e6-4cfe-a645-d713fe235e2d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{17732b9e-f083-47e7-8527-51cc2cc35af5}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl</Extensions>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="commands.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="fonted.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="fontlist.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="generate.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="hgeguirange.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="savepng.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="libPNG\png.c">
+      <Filter>Source Files\libPNG</Filter>
+    </ClCompile>
+    <ClCompile Include="libPNG\pngerror.c">
+      <Filter>Source Files\libPNG</Filter>
+    </ClCompile>
+    <ClCompile Include="libPNG\pnggccrd.c">
+      <Filter>Source Files\libPNG</Filter>
+    </ClCompile>
+    <ClCompile Include="libPNG\pngget.c">
+      <Filter>Source Files\libPNG</Filter>
+    </ClCompile>
+    <ClCompile Include="libPNG\pngmem.c">
+      <Filter>Source Files\libPNG</Filter>
+    </ClCompile>
+    <ClCompile Include="libPNG\pngpread.c">
+      <Filter>Source Files\libPNG</Filter>
+    </ClCompile>
+    <ClCompile Include="libPNG\pngread.c">
+      <Filter>Source Files\libPNG</Filter>
+    </ClCompile>
+    <ClCompile Include="libPNG\pngrio.c">
+      <Filter>Source Files\libPNG</Filter>
+    </ClCompile>
+    <ClCompile Include="libPNG\pngrtran.c">
+      <Filter>Source Files\libPNG</Filter>
+    </ClCompile>
+    <ClCompile Include="libPNG\pngrutil.c">
+      <Filter>Source Files\libPNG</Filter>
+    </ClCompile>
+    <ClCompile Include="libPNG\pngset.c">
+      <Filter>Source Files\libPNG</Filter>
+    </ClCompile>
+    <ClCompile Include="libPNG\pngtrans.c">
+      <Filter>Source Files\libPNG</Filter>
+    </ClCompile>
+    <ClCompile Include="libPNG\pngvcrd.c">
+      <Filter>Source Files\libPNG</Filter>
+    </ClCompile>
+    <ClCompile Include="libPNG\pngwio.c">
+      <Filter>Source Files\libPNG</Filter>
+    </ClCompile>
+    <ClCompile Include="libPNG\pngwrite.c">
+      <Filter>Source Files\libPNG</Filter>
+    </ClCompile>
+    <ClCompile Include="libPNG\pngwtran.c">
+      <Filter>Source Files\libPNG</Filter>
+    </ClCompile>
+    <ClCompile Include="libPNG\pngwutil.c">
+      <Filter>Source Files\libPNG</Filter>
+    </ClCompile>
+    <ClCompile Include="ZLIB\adler32.c">
+      <Filter>Source Files\ZLIB</Filter>
+    </ClCompile>
+    <ClCompile Include="ZLIB\compress.c">
+      <Filter>Source Files\ZLIB</Filter>
+    </ClCompile>
+    <ClCompile Include="ZLIB\crc32.c">
+      <Filter>Source Files\ZLIB</Filter>
+    </ClCompile>
+    <ClCompile Include="ZLIB\deflate.c">
+      <Filter>Source Files\ZLIB</Filter>
+    </ClCompile>
+    <ClCompile Include="ZLIB\gzio.c">
+      <Filter>Source Files\ZLIB</Filter>
+    </ClCompile>
+    <ClCompile Include="ZLIB\infback.c">
+      <Filter>Source Files\ZLIB</Filter>
+    </ClCompile>
+    <ClCompile Include="ZLIB\inffast.c">
+      <Filter>Source Files\ZLIB</Filter>
+    </ClCompile>
+    <ClCompile Include="ZLIB\inflate.c">
+      <Filter>Source Files\ZLIB</Filter>
+    </ClCompile>
+    <ClCompile Include="ZLIB\inftrees.c">
+      <Filter>Source Files\ZLIB</Filter>
+    </ClCompile>
+    <ClCompile Include="ZLIB\trees.c">
+      <Filter>Source Files\ZLIB</Filter>
+    </ClCompile>
+    <ClCompile Include="ZLIB\uncompr.c">
+      <Filter>Source Files\ZLIB</Filter>
+    </ClCompile>
+    <ClCompile Include="ZLIB\zutil.c">
+      <Filter>Source Files\ZLIB</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="fonted.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="fontlist.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="hgeguirange.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>
