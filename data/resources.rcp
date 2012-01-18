@@ -1,0 +1,7 @@
+core_setRootPath([[c:\dev\projects\tiga2d\data]])
+Models = {
+	new_sound = fxSound
+	{
+		file = [[menu.wav]],
+
+	}}

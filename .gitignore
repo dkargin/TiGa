@@ -3,6 +3,11 @@
 /*/obj
 /*/*/obj
 
+/Thumbs.db
+/*/Thumbs.db
+/*/*/Thumbs.db
+/*/*/*/Thumbs.db
+
 *.ilk
 /*/*.ilk
 
@@ -15,3 +20,6 @@
 *.exe
 *.exp
 *.lib
+/project/Release
+/project/Debug
+/project/ipch

@@ -1,0 +1,27 @@
+..\..\alphakey.exe Boba_sec01.png converted/Boba_sec01.png
+..\..\alphakey.exe Boba_sec02.png converted/Boba_sec02.png
+..\..\alphakey.exe Boba_sec03.png converted/Boba_sec03.png
+..\..\alphakey.exe Boba_sec04.png converted/Boba_sec04.png
+..\..\alphakey.exe Bluh_sec01.png converted/Bluh_sec01.png
+..\..\alphakey.exe Bluh_sec02.png converted/Bluh_sec02.png 
+..\..\alphakey.exe Dan_sec01.png converted/Dan_sec01.png
+..\..\alphakey.exe Dan_sec02.png converted/Dan_sec02.png
+..\..\alphakey.exe Dan_sec03.png converted/Dan_sec03.png
+..\..\alphakey.exe Dan_sec04.png converted/Dan_sec04.png
+..\..\alphakey.exe Dan_sec05.png converted/Dan_sec05.png
+..\..\alphakey.exe Dan_sec06.png converted/Dan_sec06.png
+..\..\alphakey.exe Dan_sec07.png converted/Dan_sec07.png
+..\..\alphakey.exe Dan_sec08.png converted/Dan_sec08.png
+..\..\alphakey.exe Dan_sec09.png converted/Dan_sec09.png
+..\..\alphakey.exe Syn_sec01.png converted/Syn_sec01.png
+..\..\alphakey.exe Syn_sec02.png converted/Syn_sec02.png
+..\..\alphakey.exe Syn_sec03.png converted/Syn_sec03.png
+..\..\alphakey.exe Syn_sec04.png converted/Syn_sec04.png
+..\..\alphakey.exe Syn_sec05.png converted/Syn_sec05.png
+..\..\alphakey.exe Syn_sec06.png converted/Syn_sec06.png
+..\..\alphakey.exe Syn_sec07.png converted/Syn_sec07.png
+..\..\alphakey.exe Syn_sec08.png converted/Syn_sec08.png
+..\..\alphakey.exe Syn_sec09.png converted/Syn_sec09.png
+..\..\alphakey.exe Syn_sec10.png converted/Syn_sec10.png
+..\..\alphakey.exe Syn_sec11.png converted/Syn_sec11.png
+pause
