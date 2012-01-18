@@ -7,25 +7,8 @@ class MenuWindow;
 class Game;
 class World;
 class ShipyardWindow;
-
-class GameplayWindow : public GUI::Object
-{
-public:
-	
-	GameplayWindow(Game * core);
-};
-
-class MenuWindow : public GUI::Frame
-{
-public:
-	MenuWindow(Game * core);
-	~MenuWindow();
-
-	void addTestScene(const char * scene);
-	bool onMouseMove(int mouseId, const uiVec & vec, MoveState state);
-	Instance<GUI::Button> options, exit, start;
-	std::list<GUI::Button*> scenes;
-};
+class GameplayWindow;
+class GameData;
 
 class Game : public Core
 {
@@ -34,15 +17,17 @@ public:
 	~Game();
 
 	std::list<std::string> sceneNames;
+
 	SharedPtr<MenuWindow> mainMenu;
 	SharedPtr<GameplayWindow> gameplay;
 	SharedPtr<ShipyardWindow> shipyard;
+
+	SharedPtr<GameData> gameData;
 	World * world;
 	WeakPtr<GUI::Object> active;
  
 	virtual void onRender();
 	virtual void onUpdate();
-
 	virtual void registerTestScene(const char * scene);
 
 	virtual void createWorld();
@@ -59,4 +44,89 @@ const float buttonHeight = 20;
 const float buttonSpacing = 5;
 
 const DWORD clrButtons = ARGB(255,128,128,128);
+
+struct TileSectionDesc
+{
+	size_t spriteId;
+	unsigned char sizeX, sizeY; 
+
+	int type;
+	size_t strNameId;			// string id for section name
+	size_t strDescriptionId;	// string id for section description
+	unsigned short mass;
+	unsigned short health;
+	unsigned short cost;
+	//TileSectionDesc();
+};
+
+struct DeviceSectionDesc
+{
+	unsigned char sizeX, sizeY;
+	int type;
+	size_t strNameId;			// string id for section name
+	size_t strDescriptionId;	// string id for section description
+
+	unsigned short mass;
+	unsigned short health;
+	unsigned short cost;
+};
+
+/// Provides storage for:
+/// - resources
+/// - tile description
+/// - blueprints
+class GameData : public Referenced
+{
+public:
+	GameData(Game * game);
+	~GameData();
+	/// fast access
+	FxSpritePtr getSectionSprite(size_t sectionId);	
+	FxSpritePtr getSprite(size_t spriteId);
+	/// resources
+	std::vector<TileSectionDesc> sections;
+	std::vector<FxSpritePtr> sprites;				/// cached sprites	
+	std::vector<std::string> strings;				/// string resources
+};
+
+/// Describes ship layout
+struct ShipBlueprint : public Referenced
+{
+	struct Block
+	{
+		short x, y;					// tile coordinates
+		short direction;			// tile direction
+		unsigned short tileType;	
+	};
+	Block * blocks;
+	size_t blocksCount;
+
+	struct Device
+	{
+		short x, y;					// tile coordinates
+		short angle;				// device orientation in degrees
+		unsigned short deviceType;	// device type
+	};
+
+	Device * devices;
+	size_t devicesCount;
+
+	char name[255];				// ship name
+
+	ShipBlueprint();
+	~ShipBlueprint();
+
+	size_t findBlock(int x, int y, SharedPtr<GameData> gameData);	// find first block
+	bool addBlock(Block * source);
+
+	unsigned int getTotalCost() const;
+	unsigned int getTotalMass() const;
+	/// remove all blueprint contents
+	void reset();	
+	/// copy all data from <source>
+	void copy(ShipBlueprint * source, bool suffix = false);	
+	/// serialisation
+	void load(IO::StreamIn & stream);
+	void save(IO::StreamOut & stream);
+};
 #endif

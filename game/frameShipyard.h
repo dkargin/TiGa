@@ -3,13 +3,7 @@
 
 class ShipyardWindow;
 
-struct SectionDesc
-{
-	FxSpritePtr sprite;
-	int sizeX;
-	int sizeY;
-	int type;
-};
+const int ShipyardCellsMax = 6;
 
 class ShipyardArea : public GUI::Object
 {
@@ -17,51 +11,59 @@ public:
 	ShipyardArea(ShipyardWindow * shipyard);
 	~ShipyardArea();
 
-	struct Tile
+	struct Cell
 	{
-		int x; 
-		int y;
-		FxSpritePtr sprite;
-		size_t links[4];
+		size_t blockId;
+		size_t objectId;
 	};
-
-	struct Link
-	{
-		size_t tiles[2];
-	};
+	Cell cells[ShipyardCellsMax * ShipyardCellsMax];
+	int cellsCenterX, cellsCenterY, cellsWidth, cellsHeight;
 
 	vec2i selectedCell;
 
-	std::vector<Tile> tiles;
-	std::vector<Link> links;
+	ShipBlueprint blueprint;
 
 	float tileSize;
 	float tileOffsetX, tileOffsetY;
 	WeakPtr<ShipyardWindow> shipyard;
-
+	
+	// blueprints
+	void setBlueprint( ShipBlueprint * blueprint, bool locked );
+	void getBlueprint( ShipBlueprint * blueprint );
+	// view
 	size_t findTile( int x, int y );
-	void addTile( int x, int y, FxSpritePtr sprite );	
+	void addTile( int x, int y, size_t pickedBlock );	
 	vec2i screenToLocal( const uiVec & vec );
+
+	bool canPlaceTile( int x, int y, size_t pickedBlock );
+	bool canPlaceObject( int x, int y, size_t picledObject);
+
+	void updateCells();	
+
+	void clearContents();
 	// UI handlers
 	virtual void onRender();
 	virtual bool onMouse(int mouseId, int key, int state, const uiVec & vec);
 	virtual bool onMouseMove(int mouseId,  const uiVec & vec, MoveState state );
-
+	// Helpers
 	vec2i screenCellCenter( const vec2i & cell ) const;
 	hgeRect screenCellRect( const vec2i & cell ) const;
+
+	const TileSectionDesc & getSectionDesc(size_t id) const;
 };
 
-
+enum ShipyardEditMode
+{
+	Normal,
+	CreateTile,
+	SelectedTile,
+	DragTile,
+	DragDevice,
+};
 class ShipyardWindow : public GUI::Object
 {
 public:
-	enum Mode
-	{
-		Normal,
-		CreateTile,
-		DragTile,
-		DragDevice,
-	}controlMode;
+	ShipyardEditMode controlMode;
 
 	size_t pickedSection;
 
@@ -73,16 +75,21 @@ public:
 	Instance<GUI::Button> tiles, objects, designTest, designSave;
 	Instance<ShipyardArea> shipyardArea;
 	Instance <GUI::Slider> toolboxSlider;
-	std::vector<SectionDesc> sections;
+	
 	std::list<SharedPtr<GUI::Object> > contents;
 //	std::list<GUI::Button*> tileTypes;
 //	std::list<GUI::Button*> objectTypes;
 // shipyard specific
 	void showTiles();
 	void showObjects();
-	void setControlMode( Mode mode );
+	void setControlMode( ShipyardEditMode mode );
 	void selectTile(size_t tileId);
 	void clearContents();
 	void addListboxItem( GUI::Object * object );
+
+	void setBlueprint( ShipBlueprint * blueprint, bool locked );
+	void getBlueprint( ShipBlueprint * blueprint );
+
+	FxSpritePtr getSectionSprite(size_t sectionId);	
 };
 #endif
