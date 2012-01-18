@@ -25,6 +25,8 @@ namespace GUI
 		color = 0xFFFFFFFF; 
 		hge=hgeCreate(HGE_VERSION);
 		clipChildren = false;
+		contentsWidth = false;
+		contentsHeight = false;
 	}
 
 	Object::~Object()
@@ -83,7 +85,7 @@ namespace GUI
 
 	void Object::detach(const Object::Pointer & object)
 	{
-		auto it = std::find(children.begin(), children.end(), object);
+		Children::iterator it = std::find(children.begin(), children.end(), object);
 		if(it != children.end())
 			children.erase(it);
 	}
@@ -92,21 +94,21 @@ namespace GUI
 	{	
 		onUpdate(dt);
 
-		for(auto it = children.begin(); it != children.end(); ++it)
+		for(Children::iterator it = children.begin(); it != children.end(); ++it)
 		{
 			Object * object = it->get();
 			if(object != NULL)
 				object->callUpdate(dt);
 		}
 	}
-
+	/*
 	hgeRect Object::calculateChildrenRect() const
 	{	
 		// TODO:
 		if( children.empty() )
 			return hgeRect();
 		hgeRect result;
-		for(auto it = children.begin(); it != children.end(); ++it)
+		for(Children::const_iterator it = children.begin(); it != children.end(); ++it)
 		{
 			Object * object = it->get();
 			if(object != NULL)
@@ -116,16 +118,47 @@ namespace GUI
 		}
 		return result;
 	}
-
+	
 	void Object::runLayout()
 	{
 
 	}
-
+	*/
 	hgeRect Object::calculateContentsRect() const
-	{
-		// TODO:
-		hgeRect result;
+	{		
+		hgeRect result;		
+		bool first = true;
+
+		for(Children::const_iterator it = children.begin(); it != children.end(); ++it)
+		{
+			Object * child = it->get();
+			hgeRect childRect = child->getRect();
+
+			if( child->contentsWidth || child->contentsHeight )
+			{
+				hgeRect childContentsRect = child->calculateContentsRect();
+
+				if( child->contentsWidth )
+				{
+					childRect.x1 = childContentsRect.x1;
+					childRect.x2 = childContentsRect.x2;
+				}
+				if( child->contentsHeight )
+				{
+					childRect.y1 = childContentsRect.y1;
+					childRect.y2 = childContentsRect.y2;
+				}
+			}
+			if( first )
+			{
+				result = childRect;
+				first = false;
+			}
+			else
+			{
+				result = hgeRect::Merge(result, childRect);
+			}
+		}
 		return result;
 	}
 
@@ -134,8 +167,8 @@ namespace GUI
 		if( layouting != flag )
 		{
 			layouting = flag;
-			if( layouting )
-				runLayout();
+			//if( layouting )
+			//	runLayout();
 		}
 	}
 
@@ -163,16 +196,31 @@ namespace GUI
 				
 		//clip = hgeRect::Intersect(getClientRect(),clipRect);
 		// render children
-		for(auto it = children.begin(); it != children.end(); ++it)
+		for(Children::iterator it = children.begin(); it != children.end(); ++it)
 		{
 			Object * object = it->get();
 			if(object)
 				object->callRender(clip);
 		}		
-		
 	}
 
-	bool Object::callMouseMove( int mouseId, const uiVec & vec )
+	void Object::findObject( const vec2f & vec, bool forceAll, std::function<ObjectIterator> fn)
+	{
+		if(!forceAll && (!visible || !enabled))
+			return;
+		hgeRect rect = getRect();
+		if(!rect.TestPoint(vec[0], vec[1]))
+			return;
+		if(fn && fn(this))
+			return;
+		for(Children::iterator it = children.begin(); it != children.end(); ++it)
+		{
+			Object * object = it->get();			
+			object->findObject(vec, forceAll, fn);
+		}
+	}
+
+	bool Object::callMouseMove( int mouseId, const uiVec & vec, Object::MoveState state )
 	{
 		if(!visible || !enabled)
 			return false;
@@ -180,19 +228,18 @@ namespace GUI
 		// test if point is outside
 		if(!rect.TestPoint(vec[0], vec[1]))
 			return false;
-
 		// if we have any handler - use it, or update children instead
-		if(onMouseMove(mouseId, vec))
+		if(onMouseMove(mouseId, vec, state))
 			return true;
+		
 		// update children
-		bool res = false;
-		for(auto it = children.begin(); it != children.end(); ++it)
+		for(Children::iterator it = children.begin(); it != children.end(); ++it)
 		{
-			Object * object = it->get();
-			if(object != NULL)
-				res = res || object->callMouseMove(mouseId, vec);
+			Object * object = it->get();						
+			if( object->callMouseMove(mouseId, vec, state) )
+				return true;
 		}
-		return res;
+		return false;
 	}
 
 	bool Object::callMouse( int mouseId, int key, int state, const uiVec & vec )
@@ -209,11 +256,13 @@ namespace GUI
 			return true;
 		// update children
 		bool res = false;
-		for(auto it = children.begin(); it != children.end(); ++it)
+		for(Children::iterator it = children.begin(); it != children.end(); ++it)
 		{
 			Object * object = it->get();
 			if(object != NULL)
 				res = res || object->callMouse(mouseId, key, state, vec);
+			if( res )
+				break;
 		}
 		return res;
 	}
@@ -295,7 +344,7 @@ namespace GUI
 	{
 		hgeRect oldRect = getRect();
 		windowRect = rect;
-		for(auto it = children.begin(); it != children.end(); ++it)
+		for(Children::iterator it = children.begin(); it != children.end(); ++it)
 			calculateLayout(*it);
 		onSize(rect.width(), rect.height());
 	}

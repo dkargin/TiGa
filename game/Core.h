@@ -24,6 +24,7 @@ public:
 	{
 		vec2f screenPosition;
 		FxPointer effect;
+		WeakPtr<GUI::Object> selected;
 		enum Type
 		{
 			Disabled,

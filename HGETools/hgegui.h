@@ -98,36 +98,48 @@ namespace GUI
 		hgeRect			windowRect;
 		DWORD			color;
 
+		enum MoveState
+		{
+			MoveEnter,
+			MoveRemain,
+			MoveLeave
+		};
 		// event handlers
 		virtual bool onMouse(int mouseId, int key, int state, const uiVec & vec) {return false;}	
-		virtual bool onMouseMove(int mouseId, const uiVec & vec) { return false;}
+		virtual bool onMouseMove(int mouseId, const uiVec & vec, MoveState state = MoveRemain) { return false;}
 		// event callers
-		virtual bool callMouseMove(int mouseId, const uiVec & vec);
+		virtual bool callMouseMove(int mouseId, const uiVec & vec, MoveState state = MoveRemain);
 		virtual bool callMouse(int mouseId, int key, int state, const uiVec & vec);
 		virtual void callKeyClick(int key, int chr);
 		virtual void callRender(const hgeRect & clipRect);
 		virtual void callUpdate(float dt);
 		HGE * getHGE();
-		void enableLayouting( bool flag );		
+		void enableLayouting( bool flag );	
+
+		typedef bool ObjectIterator( Object * object);
+		void findObject(const uiVec & vec, bool forceAll, std::function<ObjectIterator> fn);
 	protected:
-		virtual void runLayout();
+		//virtual void runLayout();
+		void calculateLayout(const Pointer & object);			// calculate layout for specific object
+		//virtual hgeRect calculateChildrenRect() const;
+		virtual hgeRect calculateContentsRect() const;
 		float desiredX, desiredY, desiredWidth, desiredHeight;	// desired control size
 		AlignType alignHor, alignVer;							// alignment to parent
 		float borderSize, margin;
-		bool visible;											// if object is visible
-		bool enabled;											// if object responds to events	
-		std::list<Pointer> children;
-		WeakPtr<Object> parent;											// parent object
+		
+		typedef std::list<Pointer> Children;
+		Children children;
+		WeakPtr<Object> parent;									// parent object
 		int cellX, cellY, cellWidth, cellHeight;
 		bool clipChildren;
-	
+		bool visible;											// if object is visible
+		bool enabled;											// if object responds to events	
+		bool contentsWidth, contentsHeight;						// auto expand to contents size
 		HGE * hge;
 	private:
 		bool layoutUpdated;	
 		bool layouting;
- 		void calculateLayout(const Pointer & object);			// calculate layout for specific object
-		virtual hgeRect calculateChildrenRect() const;
-		virtual hgeRect calculateContentsRect() const;
+ 		
 		void detach(const Pointer & object);
 		// do not use it
 		Object(const Object &go);

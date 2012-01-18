@@ -22,6 +22,7 @@ public:
 	~MenuWindow();
 
 	void addTestScene(const char * scene);
+	bool onMouseMove(int mouseId, const uiVec & vec, MoveState state);
 	Instance<GUI::Button> options, exit, start;
 	std::list<GUI::Button*> scenes;
 };

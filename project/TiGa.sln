@@ -25,7 +25,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Console", "Console.vcxproj"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SolidBlocks", "..\prototypes\SolidBlocks.vcxproj", "{B8DBD263-FBA4-4CF5-8E27-E2F7140FD9B8}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "FrostTools", "..\frosttools\FrostTools\FrostTools.vcxproj", "{1044CCF7-BC60-4E1F-9747-E909CFC0D16C}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "FrostTools", "..\..\frosttools\FrostTools\FrostTools.vcxproj", "{1044CCF7-BC60-4E1F-9747-E909CFC0D16C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

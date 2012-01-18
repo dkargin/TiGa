@@ -145,12 +145,57 @@ bool Core::RestoreFunc()
 
 void Core::uiProcessEvent()
 {
-	for(size_t i = 0; i < 255; ++i)
+	vec2f mousePos;
+	hge->Input_GetMousePos(mousePos + 0, mousePos + 1);
+	//guiRoot->callMouseMove(0, mousePos);
+	//WeakPtr<GUI::Object> selected;
+	
+	WeakPtr<GUI::Object> selected = cursor[0].selected;
+	
+	bool findNew = false;
+	if( selected )
 	{
-		vec2f mousePos;
-		hge->Input_GetMousePos(mousePos + 0, mousePos + 1);
-		guiRoot->callMouseMove(0, mousePos);
-		bool newState = hge->Input_GetKeyState(i);		
+		if( selected->getRect().TestPoint(mousePos[0], mousePos[1]) )
+		{
+			if(!selected->onMouseMove(0, mousePos, GUI::Object::MoveRemain))
+				findNew = true;	// reset selection, so we would not change active window
+		}
+		else
+		{
+			selected->onMouseMove(0, mousePos, GUI::Object::MoveLeave);
+			findNew = true;
+			// find another window to notify
+		}
+	}
+	else
+		findNew = true;
+	
+	/// if <selected> is not empty, we try to find another window 
+	if(findNew)
+	{
+		GUI::Object * newSelected = selected;
+		guiRoot->findObject(mousePos, false, [&newSelected, mousePos](GUI::Object * object)->bool
+		{
+			if( object != newSelected)
+			{
+				if(!object->onMouseMove(0, mousePos, GUI::Object::MoveEnter))
+					return false;	// continue search
+			}
+			else 
+				return false;
+			newSelected = object;
+			return true;			// stop search
+		});
+		if( cursor[0].selected != newSelected )
+			cursor[0].selected = newSelected;
+		else
+			cursor[0].selected = NULL;
+	}
+	
+	for(size_t i = 0; i < 255; ++i)
+	{		
+		bool newState = hge->Input_GetKeyState(i);
+		
 		if(newState != keyState[i])
 		{
 			

@@ -44,7 +44,7 @@ vec2i ShipyardArea::screenToLocal( const uiVec & vec )
 	return vec2i( x, y );
 }
 
-bool ShipyardArea::onMouse(int key, int state, const uiVec & vec)
+bool ShipyardArea::onMouse(int mouseId, int key, int state, const uiVec & vec)
 {
 	selectedCell = screenToLocal(vec);
 	if( key == 0 && shipyard->controlMode == ShipyardWindow::CreateTile )
@@ -56,7 +56,7 @@ bool ShipyardArea::onMouse(int key, int state, const uiVec & vec)
 	return true;
 }
 
-bool ShipyardArea::onMouseMove( const uiVec & vec )
+bool ShipyardArea::onMouseMove( int mouseId, const uiVec & vec, ShipyardArea::MoveState state)
 {
 	selectedCell = screenToLocal(vec);
 	return true;
@@ -192,6 +192,7 @@ ShipyardWindow::ShipyardWindow(Game * game)
 
 	toolbox->color = ARGB(255,0,0,0);
 	toolbox->clrFrame = ARGB(255,0,255,0);
+	toolbox->slideVer = true;
 
 	font = game->font;
 
@@ -206,11 +207,16 @@ ShipyardWindow::ShipyardWindow(Game * game)
 	objects->setDesiredSize(buttonWidth, buttonHeight);
 	objects->onPressed = [=](){showObjects();};
 	toolbox->insert(objects, GUI::AlignMax, GUI::AlignMin);
+	
 
 	toolboxSlider->sprite = game->fxManager->fxSolidQuad(10, 50, ARGB(255,255,0,0));
 	toolboxSlider->setMode(0, 100, 0);
 	toolboxSlider->setDesiredPos( 0, 0 );
 	toolboxSlider->setDesiredSize( sliderWidth, 0 );
+	toolboxSlider->onStateChange = [=]( GUI::Slider * slider, float value, float min, float max )
+	{
+		toolbox->setOffsetVer( value );
+	};
 	toolbox->insert(toolboxSlider, GUI::AlignMin, GUI::AlignExpand);
 
 	shipyardArea->setDesiredPos( toolboxWidth, 0 );
@@ -232,7 +238,7 @@ void ShipyardWindow::setControlMode( ShipyardWindow::Mode mode )
 	}	
 }
 
-void ShipyardWindow::addItem( GUI::Object * object )
+void ShipyardWindow::addListboxItem( GUI::Object * object )
 {
 	hgeRect containerRect = toolbox->getClientRect();
 	hgeRect rect = object->getRect();
@@ -259,8 +265,8 @@ void ShipyardWindow::showTiles()
 		{
 			selectTile(i);			
 		};
-		addItem(button);
-	}	
+		addListboxItem(button);
+	}
 }
 
 void ShipyardWindow::selectTile( size_t tileId )

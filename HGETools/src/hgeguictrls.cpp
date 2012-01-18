@@ -114,23 +114,26 @@ bool Button::onMouse(int mouseId, int key, int state, const Button::uiVec & pos)
 {
 	if(state)
 	{
-		bOldState=bPressed; bPressed = true;
+		bOldState = bPressed; bPressed = true;
 
-		if(!onStateChange._Empty())
+		if(onStateChange)
 			onStateChange(bPressed);
-
-		if(bPressed && ! onPressed._Empty())
-			onPressed();
 
 		executeOnStateChange(bPressed);
 		return false;
 	}
 	else
 	{
-		if(bTrigger) bPressed=!bOldState;
-		else bPressed=false;
+		if(bTrigger) 
+			bPressed = !bOldState;
+		else 
+		{
+			if(bPressed && onPressed)
+				onPressed();
+			bPressed = false;
+		}
 
-		if(!onStateChange._Empty())
+		if( onStateChange )
 			onStateChange(bPressed);
 
 		executeOnStateChange(bPressed);
@@ -141,10 +144,26 @@ bool Button::onMouse(int mouseId, int key, int state, const Button::uiVec & pos)
 /*
 ** Frame
 */
-Frame::Frame():Object(hgeRect(0,0,0,0)), drawFrame(true), drawBackground(true){}
+Frame::Frame():Object(hgeRect(0,0,0,0)), drawFrame(true), drawBackground(true)
+{
+	offsetHor = 0;
+	offsetVer = 0;
+	slideMouseId = -1;
+	slideHor = false;
+	slideVer = false;
+	blockMouse = false;
+}
+
 Frame::Frame(const hgeRect & rect)
 	:Object(rect),drawFrame(true), drawBackground(true)
-{}
+{
+	offsetHor = 0;
+	offsetVer = 0;
+	slideMouseId = false;
+	slideHor = false;
+	slideVer = false;
+	blockMouse = false;
+}
 
 void Frame::onRender()
 {
@@ -154,6 +173,85 @@ void Frame::onRender()
 		drawRect(getHGE(), windowRect, clrFrame);	
 }
 
+void Frame::setOffsetHor( float offset )
+{
+	if( offset != offsetHor )
+	{
+		float delta = offset - offsetHor;
+		for( Children::iterator it = children.begin(); it != children.end(); it++)
+		{
+			Object * object = *it;
+			hgeRect rect = object->getRect();			
+			object->setDesiredPos(rect.x1 + delta, rect.y1);
+			calculateLayout(*it);
+		}
+		offsetHor = offset;
+	}
+}
+
+void Frame::setOffsetVer( float offset )
+{
+	if( offset != offsetVer )
+	{
+		float delta = offset - offsetVer;
+		for( Children::iterator it = children.begin(); it != children.end(); it++)
+		{
+			Object * object = *it;
+			hgeRect rect = object->getRect();			
+			
+			object->setDesiredPos(rect.x1, rect.y1 + delta);
+			calculateLayout(*it);
+		}
+		offsetVer = offset;
+		//runLayout();
+	}
+}
+
+bool	Frame::onMouseMove(int mouseId, const uiVec & vec, Frame::MoveState state)
+{	
+	if( slideMouseId != mouseId )
+		return false;
+	
+	
+	uiVec delta = vec - slideStart;
+	const float minOffset = 2;
+	if( state == MoveLeave)
+	{
+		slideMouseId = -1;
+		blockMouse = false;
+	}
+	else if( !blockMouse && (fabs(delta[0]) > minOffset || fabs(delta[1]) > minOffset))
+	{
+		blockMouse = true;
+	}
+
+	if( slideHor )
+	{
+		setOffsetHor(offsetHor + delta[0]);
+	}
+	if( slideVer )
+	{
+		setOffsetVer(offsetVer + delta[1]);
+	}	
+	slideStart = vec;
+	return blockMouse;
+}
+
+bool	Frame::onMouse(int mouseId, int key, int state, const uiVec & vec)
+{
+	if( state && (slideHor || slideVer) && slideMouseId == -1)
+	{
+		slideMouseId = mouseId;
+		slideStart = vec;
+		return false;
+	}
+	else if( mouseId == slideMouseId )
+	{
+		blockMouse = false;
+		slideMouseId = -1;
+	}
+	return false;
+}
 /*
 ** Image
 */
@@ -245,24 +343,33 @@ bool Slider::onMouse(int mouseId, int key, int state, const uiVec & vec)
 	return false;
 }
 
-bool Slider::onMouseMove(int mouseId, const uiVec & vec)
+bool Slider::onMouseMove(int mouseId, const uiVec & vec, Slider::MoveState state)
 {
 	float x = vec[0];
 	float y = vec[1];
 	if(bPressed)
 	{
+		float value = fVal;
 		hgeRect rect = getRect();
 		if(bVertical)
 		{
-			if(y>rect.y2-rect.y1) y=rect.y2-rect.y1;
-			if(y<0) y=0;
-			fVal=fMin+(fMax-fMin)*y/(rect.y2-rect.y1);
+			if(y > rect.height()) 
+				y = rect.height();
+			if(y < 0) y = 0;
+			value = fMin+(fMax-fMin)*y/rect.height();
 		}
 		else
+		{			
+			if(x > rect.width()) 
+				x = rect.width();
+			if(x < 0) x = 0;
+			value = fMin+(fMax-fMin)*x/rect.width();
+		}
+		if( value != fVal )
 		{
-			if(x>rect.x2-rect.x1) x=rect.x2-rect.x1;
-			if(x<0) x=0;
-			fVal=fMin+(fMax-fMin)*x/(rect.x2-rect.x1);
+			fVal = value;
+			if( onStateChange )
+				onStateChange(this, value, fMin, fMax);
 		}
 		return true;
 	}

@@ -39,11 +39,8 @@ public:
 	
 	DeviceDef * getDefinition();
 
-	bool validCommand(int port,DeviceCmd cmd)const;		
-	
-
-	int execute_Direction(int port,DeviceCmd action,float value);
-	
+	bool validCommand(int port,DeviceCmd cmd)const;
+	int execute_Direction(int port,DeviceCmd action,float value);	
 };
 
 class WeaponTurretDef: public WeaponDef

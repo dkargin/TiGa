@@ -20,6 +20,7 @@ Game::~Game()
 	if(shipyard)
 		delete shipyard;*/
 }
+
 class TestWindow : public GUI::Object
 {
 public:
@@ -150,4 +151,13 @@ MenuWindow::~MenuWindow()
 		delete scenes.front();
 		scenes.pop_front();
 	}
+}
+
+bool MenuWindow::onMouseMove(int mouseId, const uiVec & vec, GUI::Object::MoveState state)
+{
+	if( state == GUI::Object::MoveEnter)
+		_RPT0(0,"mouseEnter\n");
+	if( state == GUI::Object::MoveLeave)
+		_RPT0(0,"mouseLeave\n");
+	return true;
 }

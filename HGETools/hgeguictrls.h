@@ -48,9 +48,24 @@ namespace GUI
 		Frame(const hgeRect & rc);
 
 		virtual void onRender();
+		void setOffsetHor(float offset);
+		void setOffsetVer(float offset);
+
+		virtual bool	onMouseMove(int mouseId, const uiVec & vec, MoveState state);
+		virtual bool	onMouse(int mouseId, int key, int state, const uiVec & vec);
+
 		bool drawFrame;
 		bool drawBackground;
 		DWORD clrFrame;
+
+		bool slideHor;
+		bool slideVer;
+	protected:
+		int slideMouseId;			// if control is sliding right now
+		uiVec slideStart;			// 
+		float startOffsetHor, startOffsetVer;
+		float offsetHor, offsetVer;
+		bool blockMouse;
 	};
 	///*
 	//** Button
@@ -129,16 +144,6 @@ namespace GUI
 	#define HGESLIDER_BAR			0
 	#define HGESLIDER_BARRELATIVE	1
 	#define HGESLIDER_SLIDER		2
-	
-	class ScrollView : public Object
-	{
-	public:
-		ScrollView();
-
-		// event callers
-		virtual bool callMouseMove(int mouseId, const uiVec & vec);
-		virtual bool callMouse(int mouseId, int key, int state, const uiVec & vec);
-	};
 
 	class Slider : public Object
 	{
@@ -146,15 +151,17 @@ namespace GUI
 		Slider();
 		virtual			~Slider();
 
-		void			init( bool vertical, int min, int max );
-
+		void			init( bool vertical, int min, int max );		
 		void			setMode(float _fMin, float _fMax, int _mode) { fMin=_fMin; fMax=_fMax; mode=_mode; }
 		void			setValue(float _fVal);
 		float			setValue() const { return fVal; }
 
 		virtual void	onRender();
-		virtual bool	onMouseMove(int mouseId, const uiVec & vec);
+		virtual bool	onMouseMove(int mouseId, const uiVec & vec, MoveState state);
 		virtual bool	onMouse(int mouseId, int key, int state, const uiVec & vec);
+
+		typedef void EventOnStateChange(Slider * slider, float value, float min, float max);
+		std::function<EventOnStateChange> onStateChange;
 
 		FxSpritePtr sprite;
 	private:

@@ -44,8 +44,8 @@ public:
 	vec2i screenToLocal( const uiVec & vec );
 	// UI handlers
 	virtual void onRender();
-	virtual bool onMouse(int key, int state, const uiVec & vec);
-	virtual bool onMouseMove( const uiVec & vec );
+	virtual bool onMouse(int mouseId, int key, int state, const uiVec & vec);
+	virtual bool onMouseMove(int mouseId,  const uiVec & vec, MoveState state );
 
 	vec2i screenCellCenter( const vec2i & cell ) const;
 	hgeRect screenCellRect( const vec2i & cell ) const;
@@ -83,6 +83,6 @@ public:
 	void setControlMode( Mode mode );
 	void selectTile(size_t tileId);
 	void clearContents();
-	void addItem( GUI::Object * object );
+	void addListboxItem( GUI::Object * object );
 };
 #endif

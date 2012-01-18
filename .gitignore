@@ -23,3 +23,7 @@
 /project/Release
 /project/Debug
 /project/ipch
+/depend/src/core/obj
+/depend/src/helpers/obj
+/depend/src/hge_ogl/Debug
+/depend/src/hge_ogl/Release
