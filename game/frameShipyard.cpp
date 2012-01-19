@@ -2,30 +2,30 @@
 #include "game.h"
 #include "frameShipyard.h"
 
-void addDoubleBlock(Game * game, GameData & gameData, const char * path )
+void addDoubleBlock(Game * game, GameData * gameData, const char * path )
 {
 	FxSpritePtr sprite = game->fxManager->fxSprite(path,0,0,0,0);
 	if( sprite == NULL )
 		return;
 	
-	gameData.sprites.push_back(sprite);
+	gameData->sprites.push_back(sprite);
 	sprite = sprite->copy();
 	sprite->flipVer();
-	gameData.sprites.push_back(sprite);
+	gameData->sprites.push_back(sprite);
 
 	TileSectionDesc desc;
 	desc.sizeX = 1;
 	desc.sizeY = 1;		
-	desc.spriteId = gameData.sprites.size() - 2;
-	gameData.sections.push_back(desc);
+	desc.spriteId = gameData->sprites.size() - 2;
+	gameData->sections.push_back(desc);
 
 	desc.sizeX = 1;
 	desc.sizeY = 1;		
-	desc.spriteId = gameData.sprites.size() - 1;
-	gameData.sections.push_back(desc);
+	desc.spriteId = gameData->sprites.size() - 1;
+	gameData->sections.push_back(desc);
 }
 
-void initBlocks(Game * game, GameData & gameData)
+void initBlocks(Game * game, GameData * gameData)
 {
 	//TileSectionDesc desc;
 	//desc.sizeX = 1;
@@ -63,11 +63,16 @@ void initBlocks(Game * game, GameData & gameData)
 //////////////////////////////////////////////////////////////////////////////////////////////
 GameData::GameData(Game * game)
 {
-	initBlocks(game, *this);
+	initBlocks(game, this);
+
+	blueprintsCount = 4;
+	blueprints = new ShipBlueprint[blueprintsCount];
 }
 
 GameData::~GameData()
 {
+	if( blueprints )
+		delete []blueprints;
 }
 
 FxSpritePtr GameData::getSprite( size_t spriteId )
@@ -109,6 +114,7 @@ const TileSectionDesc & ShipyardArea::getSectionDesc(size_t id) const
 {
 	return shipyard->game->gameData->sections[id];
 }
+
 void ShipyardArea::updateCells()
 {
 	// clear cells map
@@ -222,6 +228,18 @@ bool ShipyardArea::canPlaceTile(int cx, int cy, size_t tileId)
 	return true;
 }
 
+void DrawBlueprint( ShipBlueprint * blueprint, GameData * data, float cornerX, float cornerY, float tileSize, float scale )
+{
+	// draw blocks
+	for( size_t i = 0; i < blueprint->blocksCount; ++i)
+	{
+		ShipBlueprint::Block & block = blueprint->blocks[i];
+		const TileSectionDesc & desc = data->sections[block.tileType];	
+		Pose2z pose( cornerX + (block.x + (float)desc.sizeX * 0.5) * tileSize, cornerY + (block.y + (float)desc.sizeX * 0.5) * tileSize, 0, 0 );
+		data->getSectionSprite(block.tileType)->render(pose);
+	}
+}
+
 void ShipyardArea::onRender()
 {
 	hgeRect rect = getClientRect();
@@ -246,15 +264,16 @@ void ShipyardArea::onRender()
 
 	for( int y = rect.y1 + tileOffsetY * tileSize; y < rect.y2; y+= tileSize )
 		hge->Gfx_RenderLine(rect.x1, y, rect.x2, y, color );
+	DrawBlueprint(&blueprint, shipyard->game->gameData, rect.x1, rect.y1, tileSize, 1.0);
+	/*
 	// draw blocks
 	for( size_t i = 0; i < blueprint.blocksCount; ++i)
 	{
 		ShipBlueprint::Block & block = blueprint.blocks[i];
-		const TileSectionDesc & desc = getSectionDesc(block.tileType);
-		vec2i cellPos = screenCellCenter( vec2i(block.x , block.y ) );		
+		const TileSectionDesc & desc = getSectionDesc(block.tileType);		
 		Pose2z pose( rect.x1 + (block.x + tileOffsetX + (float)desc.sizeX * 0.5) * tileSize,  rect.y1 + (block.y + tileOffsetY + (float)desc.sizeX * 0.5) * tileSize, 0, 0 );
 		shipyard->getSectionSprite(block.tileType)->render(pose);
-	}	
+	}*/
 }
 /////////////////////////////////////////////////////////////////////////////////////
 ShipyardWindow::ShipyardWindow(Game * game)
@@ -262,16 +281,19 @@ ShipyardWindow::ShipyardWindow(Game * game)
 {
 	color = ARGB(255,0,0,0);
 	controlMode = Normal;
+
+	editedBlueprint = NULL;
 	
 
 	menu->setDesiredSize(buttonWidth, buttonHeight);
 	menu->color = clrButtons;
 	menu->onPressed = [=]()
 	{
-		game->showMainMenu();
+		frameBack();
 	};
-
 	menu->setText("Exit", game->font);
+
+
 	insert(menu, GUI::AlignMax, GUI::AlignMin);
 
 	const float sliderWidth = 10;
@@ -297,8 +319,7 @@ ShipyardWindow::ShipyardWindow(Game * game)
 	objects->setText("Objects", game->font);
 	objects->setDesiredSize(buttonWidth, buttonHeight);
 	objects->onPressed = [=](){showObjects();};
-	toolbox->insert(objects, GUI::AlignMax, GUI::AlignMin);
-	
+	toolbox->insert(objects, GUI::AlignMax, GUI::AlignMin);	
 
 	toolboxSlider->sprite = game->fxManager->fxSolidQuad(10, 50, ARGB(255,255,0,0));
 	toolboxSlider->setMode(0, 100, 0);
@@ -319,6 +340,16 @@ ShipyardWindow::ShipyardWindow(Game * game)
 void ShipyardWindow::clearContents()
 {	
 	contents.clear();
+}
+
+void ShipyardWindow::frameBack()
+{
+	if( editedBlueprint != NULL )
+	{
+		getBlueprint(editedBlueprint);
+		editedBlueprint = NULL;
+	}	
+	game->showHangar();
 }
 
 void ShipyardWindow::setControlMode( ShipyardEditMode mode )
@@ -390,6 +421,7 @@ void ShipyardWindow::setBlueprint(ShipBlueprint * blueprint, bool locked)
 {
 	assert(blueprint != NULL);
 	shipyardArea->setBlueprint(blueprint, locked);
+	this->editedBlueprint = blueprint;
 }
 
 void ShipyardWindow::getBlueprint(ShipBlueprint * blueprint)

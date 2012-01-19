@@ -366,7 +366,7 @@ void Core::createWorld()
 		// Create a render target and a sprite for it			
 		w->initRenderer(hge);
 
-		font = &w->font;
+		font = w->font;
 		// init ui root
 		guiRoot->setRect(hgeRect(0,0, hge->System_GetState(HGE_SCREENWIDTH), hge->System_GetState(HGE_SCREENHEIGHT)));
 	}

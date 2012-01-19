@@ -19,6 +19,7 @@
 #define hgeGetListboxCtrl(gui,id)		((hgeGUIListbox*)gui->GetCtrl(id))
 namespace GUI
 {
+	typedef std::shared_ptr<hgeFont> hgeFontPtr;
 	/*
 	** Text
 	*/
@@ -26,17 +27,17 @@ namespace GUI
 	{
 	public:
 		Text();
-		Text(const hgeRect & rect, hgeFont *fnt);
+		Text(const hgeRect & rect, hgeFontPtr fnt);
 
 		void			SetMode(int _align);
 		void			SetText(const char *_text);
-		void			SetFont(hgeFont * font);
+		void			SetFont(hgeFontPtr font);
 		void			printf(const char *format, ...);
 
 		virtual void	onRender();
 
 	private:
-		hgeFont*		font;
+		hgeFontPtr		font;
 		int				align;
 		char			text[256];
 	};
@@ -102,7 +103,7 @@ namespace GUI
 
 		//void			SetImages(const hgeSprite & up, const hgeSprite & down);
 
-		void			setText(const char * text, hgeFont * fnt);
+		void			setText(const char * text, hgeFontPtr fnt);
 		void			setMode(bool _bTrigger) { bTrigger=_bTrigger; }
 		void			setState(bool _bPressed) { bPressed=_bPressed; }
 		bool			setState() const { return bPressed; }
@@ -119,7 +120,7 @@ namespace GUI
 	private:
 		
 		//hgeSprite		spriteUp, spriteDown;
-		hgeFont			* font;
+		hgeFontPtr		font;
 		bool			useSprites;
 		Instance<Text>		text;
 		//Frame		frame;

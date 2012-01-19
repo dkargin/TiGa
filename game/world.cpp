@@ -30,7 +30,7 @@ World::World(const char *name,Core * core)
 	,visionPass(NULL)
 	,gameObjects(NULL)
 	,scripter(core->scripter)
-	,font("./data/font1.fnt")
+	,font(new hgeFont("./data/font1.fnt"))
 	,level(*this)
 	,core(core)
 {	
@@ -83,6 +83,8 @@ World::~World()
 		delete gameObjects;
 		gameObjects = NULL;
 	}
+
+	font = NULL;
 //	if(profilerLog)fclose(profilerLog);
 	world = NULL;
 }

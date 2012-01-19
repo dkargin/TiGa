@@ -9,6 +9,7 @@ class World;
 class ShipyardWindow;
 class GameplayWindow;
 class GameData;
+class HangarWindow;
 
 class Game : public Core
 {
@@ -21,6 +22,7 @@ public:
 	SharedPtr<MenuWindow> mainMenu;
 	SharedPtr<GameplayWindow> gameplay;
 	SharedPtr<ShipyardWindow> shipyard;
+	SharedPtr<HangarWindow> hangar;
 
 	SharedPtr<GameData> gameData;
 	World * world;
@@ -29,22 +31,25 @@ public:
 	virtual void onRender();
 	virtual void onUpdate();
 	virtual void registerTestScene(const char * scene);
-
 	virtual void createWorld();
-
+	/// show specific frame
+	void showGameplay();
+	void showHangar();
 	void showMainMenu();
 	void showShipyard();
 protected:
 	void makeActive(GUI::Object * active);
 };
 
-// common UI style constants
-const float buttonWidth = 100;
-const float buttonHeight = 20;
-const float buttonSpacing = 5;
+//namespace Style
+//{
+	// common UI style constants
+	const float buttonWidth = 100;
+	const float buttonHeight = 20;
+	const float buttonSpacing = 5;
 
-const DWORD clrButtons = ARGB(255,128,128,128);
-
+	const DWORD clrButtons = ARGB(255,128,128,128);
+//}
 struct TileSectionDesc
 {
 	size_t spriteId;
@@ -71,6 +76,7 @@ struct DeviceSectionDesc
 	unsigned short cost;
 };
 
+struct ShipBlueprint;
 /// Provides storage for:
 /// - resources
 /// - tile description
@@ -80,6 +86,10 @@ class GameData : public Referenced
 public:
 	GameData(Game * game);
 	~GameData();
+
+	ShipBlueprint * blueprints;
+	size_t blueprintsCount;
+
 	/// fast access
 	FxSpritePtr getSectionSprite(size_t sectionId);	
 	FxSpritePtr getSprite(size_t spriteId);
@@ -119,6 +129,8 @@ struct ShipBlueprint : public Referenced
 	size_t findBlock(int x, int y, SharedPtr<GameData> gameData);	// find first block
 	bool addBlock(Block * source);
 
+	hgeRect getBounds(SharedPtr<GameData> gameData) const;	/// get cells bounding rect
+	
 	unsigned int getTotalCost() const;
 	unsigned int getTotalMass() const;
 	/// remove all blueprint contents

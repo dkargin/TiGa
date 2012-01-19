@@ -2,25 +2,25 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <ClCompile Include="..\Autopilot2D\inventory.cpp">
-      <Filter>objects</Filter>
+      <Filter>core\objects</Filter>
     </ClCompile>
     <ClCompile Include="..\Autopilot2D\commandAI.cpp">
-      <Filter>objects</Filter>
+      <Filter>core\objects</Filter>
     </ClCompile>
     <ClCompile Include="..\Autopilot2D\objectManager.cpp">
-      <Filter>objects</Filter>
+      <Filter>core\objects</Filter>
     </ClCompile>
     <ClCompile Include="..\Autopilot2D\unit.cpp">
-      <Filter>objects</Filter>
+      <Filter>core\objects</Filter>
     </ClCompile>
     <ClCompile Include="..\game\world.cpp">
-      <Filter>objects</Filter>
+      <Filter>core\objects</Filter>
     </ClCompile>
     <ClCompile Include="..\Autopilot2D\projectile.cpp">
-      <Filter>objects</Filter>
+      <Filter>core\objects</Filter>
     </ClCompile>
     <ClCompile Include="..\Autopilot2D\perceptionAI.cpp">
-      <Filter>objects</Filter>
+      <Filter>core\objects</Filter>
     </ClCompile>
     <ClCompile Include="..\game\draw.cpp">
       <Filter>game</Filter>
@@ -29,171 +29,189 @@
       <Filter>game</Filter>
     </ClCompile>
     <ClCompile Include="..\Autopilot2D\perception.cpp">
-      <Filter>objects\devices</Filter>
+      <Filter>core\objects\devices</Filter>
     </ClCompile>
     <ClCompile Include="..\Autopilot2D\turret.cpp">
-      <Filter>objects\devices</Filter>
+      <Filter>core\objects\devices</Filter>
     </ClCompile>
     <ClCompile Include="..\Autopilot2D\device.cpp">
-      <Filter>objects\devices</Filter>
+      <Filter>core\objects\devices</Filter>
     </ClCompile>
     <ClCompile Include="..\Autopilot2D\weapon.cpp">
-      <Filter>objects\devices\weapons</Filter>
+      <Filter>core\objects\devices\weapons</Filter>
     </ClCompile>
     <ClCompile Include="..\Autopilot2D\weaponTurret.cpp">
-      <Filter>objects\devices\weapons</Filter>
+      <Filter>core\objects\devices\weapons</Filter>
     </ClCompile>
     <ClCompile Include="..\Autopilot2D\mover.cpp">
-      <Filter>objects\devices\movers</Filter>
+      <Filter>core\objects\devices\movers</Filter>
     </ClCompile>
     <ClCompile Include="..\Autopilot2D\moverVehicleDriver.cpp">
-      <Filter>objects\devices\movers</Filter>
+      <Filter>core\objects\devices\movers</Filter>
     </ClCompile>
     <ClCompile Include="..\Autopilot2D\moverCharacter.cpp">
-      <Filter>objects\devices\movers</Filter>
+      <Filter>core\objects\devices\movers</Filter>
     </ClCompile>
     <ClCompile Include="..\Autopilot2D\moverVehicle.cpp">
-      <Filter>objects\devices\movers</Filter>
+      <Filter>core\objects\devices\movers</Filter>
     </ClCompile>
     <ClCompile Include="..\Autopilot2D\controllers\forceController.cpp">
-      <Filter>objects\devices\movers\controllers</Filter>
+      <Filter>core\objects\devices\movers\controllers</Filter>
     </ClCompile>
     <ClCompile Include="..\Autopilot2D\controllers\vo2Controller.cpp">
-      <Filter>objects\devices\movers\controllers</Filter>
+      <Filter>core\objects\devices\movers\controllers</Filter>
     </ClCompile>
     <ClCompile Include="..\Autopilot2D\controllers\voController.cpp">
-      <Filter>objects\devices\movers\controllers</Filter>
+      <Filter>core\objects\devices\movers\controllers</Filter>
     </ClCompile>
     <ClCompile Include="..\Autopilot2D\gameObject.cpp">
-      <Filter>objects</Filter>
+      <Filter>core\objects</Filter>
     </ClCompile>
     <ClCompile Include="..\game\shields.cpp">
-      <Filter>objects\devices</Filter>
+      <Filter>core\objects\devices</Filter>
     </ClCompile>
     <ClCompile Include="..\Autopilot2D\thruster.cpp">
-      <Filter>objects\devices\movers</Filter>
+      <Filter>core\objects\devices\movers</Filter>
     </ClCompile>
     <ClCompile Include="..\Autopilot2D\controllers\RVO2Controller.cpp">
-      <Filter>objects\devices\movers\controllers</Filter>
+      <Filter>core\objects\devices\movers\controllers</Filter>
     </ClCompile>
     <ClCompile Include="..\game\game.cpp">
       <Filter>game</Filter>
-    </ClCompile>
-    <ClCompile Include="..\game\shipyard.cpp">
-      <Filter>shipyard</Filter>
     </ClCompile>
     <ClCompile Include="..\game\luaTools.cpp">
       <Filter>game</Filter>
     </ClCompile>
     <ClCompile Include="..\game\stdafx.cpp">
-      <Filter>game\core</Filter>
+      <Filter>core</Filter>
     </ClCompile>
     <ClCompile Include="..\game\network.cpp">
-      <Filter>game\core</Filter>
+      <Filter>core</Filter>
     </ClCompile>
     <ClCompile Include="..\game\navGraph.cpp">
-      <Filter>game\core</Filter>
+      <Filter>core</Filter>
     </ClCompile>
     <ClCompile Include="..\game\Core.cpp">
-      <Filter>game\core</Filter>
+      <Filter>core</Filter>
     </ClCompile>
     <ClCompile Include="..\game\hgeMain.cpp">
-      <Filter>game\core</Filter>
+      <Filter>core</Filter>
     </ClCompile>
     <ClCompile Include="..\game\bind.cpp">
-      <Filter>game\core\bind</Filter>
+      <Filter>core\bind</Filter>
+    </ClCompile>
+    <ClCompile Include="..\game\frameBattle.cpp">
+      <Filter>game\frames</Filter>
+    </ClCompile>
+    <ClCompile Include="..\game\frameMainMenu.cpp">
+      <Filter>game\frames</Filter>
+    </ClCompile>
+    <ClCompile Include="..\game\frameShipyard.cpp">
+      <Filter>game\frames</Filter>
+    </ClCompile>
+    <ClCompile Include="..\game\frameHangar.cpp">
+      <Filter>game\frames</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\Autopilot2D\inventory.h">
-      <Filter>objects</Filter>
+      <Filter>core\objects</Filter>
     </ClInclude>
     <ClInclude Include="..\Autopilot2D\gameObject.h">
-      <Filter>objects</Filter>
+      <Filter>core\objects</Filter>
     </ClInclude>
     <ClInclude Include="..\Autopilot2D\commandAI.h">
-      <Filter>objects</Filter>
+      <Filter>core\objects</Filter>
     </ClInclude>
     <ClInclude Include="..\Autopilot2D\objectManager.h">
-      <Filter>objects</Filter>
+      <Filter>core\objects</Filter>
     </ClInclude>
     <ClInclude Include="..\Autopilot2D\unit.h">
-      <Filter>objects</Filter>
+      <Filter>core\objects</Filter>
     </ClInclude>
     <ClInclude Include="..\game\world.h">
-      <Filter>objects</Filter>
+      <Filter>core\objects</Filter>
     </ClInclude>
     <ClInclude Include="..\Autopilot2D\projectile.h">
-      <Filter>objects</Filter>
+      <Filter>core\objects</Filter>
     </ClInclude>
     <ClInclude Include="..\game\draw.h">
       <Filter>game</Filter>
     </ClInclude>
     <ClInclude Include="..\Autopilot2D\perception.h">
-      <Filter>objects\devices</Filter>
+      <Filter>core\objects\devices</Filter>
     </ClInclude>
     <ClInclude Include="..\Autopilot2D\predictor.h">
-      <Filter>objects\devices</Filter>
+      <Filter>core\objects\devices</Filter>
     </ClInclude>
     <ClInclude Include="..\Autopilot2D\turret.h">
-      <Filter>objects\devices</Filter>
+      <Filter>core\objects\devices</Filter>
     </ClInclude>
     <ClInclude Include="..\Autopilot2D\device.h">
-      <Filter>objects\devices</Filter>
+      <Filter>core\objects\devices</Filter>
     </ClInclude>
     <ClInclude Include="..\Autopilot2D\weapon.h">
-      <Filter>objects\devices\weapons</Filter>
+      <Filter>core\objects\devices\weapons</Filter>
     </ClInclude>
     <ClInclude Include="..\Autopilot2D\mover.h">
-      <Filter>objects\devices\movers</Filter>
+      <Filter>core\objects\devices\movers</Filter>
     </ClInclude>
     <ClInclude Include="..\Autopilot2D\moverCharacter.h">
-      <Filter>objects\devices\movers</Filter>
+      <Filter>core\objects\devices\movers</Filter>
     </ClInclude>
     <ClInclude Include="..\Autopilot2D\weaponTurret.h">
-      <Filter>objects\devices\weapons</Filter>
+      <Filter>core\objects\devices\weapons</Filter>
     </ClInclude>
     <ClInclude Include="..\Autopilot2D\controllers\forceController.h">
-      <Filter>objects\devices\movers\controllers</Filter>
+      <Filter>core\objects\devices\movers\controllers</Filter>
     </ClInclude>
     <ClInclude Include="..\Autopilot2D\controllers\vo2Controller.h">
-      <Filter>objects\devices\movers\controllers</Filter>
+      <Filter>core\objects\devices\movers\controllers</Filter>
     </ClInclude>
     <ClInclude Include="..\Autopilot2D\controllers\voController.h">
-      <Filter>objects\devices\movers\controllers</Filter>
+      <Filter>core\objects\devices\movers\controllers</Filter>
     </ClInclude>
     <ClInclude Include="..\Autopilot2D\moverVehicle.h">
-      <Filter>objects\devices\movers</Filter>
+      <Filter>core\objects\devices\movers</Filter>
     </ClInclude>
     <ClInclude Include="..\game\shields.h">
-      <Filter>objects\devices</Filter>
+      <Filter>core\objects\devices</Filter>
     </ClInclude>
     <ClInclude Include="..\Autopilot2D\thruster.h">
-      <Filter>objects\devices\movers</Filter>
+      <Filter>core\objects\devices\movers</Filter>
     </ClInclude>
     <ClInclude Include="..\Autopilot2D\controllers\RVO2Controller.h">
-      <Filter>objects\devices\movers\controllers</Filter>
+      <Filter>core\objects\devices\movers\controllers</Filter>
     </ClInclude>
     <ClInclude Include="..\game\game.h">
       <Filter>game</Filter>
     </ClInclude>
-    <ClInclude Include="..\game\shipyard.h">
-      <Filter>shipyard</Filter>
-    </ClInclude>
     <ClInclude Include="..\game\stdafx.h">
-      <Filter>game\core</Filter>
+      <Filter>core</Filter>
     </ClInclude>
     <ClInclude Include="..\game\network.h">
-      <Filter>game\core</Filter>
+      <Filter>core</Filter>
     </ClInclude>
     <ClInclude Include="..\game\navGraph.h">
-      <Filter>game\core</Filter>
+      <Filter>core</Filter>
     </ClInclude>
     <ClInclude Include="..\game\Core.h">
-      <Filter>game\core</Filter>
+      <Filter>core</Filter>
     </ClInclude>
     <ClInclude Include="..\game\bind.h">
-      <Filter>game\core\bind</Filter>
+      <Filter>core\bind</Filter>
+    </ClInclude>
+    <ClInclude Include="..\game\frameBattle.h">
+      <Filter>game\frames</Filter>
+    </ClInclude>
+    <ClInclude Include="..\game\frameMainMenu.h">
+      <Filter>game\frames</Filter>
+    </ClInclude>
+    <ClInclude Include="..\game\frameShipyard.h">
+      <Filter>game\frames</Filter>
+    </ClInclude>
+    <ClInclude Include="..\game\frameHangar.h">
+      <Filter>game\frames</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -294,25 +312,25 @@
       <Filter>scripts\basic.pack</Filter>
     </None>
     <None Include="..\game\bindWorld.i">
-      <Filter>game\core\bind</Filter>
+      <Filter>core\bind</Filter>
     </None>
     <None Include="..\game\bind.i">
-      <Filter>game\core\bind</Filter>
+      <Filter>core\bind</Filter>
     </None>
     <None Include="..\game\bindDevices.i">
-      <Filter>game\core\bind</Filter>
+      <Filter>core\bind</Filter>
     </None>
     <None Include="..\game\bindFx.i">
-      <Filter>game\core\bind</Filter>
+      <Filter>core\bind</Filter>
     </None>
     <None Include="..\game\bindHGE.i">
-      <Filter>game\core\bind</Filter>
+      <Filter>core\bind</Filter>
     </None>
     <None Include="..\game\bindMath.i">
-      <Filter>game\core\bind</Filter>
+      <Filter>core\bind</Filter>
     </None>
     <None Include="..\game\bindObjects.i">
-      <Filter>game\core\bind</Filter>
+      <Filter>core\bind</Filter>
     </None>
     <None Include="..\script\startup_Editor.lua">
       <Filter>scripts</Filter>
@@ -343,29 +361,14 @@
     <Filter Include="scripts">
       <UniqueIdentifier>{00a0fd55-2be3-4c07-871d-0f448c6043ce}</UniqueIdentifier>
     </Filter>
-    <Filter Include="objects">
-      <UniqueIdentifier>{52bbb098-5479-4af2-a1b4-d5fcff1a40a0}</UniqueIdentifier>
-    </Filter>
     <Filter Include="game">
       <UniqueIdentifier>{bb2f6788-4f94-40eb-a39f-357d28fe82e2}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="objects\devices">
-      <UniqueIdentifier>{761dde65-ca74-43b9-bb00-0ce828030b87}</UniqueIdentifier>
     </Filter>
     <Filter Include="doc">
       <UniqueIdentifier>{bf969f6b-11a8-4b66-be3c-07e4f88c909e}</UniqueIdentifier>
     </Filter>
-    <Filter Include="objects\devices\movers">
-      <UniqueIdentifier>{04361916-be2d-4f9e-bd56-b90789c08851}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="objects\devices\weapons">
-      <UniqueIdentifier>{386b09cd-86c0-41ed-b0cb-c3994df1cf9d}</UniqueIdentifier>
-    </Filter>
     <Filter Include="scripts\objects.pack">
       <UniqueIdentifier>{ceaa584d-e860-4edd-af64-b50cebd70912}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="objects\devices\movers\controllers">
-      <UniqueIdentifier>{0ce9caf9-20cb-4473-803e-df9e17a17803}</UniqueIdentifier>
     </Filter>
     <Filter Include="scripts\editors">
       <UniqueIdentifier>{9e871d94-2e9a-4ef3-aaf8-0c1bb6d15d2e}</UniqueIdentifier>
@@ -379,14 +382,29 @@
     <Filter Include="scripts\space.pack">
       <UniqueIdentifier>{c122fe11-66e9-45fe-ae6c-5fce3460e5b1}</UniqueIdentifier>
     </Filter>
-    <Filter Include="shipyard">
+    <Filter Include="game\frames">
       <UniqueIdentifier>{4ccce8b7-1c93-4c8a-8f65-a582f5285bdb}</UniqueIdentifier>
     </Filter>
-    <Filter Include="game\core">
+    <Filter Include="core">
       <UniqueIdentifier>{df4cb8ce-bb17-442e-82a4-fd6d83c60f58}</UniqueIdentifier>
     </Filter>
-    <Filter Include="game\core\bind">
+    <Filter Include="core\bind">
       <UniqueIdentifier>{8e3cba93-31b5-4bd6-a555-9df4cfb76692}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="core\objects">
+      <UniqueIdentifier>{52bbb098-5479-4af2-a1b4-d5fcff1a40a0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="core\objects\devices">
+      <UniqueIdentifier>{761dde65-ca74-43b9-bb00-0ce828030b87}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="core\objects\devices\movers">
+      <UniqueIdentifier>{04361916-be2d-4f9e-bd56-b90789c08851}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="core\objects\devices\movers\controllers">
+      <UniqueIdentifier>{0ce9caf9-20cb-4473-803e-df9e17a17803}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="core\objects\devices\weapons">
+      <UniqueIdentifier>{386b09cd-86c0-41ed-b0cb-c3994df1cf9d}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>

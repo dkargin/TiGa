@@ -85,6 +85,21 @@ namespace GUI
 		void setDesiredPos(float x, float y);
 		void setDesiredSize(float width, float height);
 
+		struct Signal
+		{
+			size_t msg;
+			int arg0;
+			int arg1;
+			int handled;
+		};
+		/// send signal to parents
+		virtual bool	sendSignalUp(Signal &msg);
+		/// send signal to children
+		virtual bool	sendSignalDown(Signal &msg);
+		/// recieved signal from parent
+		virtual bool	onSignalUp(Signal & msg) { return false;}
+		/// recieved signal from children
+		virtual bool	onSignalDown(Signal & msg) { return false;}
 		virtual void	onRender() {}
 		virtual void	onUpdate(float dt) {} 
 		virtual void	onSize(float width, float height) {}
@@ -139,7 +154,8 @@ namespace GUI
 	private:
 		bool layoutUpdated;	
 		bool layouting;
- 		
+ 		static size_t globalControlLastId;
+		size_t globalControlId;
 		void detach(const Pointer & object);
 		// do not use it
 		Object(const Object &go);

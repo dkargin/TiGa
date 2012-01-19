@@ -25,7 +25,7 @@ Text::Text() : Object(hgeRect())
 	text[0]=0;
 }
 
-Text::Text(const hgeRect & rect, hgeFont *fnt)
+Text::Text(const hgeRect & rect, hgeFontPtr fnt)
 	:Object(rect)
 {
 	//static=true;
@@ -42,7 +42,7 @@ void Text::SetMode(int _align)
 	align=_align;
 }
 
-void Text::SetFont(hgeFont * fnt)
+void Text::SetFont(hgeFontPtr fnt)
 {
 	font = fnt;
 }
@@ -103,7 +103,7 @@ void Button::onRender()
 		drawRectSolid(getHGE(), getRect(), ARGB(255,65,65,65));
 }
 
-void Button::setText(const char * msg, hgeFont * fnt)
+void Button::setText(const char * msg, hgeFontPtr fnt)
 {
 	text->SetFont(fnt);
 	text->SetText(msg);

@@ -102,7 +102,7 @@ public:
 	
 	HTARGET				visionPass;
 	hgeSprite*			visionLayer;
-	hgeFont		 font;			/// font for debug layer
+	GUI::hgeFontPtr		 font;			/// font for debug layer
 	/// information about cursor selection
 	CursorInfo cursor;
 

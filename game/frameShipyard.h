@@ -68,13 +68,15 @@ public:
 	size_t pickedSection;
 
 	ShipyardWindow(Game * core);
-	hgeFont * font;
+	GUI::hgeFontPtr font;
 	Game * game;
-	Instance<GUI::Button> menu;
+	Instance<GUI::Button> menu, save;
 	Instance<GUI::Frame> toolbox;	
 	Instance<GUI::Button> tiles, objects, designTest, designSave;
 	Instance<ShipyardArea> shipyardArea;
 	Instance <GUI::Slider> toolboxSlider;
+
+	ShipBlueprint * editedBlueprint;		/// blueprint selected to edit
 	
 	std::list<SharedPtr<GUI::Object> > contents;
 //	std::list<GUI::Button*> tileTypes;
@@ -86,6 +88,8 @@ public:
 	void selectTile(size_t tileId);
 	void clearContents();
 	void addListboxItem( GUI::Object * object );
+
+	void frameBack();
 
 	void setBlueprint( ShipBlueprint * blueprint, bool locked );
 	void getBlueprint( ShipBlueprint * blueprint );

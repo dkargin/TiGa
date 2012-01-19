@@ -4,6 +4,7 @@
 class GameplayWindow : public GUI::Object
 {
 public:	
+	Game * game;
 	GameplayWindow(Game * core);
 	size_t createShip(ShipBlueprint * blueprint);
 };

@@ -14,7 +14,7 @@ MenuWindow::MenuWindow(Game * game)
 	start->setText("Start", game->font);
 	start->onPressed = [=]()
 	{
-		game->showShipyard();
+		game->showHangar();
 	};
 	insert(start, GUI::AlignExpand, GUI::AlignManual); 
 	options->setDesiredPos(0, 100 + (buttonHeight + buttonSpacing) * y++);

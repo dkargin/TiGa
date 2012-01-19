@@ -6,6 +6,7 @@
 #include "frameShipyard.h"
 #include "frameMainMenu.h"
 #include "frameBattle.h"
+#include "frameHangar.h"
 
 Game game;
 
@@ -74,6 +75,26 @@ void Game::showMainMenu()
 		guiRoot->insert(mainMenu, GUI::AlignCenter, GUI::AlignExpand);
 	}
 	makeActive(mainMenu);
+}
+
+void Game::showGameplay()
+{
+	if(!gameplay)
+	{
+		gameplay = new GameplayWindow(this);
+		guiRoot->insert(gameplay, GUI::AlignExpand, GUI::AlignExpand);
+	}
+	makeActive(gameplay);
+}
+
+void Game::showHangar()
+{
+	if(!hangar)
+	{
+		hangar = new HangarWindow(this);
+		guiRoot->insert(hangar, GUI::AlignExpand, GUI::AlignExpand);
+	}
+	makeActive(hangar);
 }
 
 void Game::showShipyard()
@@ -198,3 +219,32 @@ void ShipBlueprint::reset()
 	devicesCount = NULL;
 	strcpy_s(name, sizeof(name),"Enterprise XIV");
 }
+
+hgeRect ShipBlueprint::getBounds(SharedPtr<GameData> data) const
+{
+	hgeRect result;
+	bool first = true;
+	for( Block * block = blocks; block < blocks + blocksCount; ++block)
+	{
+		TileSectionDesc & desc = data->sections[block->tileType];
+		if( first )
+		{
+			result.x1 = block->x;
+			result.y1 = block->y;
+			result.x2 = block->x + desc.sizeX;
+			result.y2 = block->y + desc.sizeY;
+			first = false;
+		}
+		if( block->x < result.x1 )
+			result.x1 = block->x;
+		if( block->y < result.y1 )
+			result.y1 = block->y;
+		if( block->x + desc.sizeX > result.x2 )
+			result.x2 = block->x + desc.sizeX;
+		if( block->y + desc.sizeY >= result.y2 )
+			result.y2 = block->y + desc.sizeY;
+		//&& block->y >= y && block->x + desc.sizeX < x && block->y + desc.sizeY < desc.sizeY)
+			//return block - blocks;
+	}
+	return result;
+} 

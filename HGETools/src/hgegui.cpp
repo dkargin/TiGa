@@ -10,6 +10,7 @@
 #include "hgegui.h"
 namespace GUI
 {
+	size_t Object::globalControlLastId = 0;
 	Object::Object(const hgeRect & rc)
 	:visible(true)
 	,enabled(true)
@@ -27,6 +28,10 @@ namespace GUI
 		clipChildren = false;
 		contentsWidth = false;
 		contentsHeight = false;
+		globalControlId = ++globalControlLastId;
+		/// maybe this can happen one day
+		if( globalControlLastId == ~(size_t)0 )
+			std::_Xoverflow_error("globalControlLastId");
 	}
 
 	Object::~Object()
@@ -326,6 +331,37 @@ namespace GUI
 			break;
 		}
 		object->setRect(newRect);
+	}
+
+	bool Object::sendSignalUp(Object::Signal & msg)
+	{
+		if( parent )
+		{
+			if(!parent->onSignalUp(msg))
+				return parent->sendSignalUp(msg);
+			else
+				return true;
+		}
+		return false;
+	}
+
+	bool Object::sendSignalDown(Object::Signal & msg)
+	{
+		/// 1. notify immediate children
+		for( Children::iterator it = children.begin(); it != children.end(); ++it )
+		{
+			Object * object = *it;
+			if( object && object->onSignalDown( msg ))	/// object can be occasionly dead
+				return true;
+		}
+		/// 2. propagate signal further to children
+		for( Children::iterator it = children.begin(); it != children.end(); ++it )
+		{
+			Object * object = *it;
+			if( object && object->sendSignalDown(msg))
+				return  true;
+		}		
+		return false;
 	}
 
 	void Object::setDesiredPos(float x, float y)

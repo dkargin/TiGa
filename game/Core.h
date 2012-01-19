@@ -64,7 +64,7 @@ public:
 
 	// gui
 	SharedPtr<GUI::Object> guiRoot;	// root gui object	
-	hgeFont *font;
+	GUI::hgeFontPtr font;
 
 	FxManagerPtr fxManager;
 	
