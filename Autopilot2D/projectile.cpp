@@ -60,9 +60,8 @@ Projectile::Projectile(ProjectileDef *def,Unit *Src)
 {
 	if(def->fxIdle)
 	{
-		FxPointer p = def->fxIdle->clone();
-		p->start();
-		effects.attach(p);
+		effects = def->fxIdle->clone();
+		effects->start();		
 	}
 	if(def->perception)
 	{
@@ -107,10 +106,8 @@ void Projectile::update(float dt)
 			setDirection(dir);			
 			body->SetLinearVelocity(b2conv(dir*localDef().velocity));
 		}
-	}
-
-	
-	effects.update(dt);
+	}	
+	effects->update(dt);
 	
 	//getBody()->ApplyForce(b2Vec2(40000,0),getBody()->GetPosition());
 	if(/*IsDirect() && */!finished)
@@ -135,6 +132,6 @@ void Projectile::onHit(GameObject *object)
 		auto obj = localDef().impact->clone();
 		obj->setPose(getPose());
 		obj->start();
-		manager()->fxManager.pyro.runEffect(obj);
+		getManager()->fxManager->pyro.runEffect(obj);
 	}
 }

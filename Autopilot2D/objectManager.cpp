@@ -49,7 +49,7 @@ void ObjectManager::ClientInfo::cleanMessages()
 /////////////////////////////////////////////////////////////
 // ObjectManager
 /////////////////////////////////////////////////////////////
-ObjectManager::ObjectManager(_Scripter *scripter, FxManager & fxManager)
+ObjectManager::ObjectManager(_Scripter *scripter, FxManager::SharedPtr fxManager)
 :scripter(scripter)
 ,perceptionManager(NULL)
 ,pathCore(NULL)
@@ -235,7 +235,7 @@ void ObjectManager::onFrameFinish(float dt)
 			raiseObjectDead(u);
 	}
 //	perceptionManager->update(dt);
-	fxManager.pyro.update(dt);
+	fxManager->pyro.update(fxManager.get(), dt);
 }
 //////////////////////////////////////////////////////////////////////////
 // Access methods
@@ -243,14 +243,17 @@ b2World* ObjectManager::getDynamics()
 {
 	return scene;
 }
+
 FxManager* ObjectManager::getFxManager()
 {
-	return &fxManager;
+	return fxManager.get();
 }
+
 lua_State* ObjectManager::getLua()
 {
 	return scripter->getVM();
 }
+
 _Scripter* ObjectManager::getScripter()
 {
 	return scripter;
@@ -271,10 +274,12 @@ void ObjectManager::add(ObjectManager::Listener * listener)
 {
 	listeners.insert(listener);
 }
+
 void ObjectManager::remove(ObjectManager::Listener * listener)
 {
 	listeners.erase(listener);
 }
+
 void ObjectManager::raiseObjectDead(GameObject * object)
 {
 	// execute OnDie
@@ -301,6 +306,7 @@ GameObject * ObjectManager::getObject(ObjID id)
 void ObjectManager::onAdd(GameObject *object)
 {	
 }
+
 void ObjectManager::onRemove(GameObject * object)
 {
 	LogFunction(*g_logger);

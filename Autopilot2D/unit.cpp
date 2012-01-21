@@ -104,8 +104,8 @@ Unit::Unit(UnitDef *def)
 	setCollisionGroup(cgUnit);
 	if(def->fxIdle)
 	{
-		effects.attach(def->fxIdle->clone());	
-		effects.start();
+		effects->attach(def->fxIdle->clone());	
+		effects->start();
 	}
 	// install all the devices from the definition
 	for_each(definition->mounts.begin(),definition->mounts.end(),[this](MountDef & mount)
@@ -143,7 +143,7 @@ Unit::~Unit()
 void Unit::useDevice(int device,int port,int action,IOBuffer *buffer)
 {
 	LogFunction(*g_logger);
-	manager()->useDevice(this,device,port,action,buffer);
+	getManager()->useDevice(this,device,port,action,buffer);
 }
 
 Device * Unit::getDevice(size_t id)

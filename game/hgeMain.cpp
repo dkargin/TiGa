@@ -1,13 +1,7 @@
 #include "stdafx.h"
 #include "Core.h"
 
-extern Core * core;
-
-int hgeMain()
-{	
-	core->runSystem();
-	return 0;
-}
+int hgeMain();
 
 #ifdef _EXECUTABLE
 int main(int argc, char* argv[])

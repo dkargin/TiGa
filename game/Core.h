@@ -7,7 +7,7 @@ typedef struct Ihandle_ Ihandle;
 
 const int MaxCursors = 1;
 
-class Core: public _Scripter::ErrorHandler
+class Core: public _Scripter::ErrorHandler, public LuaObject
 {
 public:
 	LogFILE logger;
@@ -37,11 +37,12 @@ public:
 
 	bool keyState[255];	
 
-	Core(const char * baseScript);
+	Core();
 	virtual ~Core();
 	/// system startup
 	void initIup();
-	void runSystem();	// run main script
+	void executeScript(const char * file);
+	void run();	// run main script
 	void startHGEChild(unsigned int HWND);	// run HGE as child window
 	bool setHGEViewport(Ihandle * handle);
 	Ihandle * startHGE(int width = 800, int height = 600, bool windowed = true);				// init HGE as host
@@ -65,7 +66,7 @@ public:
 
 	// gui
 	SharedPtr<GUI::Object> guiRoot;	// root gui object	
-	GUI::hgeFontPtr font;
+	GUI::FontPtr font;
 
 	FxManagerPtr fxManager;
 	
@@ -78,6 +79,8 @@ public:
 	/// test scene control. Seems to be deprecated
 	virtual void registerTestScene(const char * scene);	
 	virtual void loadTestScene(const char * scene);
+
+	_Scripter * getScripter() { return &scripter;} 
 protected:	
 	void uiProcessEvent();
 	void uiRender();
@@ -95,5 +98,6 @@ private:
 };
 
 extern Core * core;
+int vkChar(char *key);
 
 #endif

@@ -15,8 +15,7 @@ function print(data)
 end
 
 core = TiGa["core"]
-
-logger = TiGa.g_logger
+logger = core:getLogger()
 
 exec('./script/utils.lua')
 exec('./script/utilsTiGa.lua')
@@ -46,6 +45,12 @@ local function SetupCollisions()
 	world:collisionsSet(TiGa.cgProjectile,TiGa.cgBorder,true)
 end
 
+function onGameInit(game)
+	print("onGameInit")
+	loadPack('basic',true):activate()
+	core:uiSetDefaultCursorEffect(Models.cursor_green)
+	core:uiResetCursorEffect(0)
+end
 -- start world in game mode
 function StartWorld()
 	core:createWorld()
@@ -74,33 +79,7 @@ function StartWorld()
 	worldStarted = true
 end
 
--- called during World::SaveState()
-function WorldSaveState(stream)
-	
-	TiGa.IO.writeString(stream,"blablabla")
-end
--- called during World::LoadState()
-function WorldLoadState(stream)
-	local tmp = TiGa.IO.readString(stream)
-	print("WorldLoadState :" .. tmp)
-end
-
 core:startHGE()
 
-function WorldRun()
-	onControl = ControlModes.Game				
-	core:worldPause(false)
-end
-
-function WorldPause()
-	onControl = ControlModes.Game				
-	core:worldPause(true)				
-end
-
-function WorldReset()
-	testScenes:load(activeScene)
-	WorldRun()
-end
-
-StartWorld()
+--StartWorld()
 

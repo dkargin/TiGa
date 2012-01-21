@@ -244,6 +244,7 @@ public:
 	{
 		return this;
 	}
+	FxManager * getManager() const;
 	Log * logger() const;
 	// animation interface
 	virtual void start(AnimationMode mode = AnimationNoChange);					// starts animation (if there is any)
@@ -258,23 +259,30 @@ public:
 	virtual void setPose(const Pose &p);
 	virtual const Pose & getPose() const;			// get pose relative to parent object
 	Pose & poseRef() { return pose;}
-	virtual Pose getGlobalPose()const;	
-	virtual float getWidth() const;			// get screen width
-	virtual float getHeight() const;		// get creen width	
-	virtual hgeRect getClipRect() const;			// return rect to determine, should we clip 
+	virtual Pose getGlobalPose()const;		
+
+	float getWidth() const;				// get screen width
+	float getHeight() const;			// get screen width	
+	hgeRect getClipRect() const;		// return rect to determine, should we clip 
+
+	virtual hgeRect getLocalRect() const;		// get bound only for root, excluding children
 	// scene graph interface
 	inline void show(bool flag) { visible = flag; }
 	inline bool isVisible() const {return visible; }	
-	virtual void query(const Pose & base);	// query rendering
-	virtual void render(const Pose & base);
+	virtual void query(FxManager * manager, const Pose & base);
+	void queryAll(FxManager * manager, const Pose & base);	// query all hierarchy	
+	virtual void render(FxManager * manager, const Pose & base);
+	void renderAll(FxManager * manager, const Pose & base);					// render all hierarchy
+
 	virtual void update(float dt);
+	void updateAll( float dt );								// update all hierarchy
 	
 	virtual bool shouldClip(const FxView2 & view) const;	
 	// misc
 	virtual FxType type() const;
 	virtual bool valid() const;
 	virtual Pointer clone() const;
-	HGE * hge() const;	
+	HGE * hge() const;
 protected:	
 	virtual void onAttach( FxEffect * object )
 	{
@@ -285,7 +293,7 @@ protected:
 		Referenced::ObjectInfo::removeReference(object);
 	}
 
-	SharedPtr<FxManager> manager;	
+	std::weak_ptr<FxManager> manager;	
 	// geometry
 	Pose pose;
 	float scale;
@@ -294,7 +302,7 @@ protected:
 
 typedef FxEffect::Pointer FxPointer;
 
-template<class FxType> inline FxType * CopyFactoryObject( FxManager * manager, const FxType * source);
+template<class FxType> inline FxType * CopyFactoryObject( std::weak_ptr<FxManager> manager, const FxType * source);
 
 #define FX_TYPE(TargetType,TypeID) \
 	friend class FxManager; \
@@ -330,11 +338,10 @@ public:
 	void addBlendMode(int mode);
 	void flipHor();
 	void flipVer();
-	float getWidth() const;
-	float getHeight() const;
+	virtual hgeRect getLocalRect() const;
 	virtual bool valid() const;
 	virtual void update(float dt);
-	virtual void render(const Pose &base);	
+	virtual void render(FxManager * manager, const Pose &base);	
 };
 
 typedef FxSprite::Pointer FxSpritePtr;
@@ -424,7 +431,7 @@ public:
 	void rewind();
 	Time_t duration() const;
 
-	void render(const Pose &base);
+	void render(FxManager * manager, const Pose &base);
 	void setSize(float w,float h,bool mid=true);	// set tile size
 	void xTile(float length);						// enable tiled mode
 	bool isTiled()const;
@@ -479,7 +486,7 @@ public:
 	std::vector<int> heap;
 	void query(const Pose & base,FxEffect * effect);	
 	void flush();			/// clear heap
-	void render(const Pose & base);			/// render all stored effects
+	void render(FxManager * manager, const Pose & base);			/// render all stored effects
 };
 ////////////////////////////////////////////////////////////////////////
 // Storage for timed effects
@@ -495,8 +502,8 @@ class Pyro
 	std::vector<TimedEffect> effects;
 public:
 	void runEffect(FxPointer effect);
-	void update(float dt);
-	void render(const Pose &pose,float scale);
+	void update(FxManager * manager, float dt);
+	void render(FxManager * manager, const Pose &pose,float scale);
 };
 
 //class ResourceManager
@@ -524,7 +531,7 @@ public:
 /////////////////////////////////////////////////////////////////////////
 
 
-class FxManager : public Referenced
+class FxManager : public std::enable_shared_from_this<FxManager>
 {
 public:
 	//hgeResourceManager manager;
@@ -582,6 +589,9 @@ public:
 		new( result ) FxType(this);
 		return result;
 	}
+
+	typedef std::shared_ptr<FxManager> SharedPtr;
+	typedef std::weak_ptr<FxManager> WeakPtr;
 protected:
 	//FxEffect * remember(FxEffect *effect);
 	Records::iterator find(const char *file);							//
@@ -590,22 +600,21 @@ protected:
 	float viewScale;
 };
 
+typedef FxManager::SharedPtr FxManagerPtr;
 #pragma push_macro("new")
 #undef new
 void FAR* operator new(size_t cb);
-template<class FxType> inline FxType * CopyFactoryObject( FxManager * manager, const FxType *source)
+template<class FxType> inline FxType * CopyFactoryObject( std::weak_ptr<FxManager> manager, const FxType *source)
 {
 	FxType * result = NULL; 
 	if(!source->valid())
 		throw(std::exception("FxHelper::clone() error: invalid object\n"));
 	else {
-		FxType * place = NULL;
-		manager->allocateRaw(place);	
+		FxType * place = NULL;		
+		manager.lock()->allocateRaw(place);	
 		result = new (place) FxType(*source);
 	}
 	return result;
 }
 #pragma pop_macro("new")
-
-typedef std::shared_ptr<FxManager> FxManagerPtr;
 

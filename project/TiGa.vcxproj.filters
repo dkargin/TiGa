@@ -13,9 +13,6 @@
     <ClCompile Include="..\Autopilot2D\unit.cpp">
       <Filter>core\objects</Filter>
     </ClCompile>
-    <ClCompile Include="..\game\world.cpp">
-      <Filter>core\objects</Filter>
-    </ClCompile>
     <ClCompile Include="..\Autopilot2D\projectile.cpp">
       <Filter>core\objects</Filter>
     </ClCompile>
@@ -79,16 +76,7 @@
     <ClCompile Include="..\game\game.cpp">
       <Filter>game</Filter>
     </ClCompile>
-    <ClCompile Include="..\game\luaTools.cpp">
-      <Filter>game</Filter>
-    </ClCompile>
     <ClCompile Include="..\game\stdafx.cpp">
-      <Filter>core</Filter>
-    </ClCompile>
-    <ClCompile Include="..\game\network.cpp">
-      <Filter>core</Filter>
-    </ClCompile>
-    <ClCompile Include="..\game\navGraph.cpp">
       <Filter>core</Filter>
     </ClCompile>
     <ClCompile Include="..\game\Core.cpp">
@@ -112,6 +100,15 @@
     <ClCompile Include="..\game\frameHangar.cpp">
       <Filter>game\frames</Filter>
     </ClCompile>
+    <ClCompile Include="..\game\multiblock.cpp">
+      <Filter>game</Filter>
+    </ClCompile>
+    <ClCompile Include="..\game\luaTools.cpp">
+      <Filter>core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\game\world.cpp">
+      <Filter>game</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\Autopilot2D\inventory.h">
@@ -127,9 +124,6 @@
       <Filter>core\objects</Filter>
     </ClInclude>
     <ClInclude Include="..\Autopilot2D\unit.h">
-      <Filter>core\objects</Filter>
-    </ClInclude>
-    <ClInclude Include="..\game\world.h">
       <Filter>core\objects</Filter>
     </ClInclude>
     <ClInclude Include="..\Autopilot2D\projectile.h">
@@ -189,12 +183,6 @@
     <ClInclude Include="..\game\stdafx.h">
       <Filter>core</Filter>
     </ClInclude>
-    <ClInclude Include="..\game\network.h">
-      <Filter>core</Filter>
-    </ClInclude>
-    <ClInclude Include="..\game\navGraph.h">
-      <Filter>core</Filter>
-    </ClInclude>
     <ClInclude Include="..\game\Core.h">
       <Filter>core</Filter>
     </ClInclude>
@@ -212,6 +200,12 @@
     </ClInclude>
     <ClInclude Include="..\game\frameHangar.h">
       <Filter>game\frames</Filter>
+    </ClInclude>
+    <ClInclude Include="..\game\multiblock.h">
+      <Filter>game</Filter>
+    </ClInclude>
+    <ClInclude Include="..\game\world.h">
+      <Filter>game</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

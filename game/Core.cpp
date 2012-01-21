@@ -40,6 +40,12 @@ HGE * hge = 0;
 
 typedef float Scalar;
 
+// lua helper - to convert char key to VK_ value
+int vkChar(char *key)
+{
+	char tmp[2]={key[0],0};
+	return _strupr(tmp)[0];
+}
 
 inline Scalar NormalizeAngle( Scalar degrees )
 {
@@ -70,8 +76,8 @@ float screenWidth = 800,screenHeight = 600;
 
 void initLuaWrap( lua_State * l );
 
-Core::Core(const char * baseScript)
-	:logger(stderr), scripter(baseScript), pause(false), systemInitiated(false)
+Core::Core()
+	:logger(stderr), scripter(), pause(false), systemInitiated(false)
 {
 	memset(keyState,0,sizeof(keyState));
 	timeAccumulator = 0.f;
@@ -225,7 +231,7 @@ void Core::uiRender()
 	// show all avialable cursors
 	for( size_t i = 0; i < uiGetMaxCursors(); i++)	
 		if(cursor[i].type != Cursor::Disabled &&  cursor[i].effect != NULL)
-			cursor[i].effect->render(Pose2z(cursor[i].screenPosition[0],cursor[i].screenPosition[1],0,0));	
+			cursor[i].effect->render(fxManager.get(), Pose2z(cursor[i].screenPosition[0],cursor[i].screenPosition[1],0,0));	
 }
 
 void Core::uiUpdate(float dt)
@@ -359,10 +365,13 @@ void Core::createWorld()
 	assert(hge);	
 }
 */
-void Core::runSystem()
+void Core::executeScript( const char * file )
 {
-	scripter.runScript(true);
+	scripter.runScript( file, false );
+}
 
+void Core::run()
+{
 	bool _isDataInitialized = false;
 #ifdef USE_IUP
 	while(iupRuns && (IupLoopStep() != IUP_CLOSE))

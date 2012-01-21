@@ -95,6 +95,41 @@ void SolidObject::syncPose()
 		pose.orientation = getBody()->GetAngle();
 	}
 }
+
+Pose::vec SolidObject::getVelocityLinear() const
+{
+	const b2Body * body = getBody();
+	if(body)
+	{
+		return conv(body->GetLinearVelocity());
+	}
+	else
+		return Pose::vec::zero();
+}
+
+Pose::vec3 SolidObject::getVelocityLinear3() const
+{
+	const b2Body * body = getBody();
+	if(body)
+	{
+		vec2f velocity2 = conv(body->GetLinearVelocity());
+		return Pose::vec3(velocity2[0], velocity2[1], 0);
+	}
+	else
+		return Pose::vec3::zero();
+}
+
+Sphere2 SolidObject::getBoundingSphere() const
+{
+	// TODO: implement
+	return Sphere2(getPosition(), 0.f);
+}
+
+AABB2 SolidObject::getOOBB()const			// get object oriented bounding box
+{
+	// TODO: implement
+	return AABB2(getPosition(), vec2f::zero());
+}
 /////////////////////////////////////////////////////////////////////////
 // GameObject basic definition
 /////////////////////////////////////////////////////////////////////////
@@ -152,7 +187,7 @@ size_t GameObjectDef::getPopulation()const
 // Game object
 /////////////////////////////////////////////////////////////////////////
 GameObject::GameObject(ObjectManager *parent,GameObjectDef* def)
-	:health(1.0f),onDamage(NULL),player(0),definition(def),localID(invalidID),collisionGroup(cgBody),effects(&parent->fxManager)
+	:health(1.0f),onDamage(NULL),player(0),definition(def),localID(invalidID),collisionGroup(cgBody)
 {
 	attach();
 	if(definition)
@@ -164,12 +199,33 @@ GameObject::GameObject(ObjectManager *parent,GameObjectDef* def)
 		}
 	}
 }
+
 GameObject::~GameObject()
 {
 	if(definition)
 		definition->decRef();	
 	
 	detach();
+}
+
+GameObjectDef * GameObject::getDefinition() 
+{ 
+	return definition; 
+}
+
+ObjectManager * GameObject::getManager() 
+{	
+	return manager; 
+}
+
+ObjectType GameObject::getType() const 
+{ 
+	return typeVoid; 
+}
+
+_Scripter * GameObject::getScripter() 
+{ 
+	return manager ? manager->getScripter() : NULL; 
 }
 
 void GameObject::attach()
@@ -219,11 +275,13 @@ void GameObject::setPlayer(int p)
 void GameObject::update(float dt)
 {
 	syncPose();
-	effects.update(dt);
+	if( effects )
+		effects->update(dt);
 }
+
 void GameObject::setCollisionGroup(CollisionGroup group)
 {
-	collisionGroup=group;
+	collisionGroup = group;
 }
 
 CollisionGroup GameObject::getCollisionGroup()const
@@ -247,22 +305,27 @@ int GameObject::readState(IO::StreamIn &buffer)
 	return 1;
 }
 
-Sphere2 GameObject::getBoundingSphere()const
+Sphere2 GameObject::getBoundingSphere() const
 {
-	return definition->body.getBoundingSphere();
+	if( definition )
+		return definition->body.getBoundingSphere();
+	else
+		return SolidObject::getBoundingSphere();		
 }
 
 AABB2 GameObject::getOOBB()const			// get object oriented bounding box
 {
-	return definition->body.getOOBB();
+	if( definition )
+		return definition->body.getOOBB();
+	else
+		return SolidObject::getOOBB();
 }
 
 void GameObject::damage(const Damage &dmg)
 {		
 	if(onDamage!=0)
 		onDamage->onDamage(dmg);
-	health-=dmg;//.Value[0];
-	//health-=dmg[1];//.Value[1];
+	health-=dmg;
 }
 
 bool GameObject::isDead()const

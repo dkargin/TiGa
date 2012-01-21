@@ -83,8 +83,9 @@ protected:
 	void generateWallEdges();
 };
 
-class Core;
+class Game;
 
+/// The place we play in
 class World:
 	public ObjectManager::Listener,
 	protected b2ContactFilter, 
@@ -98,11 +99,11 @@ public:
 	bool updateSystems;
 	ObjectManager *gameObjects;
 	FxPointer background;
-	Core * core;
+	Game * core;
 	
 	HTARGET				visionPass;
 	hgeSprite*			visionLayer;
-	GUI::hgeFontPtr		 font;			/// font for debug layer
+	
 	/// information about cursor selection
 	CursorInfo cursor;
 
@@ -119,7 +120,7 @@ public:
 /// Level speciefic
 	Level level;
 public:
-	World(const char *name, Core * core);
+	World(const char *name, Game * core);
 	~World();
 	
 	void updateMap();
@@ -197,10 +198,5 @@ protected:
 //typedef NetCmd::TakeControl NetCmdTakeControl;
 
 void testGameObject(GameObject * object);
-// lua helper - to convert char key to VK_ value
-inline int vkChar(char *key)
-{
-	char tmp[2]={key[0],0};
-	return _strupr(tmp)[0];
-}
+
 #endif

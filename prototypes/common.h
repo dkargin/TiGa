@@ -4,8 +4,8 @@
 #define GLUT_BUILDING_LIB
 #include <tchar.h>
 #include "glut.h"
-#include "../FrostTools/3dmath.h"
-#include "../frosttools/frosttools.h"
+#include "../../frosttools/3dmath.h"
+#include "../../frosttools/frosttools.h"
 
 struct Color{ float r, g, b, a;};
 

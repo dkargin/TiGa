@@ -5,9 +5,9 @@
 #include "world.h"
 #include "draw.h"
 
-#include "Core.h"
+#include "Game.h"
 
-#include <GL/GL.H>
+//#include <GL/GL.H>
 ///////////////////////////////////////////////////////////////
 // Globals
 ///////////////////////////////////////////////////////////////
@@ -16,11 +16,7 @@
 ///////////////////////////////////////////////////////////////
 // World class
 ///////////////////////////////////////////////////////////////
-
-/////////////////////////////////////////////////////////////////////
-//
-/////////////////////////////////////////////////////////////////////
-World::World(const char *name,Core * core)
+World::World(const char *name, Game * core)
 	:draw(NULL)
 	,dynamics(b2Vec2(0,0))
 	,helloSent(false)
@@ -28,8 +24,7 @@ World::World(const char *name,Core * core)
 	,visionLayer(NULL)
 	,visionPass(NULL)
 	,gameObjects(NULL)
-	,scripter(core->scripter)
-	,font(new hgeFont("./data/font1.fnt"))
+	,scripter(core->scripter)	
 	,level(*this)
 	,core(core)
 {	
@@ -79,8 +74,6 @@ World::~World()
 		delete gameObjects;
 		gameObjects = NULL;
 	}
-
-	font = NULL;
 }
 
 void World::initRenderer(HGE * hge)
@@ -206,6 +199,8 @@ void World::restore()
 	if(visionLayer && visionPass) 
 		visionLayer->SetTexture(draw->hge->Target_GetTexture(visionPass));
 }
+
+#ifdef WORLD_USE_NETWORK
 //
 //void World::readCmd(IO::StreamIn &buffer,int client)
 //{
@@ -313,6 +308,7 @@ void World::restore()
 //	//	writeCmd(buffer,client);
 //	//msgEnd(buffer);
 //}
+#endif
 
 const bool useVision = false;
 void World::renderVision()
@@ -334,12 +330,9 @@ void World::renderVision()
 
 void World::renderUI()
 {
-	
-	//gui.Render();
-	//gui.Sh
-	//font.printf(0, 0, HGETEXT_LEFT, "dt:%.3f\nFPS:%d (constant)", draw->hge->Timer_GetDelta(), draw->hge->Timer_GetFPS());
 }
 
+#ifdef USE_PATHPROJECT
 void renderNode(pathProject::MapBuilderQuad::QuadNode *n)
 {
 	if(n==NULL)
@@ -379,11 +372,12 @@ void renderNode(pathProject::MapBuilderQuad::QuadNode *n)
 		geom->drawLine(s[0],s[1],end[0],end[1]);
 	}*/
 }
+
 void drawQuadMap()
 {
 	
 }
-
+#endif
 void World::renderObjects()
 {		
 	gameObjects->fxManager->setView( draw->globalView );
@@ -391,16 +385,18 @@ void World::renderObjects()
 	float size=512;
 	float cells=4;
 	
+	FxManager * manager = gameObjects->fxManager.get();
 	if(background != NULL)
 	{
 		//background->z = -10;
 		for(float y=-size*cells;y<size*cells;y+=size)
 			for(float x=-size*cells;x<size*cells;x+=size)
-				background->query(Pose(x,y,0));
+				background->query(manager, Pose(x,y,0));
 	}
 
 	if(level.background != NULL)
-		level.background->query(Pose(0,0,0));
+		level.background->query(manager, Pose(0,0,0));
+#ifdef USE_PATHPROJECT
 	if(false)
 	{
 		glDisable(GL_DEPTH_TEST);
@@ -455,17 +451,16 @@ void World::renderObjects()
 				glPopMatrix();
 			}
 		}
-		glEnable(GL_DEPTH_TEST);
-		
+		glEnable(GL_DEPTH_TEST);		
 	}
-
+#endif
 	for(auto it = gameObjects->objects.begin();it!=gameObjects->objects.end();++it)
 		draw->drawObject((GameObject*)*it);
 
 	for(auto it = attachedEffects.begin(); it != attachedEffects.end(); it++)
 	{
 		if(it->first != NULL)
-			it->second->render(it->first->getPose());
+			it->second->render(manager, it->first->getPose());
 	}	
 	
 	if(draw->drawDynamics)
@@ -475,14 +470,15 @@ void World::renderObjects()
 
 	scripter.call("onRenderObjects");
 
-	gameObjects->fxManager->pyro.render(Pose(),1);
+	gameObjects->fxManager->pyro.render(manager, Pose(),1);
 
 	// execute render queue
-	gameObjects->fxManager->renderQueue.render(Pose(0,0,0));
-
+	gameObjects->fxManager->renderQueue.render(manager, Pose(0,0,0));
+	/*
 	glMatrixMode(GL_PROJECTION);
 	glPopMatrix();
 	glMatrixMode(GL_MODELVIEW);
+	*/
 }
 
 void World::render()

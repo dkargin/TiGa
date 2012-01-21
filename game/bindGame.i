@@ -1,6 +1,6 @@
 %{
 #include "world.h"
-#include "Core.h"
+#include "Game.h"
 #include "Draw.h"
 extern World *world;
 extern Core * core;
@@ -97,44 +97,10 @@ public:
 	void drawSprite(const Pose &pose, hgeSprite * sprite);
 }; 
 
-class Core
+class Game : public Core
 {
 public:
-	LogFILE logger;
-	//bool setHGEViewport(Ihandle * handle);
-	void startHGEChild(unsigned int HWND);	// run HGE as child window
-	void * startHGE();	
-	void runHGE();							// run HGE host	
-	//void worldPause(bool pause);
-	//bool worldPaused() const;
-	void registerTestScene(const char * scene);
-
-	int getScreenWidth() const;
-	int getScreenHeight() const;
-	
-	/// cursor operation
-	vec2i uiGetCursorPos(size_t id = 0);
-	void uiSetCursorEffect( size_t id, SharedPtr<FxEffect> effect );
-	void uiResetCursorEffect( size_t id );				// reset cursor to default
-	void uiSetDefaultCursorEffect( SharedPtr<FxEffect> effect );
-
-	%extend
-	{
-		SharedPtr<FxManager> getFxManager()
-		{
-			return $self->fxManager;
-		}
-		Log * getLogger()
-		{
-			return &($self->logger);
-		}
-	}
+	void initGame();
 };
-Core * core;
-
-int vkChar(char *key);
-
-int rand();
-int randRange(int min,int max);
 
 void testGameObject(GameObject * object);

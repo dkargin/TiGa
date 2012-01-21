@@ -315,15 +315,13 @@ class DeviceDef;
 ///////////////////////////////////////////////////////////////////////////////
 class ObjectManager :	public VisionManager
 {	
-public:	
-	
+public:		
 	class Listener
 	{
 	public:
 		virtual void onDie(GameObject *unit){};
 		virtual void onDelete(GameObject *unit){};
-	};
-	
+	};	
 	enum NetMessages
 	{
 		objectCreate=0x1f,
@@ -348,7 +346,7 @@ public:
 	// theese are for unit parts
 	// DeviceManager *deviceManager;
 	PerceptionManager *perceptionManager;	// replace it by DeviceManager in future	
-	FxManager & fxManager;
+	FxManager::SharedPtr fxManager;
 	b2BlockAllocator allocator;
 	b2World * scene;
 	pathProject::PathCore * pathCore;
@@ -362,7 +360,7 @@ public:
 	}role;
 	_Scripter *scripter;	
 public:
-	ObjectManager(_Scripter *lua, FxManager & fx);	
+	ObjectManager(_Scripter *lua, FxManager::SharedPtr fx);	
 	~ObjectManager();	
 
 	void initSimulation( b2World * dn, pathProject::PathCore *pathCore );

@@ -236,7 +236,8 @@ void DrawBlueprint( ShipBlueprint * blueprint, GameData * data, float cornerX, f
 		ShipBlueprint::Block & block = blueprint->blocks[i];
 		const TileSectionDesc & desc = data->sections[block.tileType];	
 		Pose2z pose( cornerX + (block.x + (float)desc.sizeX * 0.5) * tileSize, cornerY + (block.y + (float)desc.sizeX * 0.5) * tileSize, 0, 0 );
-		data->getSectionSprite(block.tileType)->render(pose);
+		FxEffect::Pointer ptr = data->getSectionSprite(block.tileType);
+		ptr->render(ptr->getManager(), pose);
 	}
 }
 

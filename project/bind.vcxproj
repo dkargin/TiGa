@@ -111,10 +111,11 @@
     </None>
     <None Include="..\game\bindDevices.i" />
     <None Include="..\game\bindFx.i" />
+    <None Include="..\game\bindGame.i" />
     <None Include="..\game\bindHGE.i" />
     <None Include="..\game\bindMath.i" />
     <None Include="..\game\bindObjects.i" />
-    <None Include="..\game\bindWorld.i" />
+    <None Include="..\game\bindCore.i" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\game\bind.cpp" />

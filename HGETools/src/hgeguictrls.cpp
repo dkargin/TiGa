@@ -25,7 +25,7 @@ Text::Text() : Object(hgeRect())
 	text[0]=0;
 }
 
-Text::Text(const hgeRect & rect, hgeFontPtr fnt)
+Text::Text(const hgeRect & rect, FontPtr fnt)
 	:Object(rect)
 {
 	//static=true;
@@ -42,7 +42,7 @@ void Text::SetMode(int _align)
 	align=_align;
 }
 
-void Text::SetFont(hgeFontPtr fnt)
+void Text::SetFont(FontPtr fnt)
 {
 	font = fnt;
 }
@@ -94,16 +94,16 @@ void Button::onRender()
 	if( sprite != NULL )
 	{
 		hgeRect rect = getRect();
-		float width = sprite->sprite.GetWidth();
-		float height = sprite->sprite.GetHeight();
+		float width = sprite->getWidth();
+		float height = sprite->getHeight();
 		Pose2z pose(0.5 * (rect.x2 + rect.x1), 0.5 * (rect.y2 + rect.y1), 0, 0);
-		sprite->render(pose);
+		sprite->render(sprite->getManager(), pose);
 	}
 	if(bPressed)
 		drawRectSolid(getHGE(), getRect(), ARGB(255,65,65,65));
 }
 
-void Button::setText(const char * msg, hgeFontPtr fnt)
+void Button::setText(const char * msg, FontPtr fnt)
 {
 	text->SetFont(fnt);
 	text->SetText(msg);
@@ -267,7 +267,7 @@ void Image::onRender()
 		float width = sprite->sprite.GetWidth();
 		float height = sprite->sprite.GetHeight();
 		Pose2z pose(0.5 * (rect.x2 + rect.x1 + width), 0.5 * (rect.y2 + rect.y1 + height), 0, 0);
-		sprite->render(pose);
+		sprite->render(sprite->getManager(), pose);
 	}
 }
 
@@ -333,7 +333,8 @@ void Slider::onRender()
 			case HGESLIDER_BARRELATIVE: x1=(rect.x1+rect.x2)/2; y1=rect.y1; x2=xx; y2=rect.y2; break;
 			case HGESLIDER_SLIDER: x1=xx-sl_w/2; y1=(rect.y1+rect.y2-sl_h)/2; x2=xx+sl_w/2; y2=(rect.y1+rect.y2+sl_h)/2; break;
 		}
-	sprite->render( FxEffect::Pose((x1 + x2)/2, yy + sl_h/2) );
+	if( sprite )
+		sprite->render( sprite->getManager(), FxEffect::Pose((x1 + x2)/2, yy + sl_h/2) );
 	//sprSlider->RenderStretch(x1, y1, x2, y2);
 }
 

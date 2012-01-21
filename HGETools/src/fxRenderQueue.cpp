@@ -54,7 +54,8 @@ void Pyro::runEffect(FxPointer effect)
 	desc.effect = effect;
 	effects.push_back(desc);		
 }
-void Pyro::update(float dt)
+
+void Pyro::update(FxManager * manager, float dt)
 {		
 	for(size_t i = 0; i < effects.size();)
 	{
@@ -75,14 +76,14 @@ void Pyro::update(float dt)
 	}
 }	
 
-void Pyro::render(const FxEffect::Pose &pose,float scale)
+void Pyro::render(FxManager * manager, const FxEffect::Pose &pose,float scale)
 {
 	for(size_t i = 0; i < effects.size(); i++)
 	{
 		TimedEffect &e=effects[i];
 		if(e.effect != NULL)
 		{
-			e.effect->query(pose);				
+			e.effect->query(manager, pose);				
 		}
 	}
 }
@@ -93,7 +94,7 @@ void RenderQueue::flush()
 	heap.resize(0);
 }
 
-void RenderQueue::render(const FxEffect::Pose & base)
+void RenderQueue::render(FxManager * manager, const FxEffect::Pose & base)
 {
 	if(heap.empty())
 		return;
@@ -108,7 +109,7 @@ void RenderQueue::render(const FxEffect::Pose & base)
 	});
 	for(size_t i = 0; i < heap.size(); i++)
 	{
-		array[i].effect->render(base * array[i].pose);
+		array[i].effect->render(manager, base * array[i].pose);
 	}
 	flush();
 }

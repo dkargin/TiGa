@@ -69,7 +69,7 @@ public:
 	size_t pickedSection;
 
 	ShipyardWindow(Game * core);
-	GUI::hgeFontPtr font;
+	GUI::FontPtr font;
 	Game * game;
 	Instance<GUI::Button> menu, save;
 	Instance<GUI::Frame> toolbox;	

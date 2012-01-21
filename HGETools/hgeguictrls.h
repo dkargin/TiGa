@@ -19,7 +19,7 @@
 #define hgeGetListboxCtrl(gui,id)		((hgeGUIListbox*)gui->GetCtrl(id))
 namespace GUI
 {
-	typedef std::shared_ptr<hgeFont> hgeFontPtr;
+	typedef std::shared_ptr<hgeFont> FontPtr;
 	/*
 	** Text
 	*/
@@ -27,17 +27,17 @@ namespace GUI
 	{
 	public:
 		Text();
-		Text(const hgeRect & rect, hgeFontPtr fnt);
+		Text(const hgeRect & rect, FontPtr fnt);
 
 		void			SetMode(int _align);
 		void			SetText(const char *_text);
-		void			SetFont(hgeFontPtr font);
+		void			SetFont(FontPtr font);
 		void			printf(const char *format, ...);
 
 		virtual void	onRender();
 
 	private:
-		hgeFontPtr		font;
+		FontPtr		font;
 		int				align;
 		char			text[256];
 	};
@@ -103,7 +103,7 @@ namespace GUI
 
 		//void			SetImages(const hgeSprite & up, const hgeSprite & down);
 
-		void			setText(const char * text, hgeFontPtr fnt);
+		void			setText(const char * text, FontPtr fnt);
 		void			setMode(bool _bTrigger) { bTrigger=_bTrigger; }
 		void			setState(bool _bPressed) { bPressed=_bPressed; }
 		bool			setState() const { return bPressed; }
@@ -116,11 +116,11 @@ namespace GUI
 		std::function<void ()> onPressed;
 		virtual void	executeOnStateChange(bool down) {}
 
-		FxSpritePtr		sprite;
+		FxEffect::Pointer		sprite;
 	private:
 		
 		//hgeSprite		spriteUp, spriteDown;
-		hgeFontPtr		font;
+		FontPtr		font;
 		bool			useSprites;
 		Instance<Text>		text;
 		//Frame		frame;

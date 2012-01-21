@@ -57,10 +57,10 @@ public:
 	virtual Pose getPose() const;
 	virtual FxType type()const=0;
 	virtual bool valid()const=0;
-	virtual void render(const Pose & base)=0;
+	//virtual void render(const Pose & base)=0;
 	virtual void update(float dt)=0;
 	virtual FxEffect * clone() const=0;
-	virtual void query(const Pose & base);
+	//virtual void query(const Pose & base);
 
 	virtual void start(AnimationMode mode);			// starts animation (if there is any)
 	virtual void stop(bool immediate);				// stops animation (if there is any)
@@ -176,3 +176,6 @@ public:
 	FxSound * fxSound(const char * source);
 	FxHolder * fxHolder();
 };
+
+%template(FxManagerPtr) std::shared_ptr<FxManager>;
+typedef std::shared_ptr<FxManager> FxManagerPtr;

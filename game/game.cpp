@@ -8,13 +8,23 @@
 #include "frameBattle.h"
 #include "frameHangar.h"
 
-Game game;
 
-Game::Game()
-	:Core("./script/startup_Game.lua"), mainMenu(NULL), gameplay(NULL), shipyard(NULL), active(NULL)
+int hgeMain()
 {
-
+	Game game;
+	game.executeScript("./script/startup_Game.lua");
+	game.font = GUI::FontPtr(new hgeFont("./data/font1.fnt"));
+	game.initGame();
+	game.run();	
+	return 0;
 }
+
+/////////////////////////////////////////////////////////////////////
+// Game class implementation
+/////////////////////////////////////////////////////////////////////
+Game::Game()
+	:mainMenu(NULL), gameplay(NULL), shipyard(NULL), active(NULL)
+{}
 
 Game::~Game()
 {
@@ -22,6 +32,7 @@ Game::~Game()
 	shipyard = NULL;
 	hangar = NULL;
 	gameplay = NULL;	
+	gameData = NULL;
 }
 /*
 class TestWindow : public GUI::Object
@@ -42,26 +53,10 @@ public:
 	}
 };
 */
-void Game::createWorld()
+void Game::initGame()
 {
-	World * world = new World("worldName",this);
-	HGE * hge = getHGE();
-
-	if(world->init(hge,true))
-	{		
-		// Create a render target and a sprite for it			
-		world->initRenderer(hge);
-
-		font = world->font;
-		// init ui root
-		guiRoot->setRect(hgeRect(0,0, hge->System_GetState(HGE_SCREENWIDTH), hge->System_GetState(HGE_SCREENHEIGHT)));
-	}
-
-	//Core::createWorld();	
-	//{
-		//TestWindow window;
-	//}
 	gameData = new GameData(this);	
+	scripter.call("onGameInit", (LuaObject*)this);
 	showMainMenu();
 }
 
@@ -134,7 +129,6 @@ void Game::makeActive(GUI::Object * object)
 }
 
 ///////////////////////////////////////////////////////////////////////////////////
-
 ShipBlueprint::ShipBlueprint()
 {
 	blocks = NULL;	
@@ -210,6 +204,7 @@ void ShipBlueprint::load(IO::StreamIn &stream)
 	}
 	// TODO: implement name loading
 }
+
 void ShipBlueprint::save(IO::StreamOut & stream)
 {
 	stream.write((unsigned short)blocksCount);
@@ -220,6 +215,7 @@ void ShipBlueprint::save(IO::StreamOut & stream)
 		stream.write(devices, sizeof(Device) * devicesCount);	
 	// TODO: implement name saving
 }
+
 void ShipBlueprint::reset()
 {
 	if( blocks != NULL )

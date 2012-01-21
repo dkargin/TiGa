@@ -51,14 +51,15 @@ void FxSprite::flipHor()
 	sprite.SetFlip(!flipX, flipY);
 }
 
-float FxSprite::getWidth() const
+hgeRect FxSprite::getLocalRect() const
 {
-	return sprite.GetWidth();
-}
-
-float FxSprite::getHeight() const
-{
-	return sprite.GetHeight();
+	hgeRect result;
+	vec2f pos = getPose().getPosition();
+	result.x1 = pos[0] - sprite.GetWidth() / 2;
+	result.x2 = pos[0] + sprite.GetWidth() / 2;
+	result.y1 = pos[1] - sprite.GetHeight() / 2;
+	result.y2 = pos[1] + sprite.GetHeight() / 2;
+	return result;
 }
 
 void FxSprite::flipVer()
@@ -70,10 +71,11 @@ void FxSprite::flipVer()
 
 void drawSprite(HGE *hge,hgeSprite *sprite,const FxEffect::Pose &p,float width,float height,bool rect=false);
 
-void FxSprite::render(const Pose &base)
+void FxSprite::render(FxManager * manager, const Pose &base)
 {
 	if(!valid() || !visible)return;
 	Pose p = base*getPose();
+
 	int w = sprite.GetWidth();
 	int h = sprite.GetHeight();	
 	drawSprite(manager->hge,&sprite, p, w*0.5*scale, h*0.5*scale_h*scale, sprite.GetTexture() == 0);

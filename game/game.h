@@ -24,6 +24,7 @@ public:
 	SharedPtr<ShipyardWindow> shipyard;
 	SharedPtr<HangarWindow> hangar;
 
+	GUI::FontPtr		 font;				/// font for debug layer
 	SharedPtr<GameData> gameData;
 	//World * world;
 	WeakPtr<GUI::Object> active;
@@ -31,12 +32,14 @@ public:
 	virtual void onRender();
 	virtual void onUpdate();
 	virtual void registerTestScene(const char * scene);
-	virtual void createWorld();
+	/// init game data and basic UI
+	virtual void initGame();
 	/// show specific frame
 	void showGameplay();
 	void showHangar();
 	void showMainMenu();
 	void showShipyard();
+	const char * luaName()const { return "Game";}
 protected:
 	void makeActive(GUI::Object * active);
 };

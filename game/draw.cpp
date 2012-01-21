@@ -188,9 +188,10 @@ void Draw::drawObject(GameObject *object)
 {
 	if(dynamic_cast<Unit*>(object))
 		draw(dynamic_cast<Unit*>(object));
-	else
+	else if( object->effects )
 	{
-		object->effects->query(object->getPose());
+		FxEffect::Pointer ptr = object->effects;
+		object->effects->query(ptr->getManager(), object->getPose());
 	}
 }
 
@@ -203,6 +204,7 @@ void Draw::draw(Unit *unit)
 {
 	if(!unit)
 		return;
+#ifdef TO_FIX
 	Pose pose = unit->getPose();
 	unit->effects->query(pose);
 	for(int i = 0; i < unit->devices.size();i++)
@@ -219,6 +221,7 @@ void Draw::draw(Unit *unit)
 
 	if(unit->getController() && drawTasks)
 		unit->getController()->render(hge);	
+#endif
 }
 
 void drawSolidArrow(HGE * hge, const vec2f & from, const vec2f & to, float z, DWORD color, float width, float arrowWidth, float arrowLength)

@@ -150,7 +150,7 @@ _Scripter * DeviceDef::getScripter()
 // Device
 ///////////////////////////////////////////////////////////////////////////
 Device::Device(DeviceDef *def)
-:master(NULL),deviceMode(dmManual),definition(def),effects(&def->manager.fxManager)
+:master(NULL),deviceMode(dmManual),definition(def), effects(def->manager.fxManager.get())
 {	
 	g_logger->line(0,"Device::Device");
 	if(def->fxIdle)

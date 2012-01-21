@@ -4,7 +4,7 @@
 ///////////////////////////////////////////////////////
 // Basic effect
 ///////////////////////////////////////////////////////
-FxEffect::FxEffect(FxManager * manager) : manager(manager)
+FxEffect::FxEffect(FxManager * manager) : manager(manager->shared_from_this())
 {	
 	scale = 1.f;
 	visible = true;	
@@ -25,18 +25,23 @@ FxEffect::~FxEffect()
 {		
 }
 
+FxManager * FxEffect::getManager() const
+{
+	return manager.lock().get();
+}
+
 Log * FxEffect::logger() const
 {
-	if( manager )
-		return manager->logger();
+	if( getManager() )
+		return getManager()->logger();
 	else
 		return NULL;
 }
 
 HGE * FxEffect::hge() const
 {
-	if( manager )
-		return manager->hge;
+	if( getManager() )
+		return getManager()->hge;
 	else
 		return NULL;
 }
@@ -68,6 +73,7 @@ void FxEffect::setPose(float x, float y, float rot)
 	pose.position[1] = y;
 	pose.orientation = rot;
 }
+
 const FxEffect::Pose & FxEffect::getPose() const
 {
 	return pose;
@@ -76,6 +82,12 @@ const FxEffect::Pose & FxEffect::getPose() const
 FxEffect::Pose FxEffect::getGlobalPose()const
 {
 	return parent ? parent->getGlobalPose() * pose : pose;
+}
+
+hgeRect FxEffect::getLocalRect() const
+{
+	vec2f pos = pose.getPosition();
+	return hgeRect(pos[0], pos[1], pos[0], pos[1]);
 }
 
 bool FxEffect::valid() const
@@ -121,29 +133,42 @@ void FxEffect::rewind()
 		it->rewind();
 }
 
-void FxEffect::update(float dt)
+// empty
+void FxEffect::update(float dt) {}
+
+void FxEffect::updateAll(float dt)
 {
 	for(iterator it=begin();it!=end();++it)
 		it->update(dt);
 }
 
-void FxEffect::render(const Pose &base)
+// empty
+void FxEffect::render(FxManager * manager, const Pose &base) {}
+
+void FxEffect::renderAll(FxManager * manager, const Pose &base)
 {
 	for(iterator it=begin();it!=end();++it)
-		it->render(base*pose);
+		it->render(manager, base*pose);
 }
 
-void FxEffect::query(const Pose & base)
+// empty
+void FxEffect::query(FxManager * manager, const Pose & base) 
 {
-	if(manager)
-		manager->renderQueue.query(base, this);
-	for(iterator it=begin();it!=end();++it)
-		it->query(base*pose);
+	// query itself
+	query(manager, base);
+}
+void FxEffect::queryAll(FxManager * manager, const Pose & base)
+{	
+	
+	// query children
+	manager->renderQueue.query(base, this);
+	for(iterator it = begin(); it != end(); ++it)
+		it->queryAll(manager, base*pose);
 }
 
 hgeRect FxEffect::getClipRect() const
 {
-	hgeRect result(0,0,0,0);
+	hgeRect result = getLocalRect();
 	bool first = true;
 	for(const_iterator it = begin();it != end();++it)
 	{

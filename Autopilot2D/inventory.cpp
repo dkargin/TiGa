@@ -67,7 +67,11 @@ Item * ItemDef::construct(IO::StreamIn *context)
 Item::Item(ItemDef *def)
 :state(Item::placeLand),GameObject(def->manager,def)
 {
-	if(def->fxIdle)effects.attach(def->fxIdle->clone());
+	if(def->fxIdle)
+	{
+		effects = def->fxIdle->clone();
+		//effects.attach(def->fxIdle->clone());
+	}
 }
 Item::~Item()
 {}

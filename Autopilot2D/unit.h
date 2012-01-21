@@ -97,9 +97,9 @@ public:
 	void setController(Controller * controller);
 	void enableAI(bool flag);
 	
-	inline b2World * dynamics()
+	inline b2World * getDynamics()
 	{
-		return manager()->scene;
+		return getManager()->scene;
 	}	
 
 	bool toSync()const;

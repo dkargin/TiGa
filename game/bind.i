@@ -2,7 +2,6 @@
 
 %include "stl.i"
 
-
 %{
 #include "stdafx.h"
 #include "iup.h"
@@ -124,7 +123,47 @@ public:
 		}
 	}
 };
-
+namespace std
+{
+	template<class Target> struct shared_ptr
+	{
+	public:
+		shared_ptr();
+		~shared_ptr();
+		//operator Target * ();
+		Target * operator -> ();
+		%extend 	
+		{
+			bool operator==(const shared_ptr<Target> & ptr)const
+			{
+				return ptr.get() == $self->get();
+			}
+			bool operator!=(const shared_ptr<Target> & ptr)const
+			{
+				return ptr.get() == $self->get();
+			}
+		}
+	};
+	template<class Target> struct weak_ptr
+	{
+	public:
+		weak_ptr();
+		~weak_ptr();
+		//operator Target * ();
+		Target * operator -> ();
+		%extend 	
+		{
+			bool operator==(const weak_ptr<Target> & ptr)const
+			{
+				return ptr == *this;
+			}
+			bool operator!=(const weak_ptr<Target> & ptr)const
+			{
+				return ptr != *this;
+			}
+		}
+	};	
+}
 namespace IO
 {
 	class DataBuffer: public Referenced
@@ -340,11 +379,14 @@ bool pushObjectPtr(lua_State *l,void *object,const char *name)
 }
 
 %}
-
+/// Core bindings
 %include bindMath.i
+%include bindHGE.i
 %include bindFx.i
 %include bindDevices.i
 %include bindObjects.i
 
-%include bindHGE.i
-%include bindWorld.i
+%include bindCore.i
+
+/// Game-specific bindings
+%include bindGame.i

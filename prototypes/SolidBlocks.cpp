@@ -131,7 +131,7 @@ Multiblock::grid_type * Multiblock::fracture(int x, int y)
 }
 
 Application::Application()
-	:world(b2Vec2(0,4),true), groundBody(NULL), targeting(false), selecting(false), mouseCurrentPos(0,0)
+	:world(b2Vec2(0,4)), groundBody(NULL), targeting(false), selecting(false), mouseCurrentPos(0,0)
 {}
 
 Multiblock & Application::createBody()

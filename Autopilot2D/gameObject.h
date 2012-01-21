@@ -56,21 +56,6 @@ enum CollisionGroup
 	cgMax,
 };
 typedef Pose2z Pose;
-class PoseIn
-{
-public:
-	virtual const Pose::pos & getPosition() const =0;
-	virtual Pose::vec getDirection() const=0;
-	virtual Pose getPose()const=0;
-};
-
-class PoseOut
-{
-public:
-	virtual void setPosition(const Pose::pos &pos)=0;
-	virtual void setDirection(const Pose::vec &dir)=0;
-	virtual void setPose(const Pose &pose)=0;
-};
 
 class PerceptionClient;
 
@@ -161,7 +146,7 @@ private:
 };
 
 // Contains Box2D solid body
-class SolidObject: virtual public PoseIn,public PoseOut
+class SolidObject
 {
 protected:
 	Pose pose;    /// cached pose	
@@ -170,42 +155,27 @@ protected:
 public:
 	SolidObject();
 	virtual ~SolidObject();
+
 	bool isSolid()const;  /// if object has box2d body attached
-	/// box2d properties
+	/// box2d handling
 	void detachBody();
 	void attachBody(b2Body * s);
 	const b2Body  * getBody() const;
-	b2Body  * getBody();
+	b2Body  * getBody();	
+	void syncPose();	// sync cached pose with solid
+
+	Pose::vec getVelocityLinear() const;
+	Pose::vec3 getVelocityLinear3() const;
+	/// Pose
 	const Pose::pos & getPosition() const;
 	Pose::vec getDirection() const;
 	void setPosition(const Pose::pos &pos);
 	void setDirection(const Pose::vec &dir);
 	void setPose(const Pose &pose);
-	Pose getPose() const;
-
-	Pose::vec getVelocityLinear() const
-	{
-		const b2Body * body = getBody();
-		if(body)
-		{
-			return conv(body->GetLinearVelocity());
-		}
-		else
-			return Pose::vec::zero();
-	}
-	Pose::vec3 getVelocityLinear3() const
-	{
-		const b2Body * body = getBody();
-		if(body)
-		{
-			vec2f velocity2 = conv(body->GetLinearVelocity());
-			return Pose::vec3(velocity2[0], velocity2[1], 0);
-		}
-		else
-			return Pose::vec3::zero();
-	}
-	// sync cached pose with solid
-	void syncPose();
+	Pose getPose() const;	
+	/// Geometry
+	Sphere2 getBoundingSphere()const;
+	AABB2	getOOBB()const;			// get object oriented bounding box	
 };
 
 // Basic definition for game object. 
@@ -263,25 +233,26 @@ public:
 		virtual void onDamage(const Damage &dmg)=0;
 	};
 protected:	
-	Health health;					/// current health
-	GameObjectDef* definition;
-	CollisionGroup collisionGroup;
+	Health health, maxHealth;		/// current health
+	GameObjectDef * definition;		/// object definition
+	CollisionGroup collisionGroup;	/// current collison group
+	ObjectManager * manager;		/// where is it stored
 public:
-	FxHolder effects;
+	FxEffect::Pointer effects;
 //	FxModel *model;
-	IDamageListener *onDamage;
+	IDamageListener * onDamage;
 	int player;				/// the player owning this object
 
-	GameObject(ObjectManager *parent,GameObjectDef* def);
+	GameObject(ObjectManager *parent, GameObjectDef* def);
 	virtual ~GameObject();
 
 	virtual void save(IO::StreamOut & stream);
 	virtual void load(IO::StreamIn & stream);
 
-	virtual GameObjectDef * getDefinition() { return definition; };
-	virtual ObjectManager * manager() {	return definition? definition->manager:NULL; }
-	virtual ObjectType getType() const { return typeVoid; };
-	_Scripter * getScripter() { return definition ? definition->getScripter() : NULL; }
+	virtual GameObjectDef * getDefinition();
+	virtual ObjectManager * getManager();
+	virtual ObjectType getType() const;
+	virtual _Scripter * getScripter();
 
 	void makeUnique();	/// create new definition
 	bool isUnique()const;
@@ -352,8 +323,8 @@ bool isHostile(const GameObject *a,const GameObject *b);
 b2Body * createSolidBox(ObjectManager *m,float width,float height,float mass);
 b2Body * createSolidSphere(ObjectManager *m,float size,float mass);
 
-void createObjectBox(GameObject * object, float width,float height,float mass);
-void createObjectSphere(GameObject *object,float size,float mass);
+//void createObjectBox(GameObject * object, float width,float height,float mass);
+//void createObjectSphere(GameObject *object, float size,float mass);
 
-void localPrintf(const char *msg);
+//void localPrintf(const char *msg);
 #endif

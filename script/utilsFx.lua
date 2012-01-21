@@ -3,6 +3,9 @@
 -- File contains FxObjects tools
 Models = {}
 
+local getFxManager = function()
+	return core:getFxManager()
+end
 function fxRegisterObject(object)
 	--table.insert(Models,object)
 	return object
@@ -18,7 +21,7 @@ end
 
 -- create array of FxEffects
 function fxArray(source)
-	local manager = world.gameObjects:getFxManager()
+	local manager = getFxManager()
 	local holder = manager:fxHolder()
 	for key,object in ipairs(source) do
 		holder:attach(object)
@@ -27,7 +30,7 @@ function fxArray(source)
 end
 
 function fxSound(source)
-	local manager = world.gameObjects:getFxManager()
+	local manager = getFxManager()
 	local object = manager:fxSound(source.file)
 	return object
 end
@@ -35,7 +38,7 @@ end
 -- create sprite and write basic params
 function fxSprite(init)
 	local data = mergeTables(init,{file = "data/zazaka.png",rect={0,0,0,0},blend = TiGa.binOR(TiGa.COLORMUL,TiGa.ALPHABLEND,TiGa.ZWRITE)})
-	local manager = world.gameObjects:getFxManager()
+	local manager = getFxManager()
 	local object = manager:fxSprite(data.file,data.rect[1],data.rect[2],data.rect[3],data.rect[4])
 	local typedef = getmetatable(object)
 	print(type(typedef))
@@ -46,7 +49,7 @@ end
 -- create animation using specific texture region
 function fxAnimationRC(init)
 	--debugTrace('fxAnimationRC')
-	local manager= world.gameObjects:getFxManager()
+	local manager = getFxManager()
 	init = mergeTables(init,{frame={0,0},rect={0,0,0,0},fps=25,blend=TiGa.binOR(TiGa.COLORMUL,TiGa.ALPHAADD,TiGa.ZWRITE),mode=TiGa.Hold})
 	--(const char *texture,float rect[4],int frameWidth,int frameHeight,float fps,AnimMode mode);
 	local rect=TiGa.Rect(init.rect[1],init.rect[2],init.rect[3],init.rect[4])
@@ -70,7 +73,7 @@ end
 -- create animation using all texture
 function fxAnimation2(init)
 	--debugTrace('fxAnimation2')
-	local manager = world.gameObjects:getFxManager()
+	local manager = getFxManager()
 	--debugTrace('fxAnimation2-scale='..init.scale)
 	local init = mergeTables(init,{frame={0,0},fps=25,blend=TiGa.binOR(TiGa.COLORMUL,TiGa.ALPHABLEND,TiGa.ZWRITE),mode=TiGa.Hold})
 	--debugTrace('fxAnimation2-scale='..init.scale)
@@ -144,7 +147,7 @@ end
 --------------------------------------------------------------
 -- particle system constructor
 function fxParticles(source)
-	local manager = world.gameObjects:getFxManager()
+	local manager = getFxManager()
 	local object = manager:fxParticles(source.sprite, hgeParticleSystemInfo(source))
 	return fxInit(object,source)
 end

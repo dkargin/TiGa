@@ -60,9 +60,9 @@ MenuWindow::~MenuWindow()
 
 bool MenuWindow::onMouseMove(int mouseId, const uiVec & vec, GUI::Object::MoveState state)
 {
-	if( state == GUI::Object::MoveEnter)
-		_RPT0(0,"mouseEnter\n");
-	if( state == GUI::Object::MoveLeave)
-		_RPT0(0,"mouseLeave\n");
-	return true;
+	//if( state == GUI::Object::MoveEnter)
+	//	_RPT0(0,"mouseEnter\n");
+	//if( state == GUI::Object::MoveLeave)
+	//	_RPT0(0,"mouseLeave\n");
+	return false;
 }

@@ -81,8 +81,7 @@ bool FxAnimation2::valid()const
 }
 
 void FxAnimation2::start(AnimationMode mode)
-{
-	FxEffect::start(mode);
+{	
 	if( mode != AnimationNoChange )
 		this->mode = mode;
 	run = true;
@@ -90,15 +89,11 @@ void FxAnimation2::start(AnimationMode mode)
 
 void FxAnimation2::rewind()
 {
-	FxEffect::rewind();
-
 	current=0;
 }
 
 void FxAnimation2::stop(bool immediate)
 {
-	FxEffect::stop(immediate);
-
 	current = 0;
 	run = false;
 }
@@ -147,8 +142,7 @@ void FxAnimation2::setSize(float w,float h,bool mid)
 }
 // here we just advance current frame and change state
 void FxAnimation2::update(float dt)
-{
-	
+{	
 	if(!run)return;
 	if(!valid())return;
 
@@ -180,7 +174,7 @@ float FxAnimation2::getHeight()
 	return scale*height;
 }
 
-void FxAnimation2::render(const Pose &base)
+void FxAnimation2::render(FxManager * manager, const Pose &base)
 {
 	if(!valid() || !visible)
 		return;
