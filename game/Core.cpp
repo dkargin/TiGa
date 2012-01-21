@@ -2,7 +2,7 @@
 
 #include <math.h>
 
-#include "world.h"
+//#include "world.h"
 #include "iup.h"
 #include "../LuaBox/src/iup_class.h"
 #include "../LuaBox/src/iup_register.h"
@@ -35,7 +35,7 @@ Ihandle * IupHGE(Ihandle * child);
 void iupRegisterHGE();
 */
 Core * core = NULL;
-World * world = NULL;
+//World * world = NULL;
 HGE * hge = 0;
 
 typedef float Scalar;
@@ -77,7 +77,7 @@ Core::Core(const char * baseScript)
 	timeAccumulator = 0.f;
 	core = this;
 	LogFunction(logger);
-	g_logger = &logger;
+	//g_logger = &logger;
 
 	logger.setThreat(1);
 	// init LUA virtual machine
@@ -91,8 +91,6 @@ Core::Core(const char * baseScript)
 
 Core::~Core()
 {
-	if(world)
-		delete world;
 	releaseFxManager();
 	if(hgeRuns && hge)
 	{		
@@ -113,16 +111,16 @@ void Core::initIup()
 	iupgllua_open(scripter.getVM());
 
 	IupImageLibOpen();
-#endif
 	//iupRegisterHGE();
 	//iupcontrolslua_open(l);
 	//cdlua_open(L);
 	//cdluaiup_open(L);
 	//cdInitContextPlus();
 	//iupcontrolslua_open(L);	
+#endif	
 	iupRuns = true;
 }
-
+/*
 void Core::worldPause(bool pause)
 {
 	this->pause = pause;
@@ -131,15 +129,16 @@ void Core::worldPause(bool pause)
 bool Core::worldPaused() const
 {
 	return pause;
-}
+}*/
 // This function will be called by HGE when
 // render targets were lost and have been just created
 // again. We use it here to update the render
 // target's texture handle that changes during recreation.
 bool Core::RestoreFunc()
 {
-	if(world)
-		world->restore();
+	core->onRestore();
+	//if(world)
+	//	world->restore();
 	return false;
 }
 
@@ -215,7 +214,7 @@ void Core::uiProcessEvent()
 				break;
 			}
 			keyState[i] = newState;
-			world->onControl(i, newState ? KeyEventType::KeyDown : KeyEventType::KeyUp, mousePos[0], mousePos[1], 0);			
+			//world->onControl(i, newState ? KeyEventType::KeyDown : KeyEventType::KeyUp, mousePos[0], mousePos[1], 0);			
 		}		
 	}	
 }
@@ -286,14 +285,12 @@ void Core::exitHGE()
 
 void Core::onUpdate()
 {
-	if( world )
+	if( true )
 	{
 		float dt = hge->Timer_GetDelta();
 		core->uiProcessEvent();
 		core->uiUpdate(dt);
-		core->updateWorld();
-		//if(world && !core->worldPaused())
-		//	world->update(dt);
+		//core->updateWorld();
 	}
 #ifdef USE_IUP
 	if(iupRuns)
@@ -305,16 +302,19 @@ void Core::onRender()
 {		
 	hge->Gfx_BeginScene();
 	hge->Gfx_Clear(0);
+
+	uiRender();
+	/*
 	if(world)
 	{		
 		//world->renderVision();
 
 		
-		uiRender();
-		world->render();
+		
+		//world->render();
 		//font->printf(0, 0, HGETEXT_LEFT, "dt:%.3f\nFPS:%d (constant)", hge->Timer_GetDelta(), hge->Timer_GetFPS());
 		
-	}
+	}*/
 	hge->Gfx_EndScene();
 }
 
@@ -332,9 +332,9 @@ bool Core::RenderFunc()
 
 bool Core::onScripterError(_Scripter &scripter,const char *error)
 {
-	LogFunction(*g_logger);
+	LogFunction(logger);
 	_RPT1(0,"Scripter error: \n %s \n",error);
-	g_logger->line(4,"Scripter error: %s",error);
+	logger.line(4,"Scripter error: %s",error);
 	return true;
 }
 
@@ -353,25 +353,12 @@ void Core::runHGE()
 	hgeRuns = true;
 	hge->System_Start();		
 }
-
+/*
 void Core::createWorld()
 {
-	assert(!world);
-	assert(hge);
-
-	World * w = new World("worldName",this);
-
-	if(w->init(hge,true))
-	{		
-		// Create a render target and a sprite for it			
-		w->initRenderer(hge);
-
-		font = w->font;
-		// init ui root
-		guiRoot->setRect(hgeRect(0,0, hge->System_GetState(HGE_SCREENWIDTH), hge->System_GetState(HGE_SCREENHEIGHT)));
-	}
+	assert(hge);	
 }
-
+*/
 void Core::runSystem()
 {
 	scripter.runScript(true);
@@ -399,7 +386,7 @@ void Core::runSystem()
 	runHGE();
 	onExit();
 }
-
+/*
 void Core::updateWorld()
 {	
 	const float updateDeltaMS = 1.0f/60.0f;
@@ -421,10 +408,15 @@ void Core::updateWorld()
 		{
 			world->update(updateDeltaMS);
 			timeAccumulator -= updateDeltaMS;
-		}
-		
+		}		
 	}
 	scripter.call("onUpdate",dt);
+}
+*/
+
+HGE * Core::getHGE()
+{
+	return hge;
 }
 
 void Core::initFxManager()
@@ -434,6 +426,7 @@ void Core::initFxManager()
 		fxManager = FxManagerPtr(new FxManager(&logger));
 		fxManager->init(hge);
 		guiRoot = new GUI::Object(hgeRect(0,0,0,0));
+		guiRoot->setRect(hgeRect(0,0, getScreenWidth(), getScreenHeight()));
 		cursor[0].type = Cursor::Mouse;
 	}
 }
@@ -443,7 +436,8 @@ void Core::releaseFxManager()
 	for( size_t i = 0; i < uiGetMaxCursors(); i++)	
 		cursor[i].effect = NULL;
 	guiRoot = NULL;
-	fxManager = NULL;
+	fxManager->clearObjects();
+	fxManager->clearResources();
 }
 
 HGE * Core::BasicHGEInit()
@@ -507,5 +501,5 @@ void Core::registerTestScene(const char * scene)
 void Core::loadTestScene(const char * scene)
 {
 	scripter.call("LoadSceneByName",scene);
-	worldPause(false);
+	//worldPause(false);
 }

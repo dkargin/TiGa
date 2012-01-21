@@ -398,7 +398,7 @@ int Level::init(const char * map, float size, bool rigid, const Pose &pose)
 		}	
 		fclose(in);
 		// init level sprite
-		FxSprite::Pointer ptr = world.gameObjects->fxManager.fxSprite(map,0,0,0,0);
+		FxSprite::Pointer ptr = world.gameObjects->fxManager->fxSprite(map,0,0,0,0);
 		float w = ptr->sprite.GetWidth();
 		float h = ptr->sprite.GetHeight();
 		ptr->setBlendMode(COLORMUL | ALPHAADD);

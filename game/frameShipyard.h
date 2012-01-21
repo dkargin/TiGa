@@ -60,6 +60,7 @@ enum ShipyardEditMode
 	DragTile,
 	DragDevice,
 };
+
 class ShipyardWindow : public GUI::Object
 {
 public:
@@ -94,6 +95,6 @@ public:
 	void setBlueprint( ShipBlueprint * blueprint, bool locked );
 	void getBlueprint( ShipBlueprint * blueprint );
 
-	FxSpritePtr getSectionSprite(size_t sectionId);	
+	FxEffect::Pointer getSectionSprite(size_t sectionId);	
 };
 #endif

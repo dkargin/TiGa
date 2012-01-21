@@ -47,6 +47,7 @@ public:
 	Ihandle * startHGE(int width = 800, int height = 600, bool windowed = true);				// init HGE as host
 	void runHGE();							// run HGE host, called from sctipts
 	void exitHGE();
+	HGE * getHGE();
 	/// cursor operation
 	vec2i uiGetCursorPos(size_t id = 0);
 	void uiSetCursorEffect( size_t id, FxEffect * effect );
@@ -54,10 +55,10 @@ public:
 	void uiSetDefaultCursorEffect( FxEffect * effect );
 	size_t uiGetMaxCursors() const;
 	/// world control
-	virtual void createWorld();						// create world
-	virtual void worldPause(bool pause);
-	virtual bool worldPaused() const;	
-	virtual void updateWorld();
+	//virtual void createWorld();						// create world
+	//virtual void worldPause(bool pause);
+	//virtual bool worldPaused() const;	
+	//virtual void updateWorld();
 	/// screen info
 	int getScreenWidth() const;
 	int getScreenHeight() const;
@@ -73,6 +74,7 @@ public:
 	virtual void onRender();
 	virtual void onUpdate();	
 	virtual void onExit(){}
+	virtual void onRestore() {}
 	/// test scene control. Seems to be deprecated
 	virtual void registerTestScene(const char * scene);	
 	virtual void loadTestScene(const char * scene);

@@ -20,7 +20,6 @@
 /////////////////////////////////////////////////////////////////////
 //
 /////////////////////////////////////////////////////////////////////
-extern World *world;
 World::World(const char *name,Core * core)
 	:draw(NULL)
 	,dynamics(b2Vec2(0,0))
@@ -34,10 +33,9 @@ World::World(const char *name,Core * core)
 	,level(*this)
 	,core(core)
 {	
-	assert(!world);
 	LogFunction(*g_logger);
-	world = this;
-	if(name)this->name = name;
+	if(name)
+		this->name = name;
 	
 	dynamics.SetContactFilter(this);
 	dynamics.SetContactListener(this);
@@ -52,8 +50,6 @@ World::World(const char *name,Core * core)
 
 	server = false;
 	useNet = true;
-	
-	world = this;
 }
 
 World::~World()
@@ -85,8 +81,6 @@ World::~World()
 	}
 
 	font = NULL;
-//	if(profilerLog)fclose(profilerLog);
-	world = NULL;
 }
 
 void World::initRenderer(HGE * hge)
@@ -186,7 +180,7 @@ int World::init(HGE *hge,bool server)
 	const float wallWidth = 10;
 	// create unit manager
 	
-	gameObjects = new ObjectManager(&scripter, *core->fxManager);	
+	gameObjects = new ObjectManager(&scripter, core->fxManager);	
 	gameObjects->initSimulation( &dynamics, &pathCore );
 	gameObjects->initManagers();
 	gameObjects->add(this);
@@ -331,7 +325,7 @@ void World::renderVision()
 	hge->Gfx_Clear(ARGB(255*unseenOpacity,255*unseenOpacity,255*unseenOpacity,255*unseenOpacity));
 	hge->Gfx_SetTransform();
 		
-	gameObjects->fxManager.setView( draw->globalView );
+	gameObjects->fxManager->setView( draw->globalView );
 	for(auto it = gameObjects->vision.begin();it != gameObjects->vision.end();++it)
 		draw->draw(*it);
 
@@ -392,7 +386,7 @@ void drawQuadMap()
 
 void World::renderObjects()
 {		
-	gameObjects->fxManager.setView( draw->globalView );
+	gameObjects->fxManager->setView( draw->globalView );
 
 	float size=512;
 	float cells=4;
@@ -481,15 +475,16 @@ void World::renderObjects()
 
 	scripter.call("onRenderObjects");
 
-	gameObjects->fxManager.pyro.render(Pose(),1);
+	gameObjects->fxManager->pyro.render(Pose(),1);
 
 	// execute render queue
-	gameObjects->fxManager.renderQueue.render(Pose(0,0,0));
+	gameObjects->fxManager->renderQueue.render(Pose(0,0,0));
 
 	glMatrixMode(GL_PROJECTION);
 	glPopMatrix();
 	glMatrixMode(GL_MODELVIEW);
 }
+
 void World::render()
 {
 	if(!draw)
@@ -506,10 +501,8 @@ void World::render()
 
 	//hge->Gfx_BeginScene();
 	//hge->Gfx_Clear(0);
-	//hge->Gfx_SetTransform();
-
-	if(world)
-		world->renderObjects();
+	//hge->Gfx_SetTransform();	
+	renderObjects();
 
 
 	//world->renderVision();
@@ -521,7 +514,7 @@ void World::render()
 		//visionRendered = true;
 	}
 	//gui->Render();
-	world->renderUI();
+	renderUI();
 	//hge->Gfx_EndScene();
 }
 
@@ -548,14 +541,14 @@ void World::onDie(GameObject *object)
 {
 	Unit *unit = toUnit(object);
 	if(unit)
-		scripter.call("onUnitDie",object);//_Scripter::UserBind("Unit",unit));
+		scripter.call("onUnitDie",object);
 }
 
 void World::onDelete(GameObject *object)
 {
 	Unit *unit = toUnit(object);
 	if(unit)
-		scripter.call("onUnitDelete",object);//_Scripter::UserBind("Unit",unit));
+		scripter.call("onUnitDelete",object);
 }
 
 void World::update(float dt)

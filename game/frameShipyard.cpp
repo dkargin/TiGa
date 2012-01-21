@@ -8,10 +8,10 @@ void addDoubleBlock(Game * game, GameData * gameData, const char * path )
 	if( sprite == NULL )
 		return;
 	
-	gameData->sprites.push_back(sprite);
+	gameData->sprites.push_back((FxEffect*)sprite);
 	sprite = sprite->copy();
 	sprite->flipVer();
-	gameData->sprites.push_back(sprite);
+	gameData->sprites.push_back((FxEffect*)sprite);
 
 	TileSectionDesc desc;
 	desc.sizeX = 1;
@@ -75,7 +75,7 @@ GameData::~GameData()
 		delete []blueprints;
 }
 
-FxSpritePtr GameData::getSprite( size_t spriteId )
+FxEffect::Pointer GameData::getSprite( size_t spriteId )
 {
 	if( spriteId >= sprites.size() )
 	{
@@ -84,7 +84,7 @@ FxSpritePtr GameData::getSprite( size_t spriteId )
 	return sprites[spriteId];
 }
 
-FxSpritePtr GameData::getSectionSprite(size_t sectionType)
+FxEffect::Pointer GameData::getSectionSprite(size_t sectionType)
 {
 	if( sectionType >= sections.size() )
 	{
@@ -264,16 +264,8 @@ void ShipyardArea::onRender()
 
 	for( int y = rect.y1 + tileOffsetY * tileSize; y < rect.y2; y+= tileSize )
 		hge->Gfx_RenderLine(rect.x1, y, rect.x2, y, color );
-	DrawBlueprint(&blueprint, shipyard->game->gameData, rect.x1, rect.y1, tileSize, 1.0);
-	/*
-	// draw blocks
-	for( size_t i = 0; i < blueprint.blocksCount; ++i)
-	{
-		ShipBlueprint::Block & block = blueprint.blocks[i];
-		const TileSectionDesc & desc = getSectionDesc(block.tileType);		
-		Pose2z pose( rect.x1 + (block.x + tileOffsetX + (float)desc.sizeX * 0.5) * tileSize,  rect.y1 + (block.y + tileOffsetY + (float)desc.sizeX * 0.5) * tileSize, 0, 0 );
-		shipyard->getSectionSprite(block.tileType)->render(pose);
-	}*/
+	// draw blueprint
+	DrawBlueprint(&blueprint, shipyard->game->gameData, rect.x1, rect.y1, tileSize, 1.0);	
 }
 /////////////////////////////////////////////////////////////////////////////////////
 ShipyardWindow::ShipyardWindow(Game * game)
@@ -409,7 +401,7 @@ void ShipyardWindow::showObjects()
 	clearContents();	
 }
 
-FxSpritePtr ShipyardWindow::getSectionSprite(size_t sectionType)
+FxEffect::Pointer ShipyardWindow::getSectionSprite(size_t sectionType)
 {
 	if(game->gameData)
 		return game->gameData->getSectionSprite(sectionType);

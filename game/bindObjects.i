@@ -4,7 +4,7 @@
 #include "commandAI.h"
 #include "projectile.h"
 #include "inventory.h"
-%}
+	%}
 
 enum ObjectType
 {
@@ -96,41 +96,41 @@ typedef float Damage;
 /*
 struct Damage
 {
-	float Value[damageTypesMax];
-	Unit *Source;
-	Damage():Source(0){Value[0]=Value[1]=0;}
-	Damage(float a):Source(0){Value[0]=a;Value[1]=0;}
-	Damage(float a,float b):Source(0){Value[0]=a;Value[1]=b;}
-	Damage(float a,float b,Unit *Src):Source(Src){Value[0]=a;Value[1]=b;}
-	float &operator[](int i){ return Value[i];}
+float Value[damageTypesMax];
+Unit *Source;
+Damage():Source(0){Value[0]=Value[1]=0;}
+Damage(float a):Source(0){Value[0]=a;Value[1]=0;}
+Damage(float a,float b):Source(0){Value[0]=a;Value[1]=b;}
+Damage(float a,float b,Unit *Src):Source(Src){Value[0]=a;Value[1]=b;}
+float &operator[](int i){ return Value[i];}
 };
 */
 /// Polygon description for box2d body. Only maximum of 8 vertices is permitted
 struct PolyDesc
 {
-  std::vector<vec2f> points;
-  PolyDesc();
-  ~PolyDesc();
-  void addPoint(float x,float y);
-  void addPoint(const vec2f & point);
+	std::vector<vec2f> points;
+	PolyDesc();
+	~PolyDesc();
+	void addPoint(float x,float y);
+	void addPoint(const vec2f & point);
 };
 
 /// description for box2d body
 class BodyDesc: public b2BodyDef
 {
 public:
-  bool frozen;
+	bool frozen;
 
-  BodyDesc(ObjectManager * manager);  
-  BodyDesc(const BodyDesc & desc);
-  ~BodyDesc();  
-  b2Body * create();
+	BodyDesc(ObjectManager * manager);  
+	BodyDesc(const BodyDesc & desc);
+	~BodyDesc();  
+	b2Body * create();
 
-  b2FixtureDef & addBox(float width,float height,float mass);
-  b2FixtureDef & addSphere(float size,float mass);
-  b2FixtureDef & addPolygon(const PolyDesc &desc,float mass);
+	b2FixtureDef & addBox(float width,float height,float mass);
+	b2FixtureDef & addSphere(float size,float mass);
+	b2FixtureDef & addPolygon(const PolyDesc &desc,float mass);
 protected:
-  b2FixtureDef & addFixture();
+	b2FixtureDef & addFixture();
 };
 
 struct GameObject: public LuaObject
@@ -171,34 +171,34 @@ struct GameObject: public LuaObject
 };
 
 %{
-/// position property binding
-vec2f * GameObject_position_get(GameObject * object)
-{
-	return new vec2f(object->getPosition());
-}
-void GameObject_position_set(GameObject * object, vec2f * pos)
-{
-	object->setPosition(*pos);
-}
-/// direction property binding
-vec2f * GameObject_direction_get(GameObject * object)
-{
-	return new vec2f(object->getDirection());
-}
-void GameObject_direction_set(GameObject * object, vec2f * pos)
-{
-	object->setDirection(*pos);
-}
-/// player property binding
-int GameObject_player_get(GameObject * object)
-{
-	return object->getPlayer();
-}
-void GameObject_player_set(GameObject * object, int player)
-{
-	object->setPlayer(player);
-}
-%}
+	/// position property binding
+	vec2f * GameObject_position_get(GameObject * object)
+	{
+		return new vec2f(object->getPosition());
+	}
+	void GameObject_position_set(GameObject * object, vec2f * pos)
+	{
+		object->setPosition(*pos);
+	}
+	/// direction property binding
+	vec2f * GameObject_direction_get(GameObject * object)
+	{
+		return new vec2f(object->getDirection());
+	}
+	void GameObject_direction_set(GameObject * object, vec2f * pos)
+	{
+		object->setDirection(*pos);
+	}
+	/// player property binding
+	int GameObject_player_get(GameObject * object)
+	{
+		return object->getPlayer();
+	}
+	void GameObject_player_set(GameObject * object, int player)
+	{
+		object->setPlayer(player);
+	}
+	%}
 
 struct GameObjectDef: public LuaObject
 {
@@ -285,10 +285,10 @@ struct MountDef
 class AssemblyDef
 {
 public:
-	std::vector<MountDef> mounts;
-	virtual int addMount(const Pose & pose,bool bExtern);
-	virtual int addDevice(DeviceDef *def,int mount);
-	virtual void clearMounts();
+std::vector<MountDef> mounts;
+virtual int addMount(const Pose & pose,bool bExtern);
+virtual int addDevice(DeviceDef *def,int mount);
+virtual void clearMounts();
 };
 */
 
@@ -327,9 +327,9 @@ Controller * createPerceptionAI(Unit * u);
 class Assembly
 {
 public:
-	void initDevices();	/// rebuild all devices
-	Device * getDevice(int mount);
-	int getDeviceCount()const;	
+void initDevices();	/// rebuild all devices
+Device * getDevice(int mount);
+int getDeviceCount()const;	
 };*/
 
 class Unit: public GameObject//, public Assembly
@@ -355,13 +355,13 @@ public:
 typedef SharedPtr<GameObject> GameObjectPtr;
 
 %{
-typedef ObjectManager::Objects::iterator ObjectIterator;
-%}
+	typedef ObjectManager::Objects::iterator ObjectIterator;
+	%}
 
 struct ObjectManager
 {	
 	FxManager * getFxManager();
-	
+
 	bool controlObj(ObjID id,bool val);
 	GameObject * create(GameObjectDef *def);
 	GameObject * getObject(ObjID id);
@@ -401,8 +401,8 @@ struct ObjectIterator
 
 %extend ObjectManager
 {	
-	
-    ObjectIterator objectsBegin()
+
+	ObjectIterator objectsBegin()
 	{
 		return $self->objects.begin();
 	}

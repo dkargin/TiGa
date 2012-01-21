@@ -25,7 +25,7 @@ public:
 	SharedPtr<HangarWindow> hangar;
 
 	SharedPtr<GameData> gameData;
-	World * world;
+	//World * world;
 	WeakPtr<GUI::Object> active;
  
 	virtual void onRender();
@@ -50,6 +50,7 @@ protected:
 
 	const DWORD clrButtons = ARGB(255,128,128,128);
 //}
+
 struct TileSectionDesc
 {
 	size_t spriteId;
@@ -91,11 +92,11 @@ public:
 	size_t blueprintsCount;
 
 	/// fast access
-	FxSpritePtr getSectionSprite(size_t sectionId);	
-	FxSpritePtr getSprite(size_t spriteId);
+	FxEffect::Pointer getSectionSprite(size_t sectionId);	
+	FxEffect::Pointer getSprite(size_t spriteId);
 	/// resources
 	std::vector<TileSectionDesc> sections;
-	std::vector<FxSpritePtr> sprites;				/// cached sprites	
+	std::vector<FxEffect::Pointer> sprites;				/// cached sprites	
 	std::vector<std::string> strings;				/// string resources
 };
 

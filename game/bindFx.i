@@ -172,7 +172,7 @@ public:
 	FxAnimation2 * createAnimation(const char *texture,fRect rect,int frameWidth,int frameHeight,float fps,AnimationMode mode);
 	FxAnimation2 * createAnimationFull(const char *texture,int frameWidth,int frameHeight,float fps,AnimationMode mode);
 	FxSpritePtr fxSprite(const char * texture,float x,float y,float width,float height);
-	FxParticles * fxParticles(FxSprite* sprite,hgeParticleSystemInfo &info);
+	FxParticles * fxParticles(FxSprite* sprite, hgeParticleSystemInfo &info);
 	FxSound * fxSound(const char * source);
 	FxHolder * fxHolder();
 };

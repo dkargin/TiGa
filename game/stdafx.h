@@ -79,4 +79,6 @@ template<class Type> bool pushObject(lua_State *l,Type *object)
 	return pushObjectPtr(l,object,typeName(object));
 }
 
+Pose2 GetPose(const b2Body * body);
+
 #define DEVICE_RENDER

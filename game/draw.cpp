@@ -190,7 +190,7 @@ void Draw::drawObject(GameObject *object)
 		draw(dynamic_cast<Unit*>(object));
 	else
 	{
-		object->effects.query(object->getPose());
+		object->effects->query(object->getPose());
 	}
 }
 
@@ -203,11 +203,11 @@ void Draw::draw(Unit *unit)
 {
 	if(!unit)
 		return;
-	Pose pose=unit->getPose();
-	unit->effects.query(pose);
-	for(int i=0;i<unit->devices.size();i++)
+	Pose pose = unit->getPose();
+	unit->effects->query(pose);
+	for(int i = 0; i < unit->devices.size();i++)
 	{
-		Device *device=unit->devices[i];
+		Device *device = unit->devices[i];
 		//int mount=device->mountIndex;
 		if(device)
 		{

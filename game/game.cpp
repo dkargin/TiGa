@@ -12,18 +12,18 @@ Game game;
 
 Game::Game()
 	:Core("./script/startup_Game.lua"), mainMenu(NULL), gameplay(NULL), shipyard(NULL), active(NULL)
-{}
+{
+
+}
 
 Game::~Game()
 {
 	mainMenu = NULL;
 	shipyard = NULL;
-	/*if(mainMenu)
-		delete mainMenu;
-	if(shipyard)
-		delete shipyard;*/
+	hangar = NULL;
+	gameplay = NULL;	
 }
-
+/*
 class TestWindow : public GUI::Object
 {
 public:
@@ -41,13 +41,26 @@ public:
 	{
 	}
 };
-
+*/
 void Game::createWorld()
 {
-	Core::createWorld();	
-	{
-		//TestWindow window;
+	World * world = new World("worldName",this);
+	HGE * hge = getHGE();
+
+	if(world->init(hge,true))
+	{		
+		// Create a render target and a sprite for it			
+		world->initRenderer(hge);
+
+		font = world->font;
+		// init ui root
+		guiRoot->setRect(hgeRect(0,0, hge->System_GetState(HGE_SCREENWIDTH), hge->System_GetState(HGE_SCREENHEIGHT)));
 	}
+
+	//Core::createWorld();	
+	//{
+		//TestWindow window;
+	//}
 	gameData = new GameData(this);	
 	showMainMenu();
 }
