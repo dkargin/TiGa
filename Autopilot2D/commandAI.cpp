@@ -48,14 +48,14 @@ Controller::~Controller()
 
 void Controller::update(float dt)
 {
-	LogFunction(*g_logger);
+//	LogFunction(*g_logger);
 	for(Container::iterator it=container.begin();it!=container.end();)
 	{
 		Command *command=*it;
 		int state=command->process(owner);
 		if(state!=Command::Process)
 		{
-			g_logger->line(1,"remove task");			
+//			g_logger->line(1,"remove task");			
 			delete command;
 			it=container.erase(it);
 			continue;
@@ -75,7 +75,7 @@ void Controller::render(HGE * hge)
 
 bool Controller::add(Command *cmd)
 {
-	LogFunction(*g_logger);
+//	LogFunction(*g_logger);
 	bool res=cmd->check(owner);
 	container.push_back(cmd);	
 	return res;
@@ -83,7 +83,7 @@ bool Controller::add(Command *cmd)
 
 void Controller::clear()
 {
-	LogFunction(*g_logger);
+//	LogFunction(*g_logger);
 	while(!container.empty())
 	{
 		delete container.front();
@@ -95,7 +95,7 @@ void addSegment(Segments & segments, const Geom::_Sphere<vec2f> &circle, const F
 
 void Controller::initDevices()
 {
-	LogFunction(*g_logger);
+//	LogFunction(*g_logger);
 	weapons.clear();
 	mover = NULL;
 
@@ -182,11 +182,11 @@ void Controller::cmdGuard(float x,float y,float distance)
 }
 void Controller::moverEvent(Mover *mover,int event)
 {
-	LogFunction(*g_logger);
+//	LogFunction(*g_logger);
 	if(!container.empty())
 		return container.front()->moverEvent(mover,event);
-	else
-		g_logger->line(1, "container is empty");
+//	else
+//		g_logger->line(1, "container is empty");
 }
 void Controller::cmdStand(float distance)
 {
@@ -288,7 +288,7 @@ int CmdAttack::process(Unit *unit)
 
 void CmdAttack::moverEvent(Mover *mover,int event)
 {	
-	LogFunction(*g_logger);
+//	LogFunction(*g_logger);
 	if(event==Mover::Driver::taskSuccess)
 	{
 		
@@ -327,7 +327,7 @@ CmdGuard::CmdGuard(const Pose::pos &targ,float maxDistance)
 CmdGuard::CmdGuard(){}
 void CmdGuard::moverEvent(Mover *mover,int event)
 {	
-	LogFunction(*g_logger);
+//	LogFunction(*g_logger);
 	if(event==Mover::Driver::taskSuccess)
 	{
 		if(guardState == cgsApproach)
@@ -411,10 +411,10 @@ void CmdMove::render(Unit * unit,HGE * hge)
 
 void CmdMove::moverEvent(Mover *mover,int event)
 {	
-	LogFunction(*g_logger);
+//	LogFunction(*g_logger);
 	if(event==Mover::Driver::taskSuccess)
 	{
-		g_logger->line(0,"taskSuccess");
+//		g_logger->line(0,"taskSuccess");
 		/// if we reached last waypoint
 		if(++currentWaypoint >= waypoints.size())
 		{
@@ -424,12 +424,12 @@ void CmdMove::moverEvent(Mover *mover,int event)
 				state = Update;
 				/// return on starting pos
 				currentWaypoint = 0;		
-				g_logger->line(0,"last waypoint reached");
+//				g_logger->line(0,"last waypoint reached");
 			}
 			else
 			{
 				state=Finished;
-				g_logger->line(0,"last waypoint reached - restart path");
+//				g_logger->line(0,"last waypoint reached - restart path");
 			}
 		}
 		else	/// continue moving
@@ -437,14 +437,14 @@ void CmdMove::moverEvent(Mover *mover,int event)
 	}
 	if(event==Mover::Driver::taskFail)
 	{
-		g_logger->line(0,"taskFailed");
+//		g_logger->line(0,"taskFailed");
 		state=Finished;
 	}	
 }
 
 int CmdMove::process(Unit *unit)
 {
-	LogFunction(*g_logger);
+//	LogFunction(*g_logger);
 	Pose::vec target = waypoints.front();
 	if(state == Update)
 	{		
@@ -453,7 +453,7 @@ int CmdMove::process(Unit *unit)
 	}
 	if(state == Ready)
 	{
-		g_logger->line(1,"CmdMove(%f,%f) - start",target[0],target[1]);
+//		g_logger->line(1,"CmdMove(%f,%f) - start",target[0],target[1]);
 		state = Active;
 		unit->startAnimation("Move");
 		unit->controller->mover->getDriver()->walk(target);
@@ -463,7 +463,7 @@ int CmdMove::process(Unit *unit)
 	{
 		Pose::pos pos = unit->getPosition();
 		float distance = vecDistance(pos,target);
-		g_logger->line(1,"CmdMove(%f,%f) - actually in (%f,%f), %f",target[0],target[1],pos[0],pos[1],distance);			
+//		g_logger->line(1,"CmdMove(%f,%f) - actually in (%f,%f), %f",target[0],target[1],pos[0],pos[1],distance);			
 		
 		unit->stopAnimation("Move");
 		return (distance<minDist)? Success:Fail;

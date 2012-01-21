@@ -76,11 +76,8 @@ public:
 	virtual void onUpdate();	
 	virtual void onExit(){}
 	virtual void onRestore() {}
-	/// test scene control. Seems to be deprecated
-	virtual void registerTestScene(const char * scene);	
-	virtual void loadTestScene(const char * scene);
 
-	_Scripter * getScripter() { return &scripter;} 
+	Scripter * getScripter() { return &scripter;} 
 protected:	
 	void uiProcessEvent();
 	void uiRender();

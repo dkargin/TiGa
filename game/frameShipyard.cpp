@@ -9,7 +9,7 @@ void addDoubleBlock(Game * game, GameData * gameData, const char * path )
 		return;
 	
 	gameData->sprites.push_back((FxEffect*)sprite);
-	sprite = sprite->copy();
+	sprite = FxSpritePtr(sprite->copy());
 	sprite->flipVer();
 	gameData->sprites.push_back((FxEffect*)sprite);
 
@@ -272,11 +272,9 @@ void ShipyardArea::onRender()
 ShipyardWindow::ShipyardWindow(Game * game)
 	:GUI::Object(hgeRect(0,0,0,0)), game(game), shipyardArea( this )
 {
+	setAlign(GUI::AlignExpand, GUI::AlignExpand);
 	color = ARGB(255,0,0,0);
 	controlMode = Normal;
-
-	editedBlueprint = NULL;
-	
 
 	menu->setDesiredSize(buttonWidth, buttonHeight);
 	menu->color = clrButtons;
@@ -285,9 +283,8 @@ ShipyardWindow::ShipyardWindow(Game * game)
 		frameBack();
 	};
 	menu->setText("Exit", game->font);
-
-
-	insert(menu, GUI::AlignMax, GUI::AlignMin);
+	menu->setAlign(GUI::AlignMax, GUI::AlignMin);
+	insert(menu);
 
 	const float sliderWidth = 10;
 	const float toolboxWidth = buttonWidth * 2 + sliderWidth;
@@ -301,18 +298,20 @@ ShipyardWindow::ShipyardWindow(Game * game)
 	toolbox->slideVer = true;
 
 	font = game->font;
-
-	insert(toolbox, GUI::AlignMin, GUI::AlignExpand);
+	toolbox->setAlign(GUI::AlignMin, GUI::AlignExpand);
+	insert(toolbox);
 
 	tiles->setText("Tiles", game->font);
 	tiles->setDesiredSize(buttonWidth, buttonHeight);
 	tiles->onPressed = [=](){showTiles();};
-	toolbox->insert(tiles, GUI::AlignMin, GUI::AlignMin);
+	tiles->setAlign(GUI::AlignMin, GUI::AlignMin);
+	toolbox->insert(tiles);
 
 	objects->setText("Objects", game->font);
 	objects->setDesiredSize(buttonWidth, buttonHeight);
 	objects->onPressed = [=](){showObjects();};
-	toolbox->insert(objects, GUI::AlignMax, GUI::AlignMin);	
+	objects->setAlign(GUI::AlignMax, GUI::AlignMin);	
+	toolbox->insert(objects);
 
 	toolboxSlider->sprite = game->fxManager->fxSolidQuad(10, 50, ARGB(255,255,0,0));
 	toolboxSlider->setMode(0, 100, 0);
@@ -322,12 +321,16 @@ ShipyardWindow::ShipyardWindow(Game * game)
 	{
 		toolbox->setOffsetVer( value );
 	};
-	toolbox->insert(toolboxSlider, GUI::AlignMin, GUI::AlignExpand);
+	toolbox->setAlign(GUI::AlignMin, GUI::AlignExpand);
+	toolbox->insert(toolboxSlider);
 
 	shipyardArea->setDesiredPos( toolboxWidth, 0 );
 	shipyardArea->setDesiredSize( core->getScreenWidth() - toolboxWidth, core->getScreenHeight() );
-	
-	insert(shipyardArea, GUI::AlignMax, GUI::AlignExpand);
+	shipyardArea->setAlign(GUI::AlignMax, GUI::AlignExpand);
+	insert(shipyardArea);
+
+	if( game->selectedBlueprint )
+		setBlueprint(game->selectedBlueprint, false);
 }
 
 void ShipyardWindow::clearContents()
@@ -337,10 +340,10 @@ void ShipyardWindow::clearContents()
 
 void ShipyardWindow::frameBack()
 {
-	if( editedBlueprint != NULL )
+	if( game->selectedBlueprint != NULL )
 	{
-		getBlueprint(editedBlueprint);
-		editedBlueprint = NULL;
+		getBlueprint(game->selectedBlueprint);
+		game->selectedBlueprint = NULL;
 	}	
 	game->showHangar();
 }
@@ -414,7 +417,6 @@ void ShipyardWindow::setBlueprint(ShipBlueprint * blueprint, bool locked)
 {
 	assert(blueprint != NULL);
 	shipyardArea->setBlueprint(blueprint, locked);
-	this->editedBlueprint = blueprint;
 }
 
 void ShipyardWindow::getBlueprint(ShipBlueprint * blueprint)

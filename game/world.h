@@ -97,8 +97,7 @@ public:
 
 	std::string name;
 	bool updateSystems;
-	ObjectManager *gameObjects;
-	FxPointer background;
+	ObjectManager * gameObjects;
 	Game * core;
 	
 	HTARGET				visionPass;
@@ -113,7 +112,6 @@ public:
 	bool server;
 	bool useNet;
 	bool helloSent;
-	_Scripter & scripter;
 	/// 
 	Draw *draw;
 
@@ -125,7 +123,7 @@ public:
 	
 	void updateMap();
 	/// init world - create window and init main systems
-	int init(HGE *hge,bool server);
+	int initSimulation(bool server);
 	void initMap(const char * map, float cellSize, bool rigid, const Pose &pose);
 	Solid * createWall(const vec3 &from,const vec3 &to,float width);
 	/// coordinate conversion & viewport
@@ -137,6 +135,7 @@ public:
 	/// init HGE rendering
 	void initRenderer(HGE* hge);
 
+	Scripter * getScripter();
 	const ObjectManager * getObjectManager() const;
 	lua_State* getVM();//{return scripter.getVM();}
 	Level * getLevel() { return &level;}

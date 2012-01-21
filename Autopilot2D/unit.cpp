@@ -18,7 +18,7 @@
 UnitDef::UnitDef(ObjectManager *m)
 :GameObjectDef(m),fxMove(NULL)//,perception(NULL)
 {
-	LogFunction(*g_logger);
+//	LogFunction(*g_logger);
 }
 
 UnitDef::UnitDef(const UnitDef& def)
@@ -30,28 +30,28 @@ UnitDef::UnitDef(const UnitDef& def)
 
 UnitDef::~UnitDef()
 {
-	LogFunction(*g_logger);
+//	LogFunction(*g_logger);
 	if(fxMove)delete fxMove;
 }
 
 int UnitDef::init()
 {
-	LogFunction(*g_logger);
+//	LogFunction(*g_logger);
 	if(lua)
 	{
 		_Scripter * scripter = getScripter();
 		_Scripter::Object object = scripter->getRegistry(lua);	// stack={def->lua}
 		object.call("onInit");
 	}
-	else
-		g_logger->line(2,"wrong luaRef");
+//	else
+//		g_logger->line(2,"wrong luaRef");
 	//callOnInit();
 	return 1;
 }
 
 Unit * UnitDef::construct(IO::StreamIn *context)
 {
-	LogFunction(*g_logger);
+//	LogFunction(*g_logger);
 	Unit * result = new Unit(this);
 	if( result )
 	{
@@ -61,14 +61,14 @@ Unit * UnitDef::construct(IO::StreamIn *context)
 			_Scripter::Object object = scripter->getRegistry(lua);	// stack={def->lua}
 			object.call("onCreate", (LuaObject*)result);
 		}
-		else
-			g_logger->line(2,"wrong luaRef");
+//		else
+//			g_logger->line(2,"wrong luaRef");
 	
 		if(!result->getBody())
 			result->attachBody(createSolidSphere(manager,20,1.0));
 	}
-	else
-		g_logger->line(2,"memory error: cannot create Unit");
+//	else
+//		g_logger->line(2,"memory error: cannot create Unit");
 	return result;
 }
 
@@ -99,7 +99,7 @@ Unit::Unit(UnitDef *def)
 ,GameObject(def->manager,def)
 ,controller(new Controller(this))
 {	
-	LogFunction(*g_logger);
+//	LogFunction(*g_logger);
 	health=definition->health;	
 	setCollisionGroup(cgUnit);
 	if(def->fxIdle)
@@ -123,7 +123,7 @@ Unit::Unit(UnitDef *def)
 
 Unit::~Unit()
 {
-	LogFunction(*g_logger);
+//	LogFunction(*g_logger);
 	if(controller)
 	{
 		delete controller;
@@ -142,19 +142,19 @@ Unit::~Unit()
 
 void Unit::useDevice(int device,int port,int action,IOBuffer *buffer)
 {
-	LogFunction(*g_logger);
+//	LogFunction(*g_logger);
 	getManager()->useDevice(this,device,port,action,buffer);
 }
 
 Device * Unit::getDevice(size_t id)
 {
-	LogFunction(*g_logger);
+//	LogFunction(*g_logger);
 	return devices[id];
 }
 
 PerceptionClient * Unit::getPerceptionClient()
 {
-	LogFunction(*g_logger);
+//	LogFunction(*g_logger);
 	return controller;
 }
 /*
@@ -179,7 +179,7 @@ Controller * Unit::getController()
 
 void Unit::setController(Controller * cai)
 {
-	LogFunction(*g_logger);
+//	LogFunction(*g_logger);
 	if(controller && controller != cai)
 	{
 		delete controller;
@@ -192,7 +192,7 @@ void Unit::setController(Controller * cai)
 
 void Unit::enableAI(bool flag)
 {
-	LogFunction(*g_logger);
+//	LogFunction(*g_logger);
 	if(useAI!=flag)
 	{
 		useAI=flag;
@@ -206,7 +206,7 @@ void Unit::enableAI(bool flag)
 
 void Unit::update(float dt)
 {
-	LogFunction(*g_logger);
+//	LogFunction(*g_logger);
 	if(useAI && controller)
 		controller->update(dt);
 	GameObject::update(dt);
@@ -238,7 +238,7 @@ void Unit::toSync(bool val)
 
 int Unit::writeState(IO::StreamOut &buffer)
 {
-	LogFunction(*g_logger);
+//	LogFunction(*g_logger);
 	GameObject::writeState(buffer);
 	for(auto it = devices.begin();it != devices.end();++it)
 		(*it)->writeState(buffer);
@@ -247,7 +247,7 @@ int Unit::writeState(IO::StreamOut &buffer)
 
 int Unit::readState(IO::StreamIn &buffer)
 {
-	LogFunction(*g_logger);
+//	LogFunction(*g_logger);
 	GameObject::readState(buffer);
 	for(auto it = devices.begin();it != devices.end();++it)
 		(*it)->readState(buffer);

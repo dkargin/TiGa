@@ -3,11 +3,8 @@
 #include "world.h"
 #include "game.h"
 
-#include "frameShipyard.h"
 #include "frameMainMenu.h"
-#include "frameBattle.h"
 #include "frameHangar.h"
-
 
 int hgeMain()
 {
@@ -23,15 +20,11 @@ int hgeMain()
 // Game class implementation
 /////////////////////////////////////////////////////////////////////
 Game::Game()
-	:mainMenu(NULL), gameplay(NULL), shipyard(NULL), active(NULL)
+	:active(NULL)
 {}
 
 Game::~Game()
 {
-	mainMenu = NULL;
-	shipyard = NULL;
-	hangar = NULL;
-	gameplay = NULL;	
 	gameData = NULL;
 }
 /*
@@ -65,6 +58,12 @@ void Game::registerTestScene(const char * scene)
 	sceneNames.push_back(scene);	
 }
 
+void Game::loadTestScene(const char * scene)
+{
+	scripter.call("LoadSceneByName",scene);
+	//worldPause(false);
+}
+
 void Game::onRender()
 {
 	Core::onRender();
@@ -73,59 +72,39 @@ void Game::onRender()
 void Game::onUpdate()
 {
 	Core::onUpdate();
+
+	if( newActive != active )
+	{
+		if( active )
+		{
+			active->show(false);
+			active->detach();
+			active = NULL;
+		}
+				
+		active = newActive;
+		guiRoot->insert(active);
+
+		if(active)
+			active->show(true);		
+	}
 }
 
 void Game::showMainMenu()
-{
-	if(!mainMenu)
-	{
-		mainMenu = new MenuWindow(this);
-		guiRoot->insert(mainMenu, GUI::AlignCenter, GUI::AlignExpand);
-	}
-	makeActive(mainMenu);
-}
-
-void Game::showGameplay()
-{
-	if(!gameplay)
-	{
-		gameplay = new GameplayWindow(this);
-		guiRoot->insert(gameplay, GUI::AlignExpand, GUI::AlignExpand);
-	}
-	makeActive(gameplay);
+{	
+	makeActive(new MenuWindow(this));
 }
 
 void Game::showHangar()
-{
-	if(!hangar)
-	{
-		hangar = new HangarWindow(this);
-		guiRoot->insert(hangar, GUI::AlignExpand, GUI::AlignExpand);
-	}
-	makeActive(hangar);
-}
-
-void Game::showShipyard()
-{
-	if(!shipyard)
-	{
-		shipyard = new ShipyardWindow(this);
-		guiRoot->insert(shipyard, GUI::AlignExpand, GUI::AlignExpand);
-	}
-	makeActive(shipyard);
+{		
+	makeActive(new HangarWindow(this));
 }
 
 void Game::makeActive(GUI::Object * object)
 {
 	if(active == object)
-		return;
-
-	if(active)	
-		active->show(false);
-	active = object;
-
-	if(active)
-		active->show(true);
+		return;	
+	newActive = object;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////

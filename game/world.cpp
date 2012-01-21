@@ -24,11 +24,10 @@ World::World(const char *name, Game * core)
 	,visionLayer(NULL)
 	,visionPass(NULL)
 	,gameObjects(NULL)
-	,scripter(core->scripter)	
 	,level(*this)
 	,core(core)
 {	
-	LogFunction(*g_logger);
+	//LogFunction(*g_logger);
 	if(name)
 		this->name = name;
 	
@@ -49,7 +48,7 @@ World::World(const char *name, Game * core)
 
 World::~World()
 {	
-	LogFunction(*g_logger);
+//	LogFunction(*g_logger);
 	level.clear();
 
 	if(visionLayer)
@@ -70,7 +69,7 @@ World::~World()
 
 	if(gameObjects)
 	{
-		gameObjects->remove(this);
+		gameObjects->removeListener(this);
 		delete gameObjects;
 		gameObjects = NULL;
 	}
@@ -124,18 +123,22 @@ void World::loadLevel(const char * file)
 	}
 }
 
+Scripter * World::getScripter()
+{
+	return core->getScripter();
+}
 void World::saveState(IO::StreamOut & stream)
 {
 	level.saveState(stream);
 	gameObjects->saveState(stream);
-	scripter.call("WorldSaveState",&stream);
+	getScripter()->call("WorldSaveState",&stream);
 }
 
 bool World::loadState(IO::StreamIn & stream)
 {
 	level.loadState(stream);
 	gameObjects->loadState(stream);
-	scripter.call("WorldLoadState",&stream);
+	getScripter()->call("WorldLoadState",&stream);
 	return true;
 }
 
@@ -163,31 +166,26 @@ bool World::collisionsGet(CollisionGroup a,CollisionGroup b)
 	return collisionMap[a][b];
 }
 
-int World::init(HGE *hge,bool server)
+int World::initSimulation(bool server)
 {	
-	LogFunction(*g_logger);
+//	LogFunction(*g_logger);
 	assert(!gameObjects);
-	this->server = server;
-	
-	const float wallSize = 200;
-	const float wallWidth = 10;
+	int result = 1;
+	this->server = server;	
 	// create unit manager
-	
-	gameObjects = new ObjectManager(&scripter, core->fxManager);	
-	gameObjects->initSimulation( &dynamics, &pathCore );
-	gameObjects->initManagers();
-	gameObjects->add(this);
-	
-	gameObjects->role = server?ObjectManager::Master : ObjectManager::Slave;
-	/*
-	
-	if(!scripter.runScript(true))
+	try
 	{
-		MessageBox(0,scripter.getError(),"Scripter error",MB_OK|MB_ICONERROR);
-		logger(2,"Scripter error: %s",scripter.getError());
-		return 0;
-	}*/
-	return 1;
+		gameObjects = new ObjectManager(getScripter(), core->fxManager);	
+		gameObjects->initSimulation( &dynamics, &pathCore );
+		gameObjects->initManagers();
+		gameObjects->addListener(this);	
+		gameObjects->role = server ? ObjectManager::Master : ObjectManager::Slave;
+	}
+	catch(...)
+	{
+		result = 0;
+	}
+	return result;
 }
 const ObjectManager * World::getObjectManager() const
 {
@@ -382,17 +380,7 @@ void World::renderObjects()
 {		
 	gameObjects->fxManager->setView( draw->globalView );
 
-	float size=512;
-	float cells=4;
-	
 	FxManager * manager = gameObjects->fxManager.get();
-	if(background != NULL)
-	{
-		//background->z = -10;
-		for(float y=-size*cells;y<size*cells;y+=size)
-			for(float x=-size*cells;x<size*cells;x+=size)
-				background->query(manager, Pose(x,y,0));
-	}
 
 	if(level.background != NULL)
 		level.background->query(manager, Pose(0,0,0));
@@ -454,8 +442,9 @@ void World::renderObjects()
 		glEnable(GL_DEPTH_TEST);		
 	}
 #endif
-	for(auto it = gameObjects->objects.begin();it!=gameObjects->objects.end();++it)
-		draw->drawObject((GameObject*)*it);
+
+	for(GameObject * it = gameObjects->objectsHead; it != NULL; it = it->getNext())
+		draw->drawObject(it);
 
 	for(auto it = attachedEffects.begin(); it != attachedEffects.end(); it++)
 	{
@@ -465,10 +454,8 @@ void World::renderObjects()
 	
 	if(draw->drawDynamics)
 		dynamics.DrawDebugData();
-
-
-
-	scripter.call("onRenderObjects");
+	
+	getScripter()->call("onRenderObjects");
 
 	gameObjects->fxManager->pyro.render(manager, Pose(),1);
 
@@ -537,19 +524,19 @@ void World::onDie(GameObject *object)
 {
 	Unit *unit = toUnit(object);
 	if(unit)
-		scripter.call("onUnitDie",object);
+		getScripter()->call("onUnitDie",object);
 }
 
 void World::onDelete(GameObject *object)
 {
 	Unit *unit = toUnit(object);
 	if(unit)
-		scripter.call("onUnitDelete",object);
+		getScripter()->call("onUnitDelete",object);
 }
 
 void World::update(float dt)
 {
-	LogFunction(*g_logger);
+//	LogFunction(*g_logger);
 	//gui.Update(dt);
 	const int updateSteps = 16;
 	const int client = 0;
@@ -580,7 +567,7 @@ void World::update(float dt)
 		}
 	}
 	// update scripted part
-	scripter.call("onUpdateWorld",dt);		
+	getScripter()->call("onUpdateWorld",dt);		
 }
 
 Solid * World::createWall(const vec3 &from, const vec3 &to, float width)
@@ -603,7 +590,7 @@ Solid * World::createWall(const vec3 &from, const vec3 &to, float width)
 // calculate transform from world to screen
 void World::screen2world(int screen[2],float world[2])
 {	
-	LogFunction(*g_logger);
+//	LogFunction(*g_logger);
 	float cs=cosf(draw->globalView.pose.orientation);
 	float sn=sinf(draw->globalView.pose.orientation);
 	int screenWidth = core->getScreenWidth();
@@ -614,7 +601,7 @@ void World::screen2world(int screen[2],float world[2])
 
 void World::world2map(float worldCoords[2],int mapCoords[2])
 {
-	LogFunction(*g_logger);
+//	LogFunction(*g_logger);
 	vec2f pos=vec2f(worldCoords)/level.cellSize+vec2f(level.blocks.size_x(),level.blocks.size_y())*0.5;
 	mapCoords[0]=pos[0];
 	mapCoords[1]=pos[1];
@@ -622,7 +609,7 @@ void World::world2map(float worldCoords[2],int mapCoords[2])
 
 void World::onControl(int key,KeyEventType type,int x,int y,float wheel)
 {
-	LogFunction(*g_logger);
+//	LogFunction(*g_logger);
 	int screen[] = {x,y};
 
 	cursor.screenPos=vec2f(x,y);
@@ -630,18 +617,18 @@ void World::onControl(int key,KeyEventType type,int x,int y,float wheel)
 
 	cursor.object = gameObjects->objectAtPoint(cursor.worldPos);
 
-	scripter.call("onControl", key, (int)type, x, y, wheel);
+	getScripter()->call("onControl", key, (int)type, x, y, wheel);
 }
 
 int World::processHit(GameObject *a,ObjectType typea,GameObject *b,ObjectType typeb,const vec2f &normal,const vec2f &tangent)
 {	
-	LogFunction(*g_logger);
+//	LogFunction(*g_logger);
 	if(a && typea==typeProjectile)
 	{
 		Projectile *proj=(Projectile*)a;
 		if(typeb==typeBlock)
 		{
-			(*g_logger)(2,"wrong collision pair");
+//			(*g_logger)(2,"wrong collision pair");
 			assert(!b);
 		}
 		else if(typeb=typeUnit){}		
@@ -694,6 +681,6 @@ void World::setView(float x, float y, float angle, float scale)
 
 void testGameObject(GameObject * object)
 {
-	LogFunction(*g_logger);
-	g_logger->line(0,"some test on object");
+//	LogFunction(*g_logger);
+//	g_logger->line(0,"some test on object");
 }

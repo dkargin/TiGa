@@ -191,7 +191,7 @@ void Draw::drawObject(GameObject *object)
 	else if( object->effects )
 	{
 		FxEffect::Pointer ptr = object->effects;
-		object->effects->query(ptr->getManager(), object->getPose());
+		object->effects->queryAll(ptr->getManager(), object->getPose());
 	}
 }
 

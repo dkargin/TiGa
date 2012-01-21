@@ -60,22 +60,22 @@ void Mover::Driver::face(const Pose::vec &t)
 
 void Mover::Driver::updatePath(float dt)
 {
-	LogFunction(*g_logger);
+//	LogFunction(*g_logger);
 	if(pathCurrent != -1)
 	{
 		//_RPT0(0,"Vehicle::Driver::update()");
-		if(tryNextWaypoint() && logDriver)		
-			g_logger->line(1,"(next waypoint)");
+		if(tryNextWaypoint() && logDriver)	{};	
+//			g_logger->line(1,"(next waypoint)");
 		if(pathCurrent >= path.size())
 		{
-			if(logDriver)
-				g_logger->line(1,"(last waypoint is reached)");	
+//			if(logDriver)
+//				g_logger->line(1,"(last waypoint is reached)");	
 			clearTask();
 			mover->state = Idle;
 			if(listener)
 				listener->moverEvent(getMover(),taskSuccess);
-			else
-				g_logger->line(1,"no listener specified");	
+//			else
+//				g_logger->line(1,"no listener specified");	
 			
 			return;
 		}
@@ -105,7 +105,7 @@ const PathFinder::Path::Waypoint2 * Mover::Driver::current()
 
 void Mover::Driver::clearTask()
 {
-	g_logger->line(1,"task cleared");
+//	g_logger->line(1,"task cleared");
 	path = Path();
 	pathCurrent =- 1;
 }
@@ -194,12 +194,12 @@ vec3f to3(const vec2f &v)
 
 void Mover::Driver::updateTask()
 {
-	LogFunction(*g_logger);
+//	LogFunction(*g_logger);
 	clearTask();
 	// simply move to that point
 	if(task.target)
 	{		
-		g_logger->line(2,"target=(%g,%g)",target[0],target[1]);
+//		g_logger->line(2,"target=(%g,%g)",target[0],target[1]);
 		if(listener)
 			listener->moverEvent(getMover(),taskNew);
 
@@ -228,7 +228,7 @@ void Mover::Driver::updateTask()
 				listener->moverEvent(getMover(), taskFail);
 			return;
 		}*/
-		g_logger->line(2,"building path");
+//		g_logger->line(2,"building path");
 		//if(res != 2)	// if we are in the same position
 		//	buildPath();
 		//else
@@ -343,7 +343,7 @@ float Mover::Driver::pathLength()
 
 void Mover::Driver::update(float dt)
 {
-	LogFunction(*g_logger);
+//	LogFunction(*g_logger);
 	updatePath(dt);
 	if(pathCurrent!=-1)
 	{

@@ -22,10 +22,7 @@ Multiblock::~Multiblock()
 }
 
 void Multiblock::init(const Pose2 & pose, b2World & world)
-{
-	/*
-	if(body)
-		return;
+{	
 	// create world borders
 	b2BodyDef bodyDef;
 	bodyDef.position.Set(pose.position[0], pose.position[1]);
@@ -34,8 +31,9 @@ void Multiblock::init(const Pose2 & pose, b2World & world)
 	bodyDef.angularDamping = 0.1;
 	bodyDef.linearDamping = 0.1;
 	bodyDef.fixedRotation = false;
-	body = world.CreateBody(&bodyDef);
-	body->SetUserData( this );*/
+	b2Body * body = world.CreateBody(&bodyDef);
+	body->SetUserData( this );
+	this->attachBody(body);
 }
 //
 Multiblock::CellRef Multiblock::pick( const vec2f & worldPos ) const

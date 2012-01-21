@@ -182,7 +182,7 @@ void Level::generateWallBlocks()
 // edges from adjacent cells.
 void Level::generateWallEdges()
 {
-	LogFunction(*g_logger);
+//	LogFunction(*g_logger);
 
 	wallMode = Transparent;
 
@@ -194,7 +194,7 @@ void Level::generateWallEdges()
 
 	if(!walls)
 	{
-		g_logger->line(3,"Not enough memory");
+//		g_logger->line(3,"Not enough memory");
 		return;
 	}
 

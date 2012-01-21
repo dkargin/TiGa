@@ -5,7 +5,6 @@
 
 #pragma once
 #pragma warning(disable:4250)
-extern Log * g_logger;
 
 class GameWorld;
 class _Scripter;
@@ -232,16 +231,19 @@ public:
 	{
 		virtual void onDamage(const Damage &dmg)=0;
 	};
+
+	FxEffect::Pointer effects;
+//	FxModel *model;
+	IDamageListener * onDamage;
+	int player;				/// the player owning this object
 protected:	
 	Health health, maxHealth;		/// current health
 	GameObjectDef * definition;		/// object definition
 	CollisionGroup collisionGroup;	/// current collison group
 	ObjectManager * manager;		/// where is it stored
+	GameObject * objectPrev, * objectNext;
 public:
-	FxEffect::Pointer effects;
-//	FxModel *model;
-	IDamageListener * onDamage;
-	int player;				/// the player owning this object
+	
 
 	GameObject(ObjectManager *parent, GameObjectDef* def);
 	virtual ~GameObject();
@@ -249,6 +251,7 @@ public:
 	virtual void save(IO::StreamOut & stream);
 	virtual void load(IO::StreamIn & stream);
 
+	GameObject * getNext();
 	virtual GameObjectDef * getDefinition();
 	virtual ObjectManager * getManager();
 	virtual ObjectType getType() const;
@@ -289,12 +292,8 @@ public:
 	
 	//virtual _AABB<Pose::vec> getAABB()const=0;
 	size_t id() const{return localID;}
-protected:	
-	void attach();			/// attach to storage
-	void detach();			/// detach from storage
-	size_t localID;			/// object id
-	typedef std::map<size_t,GameObject * > Container;
-	Container::iterator back;/// back link for fast remove
+protected:
+	size_t localID;			/// object id	
 };
 
 typedef SharedPtr<GameObject> GameObjectPtr;

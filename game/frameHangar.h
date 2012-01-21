@@ -15,6 +15,8 @@ public:
 	void frameBack();			/// back to menu
 	void frameEdit();			
 	void frameRun();
+
+	/// messages from the shipyard
 };
 
 #endif

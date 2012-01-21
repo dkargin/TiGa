@@ -4,6 +4,8 @@
 
 MenuWindow::MenuWindow(Game * game)
 {
+	setAlign(GUI::AlignCenter, GUI::AlignExpand);
+
 	color = ARGB(255,128,128,128);
 	setDesiredSize(300,300);
 	
@@ -16,11 +18,13 @@ MenuWindow::MenuWindow(Game * game)
 	{
 		game->showHangar();
 	};
-	insert(start, GUI::AlignExpand, GUI::AlignManual); 
+	start->setAlign(GUI::AlignExpand, GUI::AlignManual); 
+	insert(start);
 	options->setDesiredPos(0, 100 + (buttonHeight + buttonSpacing) * y++);
 	options->setDesiredSize(buttonWidth, buttonHeight);
 	options->setText("Options", game->font);
-	insert(options, GUI::AlignExpand, GUI::AlignManual);
+	options->setAlign(GUI::AlignExpand, GUI::AlignManual);
+	insert(options);
 	
 	exit->setDesiredPos(0, 100 + (buttonHeight + buttonSpacing) * y++);	
 	exit->setDesiredSize(buttonWidth, buttonHeight);
@@ -28,8 +32,9 @@ MenuWindow::MenuWindow(Game * game)
 	{
 		game->exitHGE();
 	};
-	exit->setText("Exit",game->font);	 
-	insert(exit, GUI::AlignExpand, GUI::AlignManual);
+	exit->setText("Exit",game->font);
+	exit->setAlign(GUI::AlignExpand, GUI::AlignManual);
+	insert(exit);
 	
 	
 	for(auto it = game->sceneNames.begin(); it != game->sceneNames.end(); ++it)
@@ -41,10 +46,11 @@ MenuWindow::MenuWindow(Game * game)
 		button->setText(it->c_str(),game->font);
 		button->onPressed = [=]()
 		{
-			core->loadTestScene(sceneName.c_str());
+			game->loadTestScene(sceneName.c_str());
 			this->visible = false;
 		};
-		insert(button, GUI::AlignExpand, GUI::AlignManual);
+		button->setAlign(GUI::AlignExpand, GUI::AlignManual);
+		insert(button);
 		scenes.push_back(button);
 	}	
 }

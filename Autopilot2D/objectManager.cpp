@@ -8,7 +8,7 @@
 /////////////////////////////////////////////////////////////
 // globals
 /////////////////////////////////////////////////////////////
-extern Log * g_logger;
+//extern Log * g_logger;
 
 bool traceDead=false;
 bool traceRemove=false;
@@ -62,7 +62,9 @@ ObjectManager::ObjectManager(_Scripter *scripter, FxManager::SharedPtr fxManager
 ,visionMode(VisionAll)
 ,pathFinder(NULL)
 {
-	LogFunction(*g_logger);
+	objectsHead = NULL;
+	objectsTail = NULL;
+	//LogFunction(*g_logger);
 }
 
 void ObjectManager::initSimulation( b2World * bs, pathProject::PathCore * pc )
@@ -74,7 +76,8 @@ void ObjectManager::initSimulation( b2World * bs, pathProject::PathCore * pc )
 
 ObjectManager::~ObjectManager()
 {
-	LogFunction(*g_logger);
+	//LogFunction(*g_logger);
+	removeAllObjects();
 	//Objects::clear();	
 	//Definitions::clear();
 	/*
@@ -85,10 +88,43 @@ ObjectManager::~ObjectManager()
 	}*/
 }
 
+void ObjectManager::removeAllObjects()
+{
+	while( objectsHead != NULL )
+	{
+		delete objectsHead;
+	}
+}
+
+void ObjectManager::removeObject(GameObject * object)
+{
+	if( object != objectsHead )
+		object->objectPrev->objectNext = object->objectNext;
+	else
+		objectsHead = object->objectNext;
+
+	if( object != objectsTail )
+		object->objectNext->objectPrev = object->objectPrev;
+	else
+		objectsTail = object->objectPrev;
+	object->objectNext = NULL;
+	object->objectPrev = NULL;
+}
+
+void ObjectManager::registerObject(GameObject * object)
+{
+	if( objectsHead == NULL )
+		objectsHead = object;		
+	else
+		objectsTail->objectNext = object;		
+	object->objectPrev = objectsTail;			
+	object->objectNext = NULL;		
+	object->manager = this;
+	objectsTail = object;
+}
+
 void ObjectManager::initManagers()
 {
-	LogFunction(*g_logger);
-	//perceptionManager=new PerceptionManager(this);
 }
 
 struct MsgCreateObject
@@ -148,7 +184,7 @@ bool ObjectManager::canSee(const Pose & pose, float range, float fov, GameObject
 
 void ObjectManager::useDevice(Unit *unit, int device, int port, int action, IOBuffer *actionData)
 {
-	LogFunction(*g_logger);
+	//LogFunction(*g_logger);
 	if(!unit)
 		return;
 	if(role==Master)	// if server - execute here
@@ -175,48 +211,6 @@ void ObjectManager::useDevice(Unit *unit, int device, int port, int action, IOBu
 	}
 }
 
-bool ObjectManager::controlObj(ID id,bool val)
-{
-	LogFunction(*g_logger);
-	//if(!Objects::contains(id))
-	//	return false;
-	//Objects::get(id)->bLocal=val;
-	return true;
-}
-
-GameObject *ObjectManager::create(ID defid, ID id , IO::StreamIn * context)
-{
-	LogFunction(*g_logger);
-	//GameObjectDef *def=(GameObjectDef*)Definitions::objects[defid];
-	//if(id==invalidID)
-	//	return def->create(NULL);
-	//else if(Objects::contains(id))
-	//	return (GameObject*)Objects::objects[id];
-	//else  
-	//{
-	//	GameObject * result = def->create(NULL);		
-	//	Objects::remap(result->id(),id);
-	//	//if(context)
-	//	//	result->load(*context);
-	//	return result;
-	//}
-	//g_logger->line(2,"ObjectManager::create(%d)-valid id for invalid object\n",id);
-	return NULL;
-}
-
-GameObject * ObjectManager::create( GameObjectDef *def )	
-{
-	if(def)
-		return def->create(NULL);
-	g_logger->line(1,"Invalid definition");
-	return NULL;
-}
-
-void ObjectManager::removeAllObjects()
-{
-	//Objects::clear();	
-}
-
 void ObjectManager::onFrameStart(float dt)
 {
 	if(role==Master)
@@ -227,10 +221,10 @@ void ObjectManager::onFrameStart(float dt)
 }
 void ObjectManager::onFrameFinish(float dt)
 {	
-	for(Objects::iterator it=objects.begin();it!=objects.end();++it)
+	for(GameObject * it = objectsHead; it != NULL; it = it->objectNext)
 	{
-		GameObject *u=(GameObject*)*it;
-		u->update(dt);			
+		GameObject *u = (GameObject*)it;
+		u->update(dt);		
 		if(u->isDead())		
 			raiseObjectDead(u);
 	}
@@ -270,12 +264,12 @@ void ObjectManager::cleanDead()
 }
 ///////////////////////////////////////////////////////////////////
 /// listener manipulation
-void ObjectManager::add(ObjectManager::Listener * listener)
+void ObjectManager::addListener(ObjectManager::Listener * listener)
 {
 	listeners.insert(listener);
 }
 
-void ObjectManager::remove(ObjectManager::Listener * listener)
+void ObjectManager::removeListener(ObjectManager::Listener * listener)
 {
 	listeners.erase(listener);
 }
@@ -293,8 +287,8 @@ void ObjectManager::raiseObjectDead(GameObject * object)
 	
 	object->kill();
 	deadList.push_back(object);
-	if(traceDead)
-		g_logger->line(0,"onDie...\n");
+//	if(traceDead)
+//		g_logger->line(0,"onDie...\n");
 }
 
 GameObject * ObjectManager::getObject(ObjID id)
@@ -309,7 +303,7 @@ void ObjectManager::onAdd(GameObject *object)
 
 void ObjectManager::onRemove(GameObject * object)
 {
-	LogFunction(*g_logger);
+//	LogFunction(*g_logger);
 	ownedObjects.erase(object->id());
 	// execute onDelete
 	auto execOnRemove = [object](Listener * listener)
@@ -326,21 +320,12 @@ void ObjectManager::onRemove(GameObject * object)
 	std::for_each(clientsInfo.begin(),clientsInfo.end(),markDestroyed);
 	// remove attached lua data. DODO: place it to LuaObject constructor, or replace it by Scripter::Object
 	object->unbind(getLua());	
-	if(traceRemove)
-		g_logger->line(0,"onRemove...\n");
+//	if(traceRemove)
+//		g_logger->line(0,"onRemove...\n");
 }
+
 /////////////////////////////////////////////////////////////////
 /// utilities
-const Unit *ObjectManager::unit(const Objects::const_iterator &it)
-{
-	return dynamic_cast<Unit*>(*it);
-}
-
-Unit *ObjectManager::unit(const Objects::iterator &it)
-{
-	return dynamic_cast<Unit*>(*it);
-}
-
 long ObjectManager::getFrame() const
 {
 	return frame;
@@ -349,18 +334,6 @@ long ObjectManager::getFrame() const
 inline Unit * ObjectManager::getUnit(ObjID id)
 {
 	return dynamic_cast<Unit*>(getObject(id));
-}
-
-void ObjectManager::getObjects(const _Scripter::Object & table) const
-{
-	int i = 1;
-	for(auto it = objects.begin();it != objects.end();++it, i++)
-	{
-		
-		//lua_pushinteger(L,i);
-		//LuaBox::TypeIO<GameObject*>::write(L,it->second);
-		//lua_rawset(L,-3);		
-	}
 }
 
 class Raycaster: public b2RayCastCallback
@@ -407,9 +380,8 @@ ObjectManager::ObjectList ObjectManager::objectsAtRange(const Pose::pos & pos,fl
 {
 	ObjectList result;
 
-	for(auto it = objects.begin();it!=objects.end();++it)
+	for(GameObject * object = objectsHead; object != NULL; object = object->getNext())
 	{
-		GameObject * object = *it;
 		float distance = vecDistance(pos,object->getPosition());
 		float size = object->getBoundingSphere().radius;
 		if(distance < size + range)
@@ -424,9 +396,8 @@ ObjectManager::ObjectList ObjectManager::objectsAtSight(const Pose & pose, float
 	ObjectList result;
 	auto sourceDir=pose.getDirection();
 
-	for(auto it = objects.begin();it!=objects.end();++it)
+	for(GameObject * object = objectsHead; object != NULL; object = object->getNext())
 	{
-		GameObject * object = *it;
 		auto delta = object->getPosition()-pose.getPosition();  
 		float distance = delta.length();
 		float cangle = (sourceDir & delta)/(distance*sourceDir.length());

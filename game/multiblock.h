@@ -1,3 +1,5 @@
+#ifndef _MULTIBLOCK_H_
+#define _MULTIBLOCK_H_
 #include "gameObject.h"
 
 enum AdjacentDirection	{	DirLeft = 0, DirRight = 1, DirTop = 2, DirBottom = 3, DirSame, DirInvalid	};
@@ -440,7 +442,7 @@ public:
 	void hit( Multiblock::Cell * cell, const vec2f & pos, const vec2f & dir, float &impulse );
 	void clearStress();
 	virtual grid_type * fracture(int x, int y);	
-	virtual Multiblock * createFractureBody() = 0;	
+	virtual Multiblock * createFractureBody();	
 	/// LinkedGrid events
 	virtual void onCellCreated(CellRef & ref, const CellDesc & source);
 	virtual void onLinkCreated(Link * link, int x, int y, AdjacentDirection dir, bool move = false);
@@ -448,3 +450,5 @@ public:
 	/// for debug purposes
 	void markSelected( Cell * cell );
 };
+
+#endif

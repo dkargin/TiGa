@@ -151,6 +151,7 @@ struct GameObject: public LuaObject
 	void detachBody();
 	size_t id()const;
 	float getHealth() const;
+	GameObject * getNext();
 };
 
 %extend GameObject 
@@ -354,61 +355,26 @@ public:
 
 typedef SharedPtr<GameObject> GameObjectPtr;
 
-%{
-	typedef ObjectManager::Objects::iterator ObjectIterator;
-	%}
-
 struct ObjectManager
 {	
 	FxManager * getFxManager();
-
-	bool controlObj(ObjID id,bool val);
-	GameObject * create(GameObjectDef *def);
 	GameObject * getObject(ObjID id);
 
 	void removeAllObjects();	/// remove all objects from the map
-
-	void getObjects(const _Scripter::Object & table) const;
-
 	void setVisionAll();
 	void setVisionPlayer(int player);
 	void setVisionObject(GameObject * object);
 };
 
-
-struct ObjectIterator
-{
-	bool operator == (const ObjectIterator & it) const;
-	bool operator != (const ObjectIterator & it) const;
-};
-
-%extend ObjectIterator
-{
-	GameObject * getObject()
-	{
-		return *(*$self);
-	}
-	size_t getID()
-	{
-		return 0;
-	}
-	ObjectIterator next()
-	{
-		ObjectIterator result = (*$self);
-		return ++result;
-	}
-}
-
 %extend ObjectManager
-{	
-
-	ObjectIterator objectsBegin()
+{
+	GameObject * objectsBegin()
 	{
-		return $self->objects.begin();
+		return $self->objectsHead;
 	}
-	ObjectIterator objectsEnd()
+	GameObject * objectsEnd()
 	{
-		return $self->objects.end();
+		return NULL;
 	}
 }
 

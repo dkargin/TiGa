@@ -126,16 +126,6 @@ void Core::initIup()
 #endif	
 	iupRuns = true;
 }
-/*
-void Core::worldPause(bool pause)
-{
-	this->pause = pause;
-}
-
-bool Core::worldPaused() const
-{
-	return pause;
-}*/
 // This function will be called by HGE when
 // render targets were lost and have been just created
 // again. We use it here to update the render
@@ -143,8 +133,6 @@ bool Core::worldPaused() const
 bool Core::RestoreFunc()
 {
 	core->onRestore();
-	//if(world)
-	//	world->restore();
 	return false;
 }
 
@@ -283,7 +271,6 @@ size_t Core::uiGetMaxCursors() const
 	return MaxCursors;
 }
 
-
 void Core::exitHGE()
 {
 	hge->System_Shutdown();
@@ -296,7 +283,6 @@ void Core::onUpdate()
 		float dt = hge->Timer_GetDelta();
 		core->uiProcessEvent();
 		core->uiUpdate(dt);
-		//core->updateWorld();
 	}
 #ifdef USE_IUP
 	if(iupRuns)
@@ -308,19 +294,7 @@ void Core::onRender()
 {		
 	hge->Gfx_BeginScene();
 	hge->Gfx_Clear(0);
-
 	uiRender();
-	/*
-	if(world)
-	{		
-		//world->renderVision();
-
-		
-		
-		//world->render();
-		//font->printf(0, 0, HGETEXT_LEFT, "dt:%.3f\nFPS:%d (constant)", hge->Timer_GetDelta(), hge->Timer_GetFPS());
-		
-	}*/
 	hge->Gfx_EndScene();
 }
 
@@ -502,13 +476,4 @@ void Core::startHGEChild(unsigned int wnd)
 	}
 	else
 		throw(std::exception("Cannot start HGE"));
-}
-
-void Core::registerTestScene(const char * scene)
-{}
-
-void Core::loadTestScene(const char * scene)
-{
-	scripter.call("LoadSceneByName",scene);
-	//worldPause(false);
 }

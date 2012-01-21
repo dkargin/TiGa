@@ -2,10 +2,13 @@
 #include "game.h"
 #include "frameHangar.h"
 #include "frameShipyard.h"
+#include "frameBattle.h"
 
 HangarWindow::HangarWindow(Game * game)
 	:GUI::Object(hgeRect(0,0,0,0)),game(game)
 {
+	setAlign(GUI::AlignExpand, GUI::AlignExpand);
+
 	currentBlueprint = 0;
 	color = ARGB(255,128,128,128);		
 	float y = 0;
@@ -20,7 +23,8 @@ HangarWindow::HangarWindow(Game * game)
 	{
 		frameEdit();
 	};
-	insert(btnEdit, GUI::AlignManual, GUI::AlignManual); 
+	btnEdit->setAlign(GUI::AlignManual, GUI::AlignManual);
+	insert(btnEdit);
 
 	btnRun = new GUI::Button();
 	btnRun->setDesiredPos(menuOffsetHor, 100 + (buttonHeight + buttonSpacing) * y++);
@@ -30,7 +34,8 @@ HangarWindow::HangarWindow(Game * game)
 	{
 		frameRun();
 	};
-	insert(btnRun, GUI::AlignManual, GUI::AlignManual); 
+	btnRun->setAlign(GUI::AlignManual, GUI::AlignManual); 
+	insert(btnRun);
 
 	btnBack = new GUI::Button();
 	btnBack->setDesiredPos(menuOffsetHor, 100 + (buttonHeight + buttonSpacing) * y++);
@@ -40,7 +45,8 @@ HangarWindow::HangarWindow(Game * game)
 	{
 		frameBack();
 	};
-	insert(btnBack, GUI::AlignManual, GUI::AlignManual); 
+	btnBack->setAlign(GUI::AlignManual, GUI::AlignManual); 
+	insert(btnBack);
 }
 
 void HangarWindow::frameBack()
@@ -50,13 +56,14 @@ void HangarWindow::frameBack()
 
 void HangarWindow::frameRun()
 {
-	game->showGameplay();
+	game->selectedBlueprint = getSelectedBlueprint();
+	game->makeActive(new GameplayWindow(game));	
 }
 
 void HangarWindow::frameEdit()
 {
-	game->showShipyard();
-	game->shipyard->setBlueprint(getSelectedBlueprint(),false);
+	game->selectedBlueprint = getSelectedBlueprint();
+	game->makeActive(new ShipyardWindow(game));		
 }
 
 ShipBlueprint * HangarWindow::getSelectedBlueprint()

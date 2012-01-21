@@ -149,7 +149,7 @@ GameObjectDef::GameObjectDef(const GameObjectDef &def)
 
 GameObjectDef::~GameObjectDef()
 {
-	LogFunction(*g_logger);
+//	LogFunction(*g_logger);
 	assert(!population);	
 	//if(body)delete body;
 	detach();
@@ -189,7 +189,11 @@ size_t GameObjectDef::getPopulation()const
 GameObject::GameObject(ObjectManager *parent,GameObjectDef* def)
 	:health(1.0f),onDamage(NULL),player(0),definition(def),localID(invalidID),collisionGroup(cgBody)
 {
-	attach();
+	objectNext = NULL;
+	objectPrev = NULL;
+
+	parent->registerObject(this);
+
 	if(definition)
 	{
 		definition->addRef();	  
@@ -204,8 +208,8 @@ GameObject::~GameObject()
 {
 	if(definition)
 		definition->decRef();	
-	
-	detach();
+	if(manager)
+		manager->removeObject(this);
 }
 
 GameObjectDef * GameObject::getDefinition() 
@@ -226,18 +230,6 @@ ObjectType GameObject::getType() const
 _Scripter * GameObject::getScripter() 
 { 
 	return manager ? manager->getScripter() : NULL; 
-}
-
-void GameObject::attach()
-{
-	//if(definition && definition->manager)
-	//	definition->manager->ObjStore<GameObject>::registerObject(this);
-}
-
-void GameObject::detach()
-{
-	//if(definition && definition->manager)
-	//	definition->manager->ObjStore<GameObject>::remove(this);
 }
 
 bool GameObject::isUnique()const
@@ -353,10 +345,14 @@ void GameObject::load(IO::StreamIn & stream)
 	readState(stream);
 }
 
+GameObject * GameObject::getNext()
+{
+	return objectNext;
+}
 ///////////////////////////////////////////////////
 b2Body * createSolidBox(ObjectManager *m,float width,float height,float mass)
 {
-	LogFunction(*g_logger);
+//	LogFunction(*g_logger);
 	b2BodyDef bodyDef;
 	bodyDef.type=mass>0.0f?b2_dynamicBody:b2_kinematicBody;
 	bodyDef.position.Set(0.0f, 0.0f);
@@ -373,7 +369,7 @@ b2Body * createSolidBox(ObjectManager *m,float width,float height,float mass)
 
 b2Body * createSolidSphere(ObjectManager *m,float D,float mass)
 {
-	LogFunction(*g_logger);
+//	LogFunction(*g_logger);
 	b2BodyDef bodyDef;
 	bodyDef.type=mass>0.0f?b2_dynamicBody:b2_kinematicBody;
 	bodyDef.bullet=true;

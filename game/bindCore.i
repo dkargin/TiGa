@@ -12,7 +12,7 @@ public:
 	void runHGE();							// run HGE host	
 	//void worldPause(bool pause);
 	//bool worldPaused() const;
-	void registerTestScene(const char * scene);
+	
 
 	int getScreenWidth() const;
 	int getScreenHeight() const;

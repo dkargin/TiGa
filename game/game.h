@@ -6,10 +6,9 @@
 class MenuWindow;
 class Game;
 class World;
-class ShipyardWindow;
-class GameplayWindow;
 class GameData;
-class HangarWindow;
+
+struct ShipBlueprint;
 
 class Game : public Core
 {
@@ -19,30 +18,37 @@ public:
 
 	std::list<std::string> sceneNames;
 
-	SharedPtr<MenuWindow> mainMenu;
-	SharedPtr<GameplayWindow> gameplay;
-	SharedPtr<ShipyardWindow> shipyard;
-	SharedPtr<HangarWindow> hangar;
+	//SharedPtr<MenuWindow> mainMenu;	
+	//SharedPtr<ShipyardWindow> shipyard;
+	//SharedPtr<HangarWindow> hangar;
 
 	GUI::FontPtr		 font;				/// font for debug layer
 	SharedPtr<GameData> gameData;
 	//World * world;
-	WeakPtr<GUI::Object> active;
+	SharedPtr<GUI::Object> active, newActive;
  
 	virtual void onRender();
 	virtual void onUpdate();
-	virtual void registerTestScene(const char * scene);
+	/// test scene control. Seems to be deprecated
+	virtual void registerTestScene(const char * scene);	
+	virtual void loadTestScene(const char * scene);
 	/// init game data and basic UI
 	virtual void initGame();
 	/// show specific frame
-	void showGameplay();
+	//void showGameplay();
 	void showHangar();
 	void showMainMenu();
-	void showShipyard();
-	const char * luaName()const { return "Game";}
-protected:
 	void makeActive(GUI::Object * active);
+	void popGameState();
+	const char * luaName()const { return "Game";}
+
+	/// shared data for different game frames
+	size_t selectedBlueprintId;			// blueprint index
+	ShipBlueprint * selectedBlueprint;	// blueprint to be edited on the shipyard
+protected:
+	
 };
+
 
 //namespace Style
 //{
@@ -80,7 +86,6 @@ struct DeviceSectionDesc
 	unsigned short cost;
 };
 
-struct ShipBlueprint;
 /// Provides storage for:
 /// - resources
 /// - tile description
@@ -121,7 +126,6 @@ struct ShipBlueprint : public Referenced
 		short angle;				// device orientation in degrees
 		unsigned short deviceType;	// device type
 	};
-
 	Device * devices;
 	size_t devicesCount;
 

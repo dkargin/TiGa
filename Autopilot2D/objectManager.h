@@ -310,6 +310,13 @@ protected:
 
 class Device;
 class DeviceDef;
+
+/// Iterator for gameobjects list
+struct ObjectIterator
+{
+	ObjectManager * container;
+	GameObject * current;
+};
 ///////////////////////////////////////////////////////////////////////////////
 // Manages creation, storage, serialisation and net synchronisation of game objects
 ///////////////////////////////////////////////////////////////////////////////
@@ -333,34 +340,31 @@ public:
 
 	friend class PerceptionManager;
 	friend class WeponManager;
+
 	typedef ObjStore<GameObjectDef> Definitions;
 
-	typedef std::list<GameObjectPtr> ObjectList;
-
-	typedef std::list< GameObject * > Objects;
-
+	typedef std::list< GameObject* > ObjectList; 
 	std::list< DeviceDef * > deviceDefinitions;
 	std::list< GameObjectDef * > objectDefinitions;
 
-	Objects objects;
+	GameObject * objectsHead, * objectsTail;
 	// theese are for unit parts
-	// DeviceManager *deviceManager;
 	PerceptionManager *perceptionManager;	// replace it by DeviceManager in future	
 	FxManager::SharedPtr fxManager;
-	b2BlockAllocator allocator;
+	//b2BlockAllocator allocator;
 	b2World * scene;
 	pathProject::PathCore * pathCore;
 	PathFinder pathFinder;
-
+	
 	enum Role
 	{
 		Master,
 		Slave,
 		Assistant,
 	}role;
-	_Scripter *scripter;	
+	Scripter *scripter;	
 public:
-	ObjectManager(_Scripter *lua, FxManager::SharedPtr fx);	
+	ObjectManager(Scripter *lua, FxManager::SharedPtr fx);	
 	~ObjectManager();	
 
 	void initSimulation( b2World * dn, pathProject::PathCore *pathCore );
@@ -368,27 +372,21 @@ public:
 	virtual void saveState(IO::StreamOut & stream);
 	virtual void loadState(IO::StreamIn & stream);
 
+	void registerObject(GameObject * object);
+	void removeObject(GameObject * object);
+	void removeAllObjects();/// remove all objects from the map
+
 	virtual void initManagers();
 
 	void onFrameStart(float dt);
 	void onFrameFinish(float dt);
 	long getFrame()const;
 
-	void add(ObjectManager::Listener * listener);
-	void remove(ObjectManager::Listener * listener);
+	void addListener(ObjectManager::Listener * listener);
+	void removeListener(ObjectManager::Listener * listener);
 
 	GameObject * getObject(ObjID id);
-
-	// place all objects to provided lua table
-	// arg0 - lua table
-	// returns void
-	void getObjects(const _Scripter::Object & table) const;
-
-	inline Unit * getUnit(ObjID id);
-	static const Unit *unit(const Objects::const_iterator &it);
-	static Unit *unit(const Objects::iterator &it);
-	GameObject * create(GameObjectDef *def);
-	void removeAllObjects();	/// remove all objects from the map
+	Unit * getUnit(ObjID id);
 	/// spatial queries
 	// raycasting, returns sorted hit list
 	void raycast(const Pose &ray,float range,RayHits & hits);
@@ -427,8 +425,8 @@ public:
 	//void writeMessages(IO::StreamOut &buf,int client=0);	
 	void useDevice(Unit *unit,int device,int port,int action,IOBuffer *buffer);	
 
-	void markUpdated();
-	bool controlObj(ID id,bool val);			// mark that object is controlled by this peer
+	//void markUpdated();
+	//bool controlObj(ID id,bool val);			// mark that object is controlled by this peer
 
 	// vision control
 	enum VisionMode
@@ -474,7 +472,7 @@ protected:
 	ID newObjID;
 
 	// local object creation
-	GameObject * create(ID defid, ID id, IO::StreamIn * context);
+	//GameObject * create(ID defid, ID id, IO::StreamIn * context);
 	// remote object creation
 	
 	//bool ownDef(ID id);	

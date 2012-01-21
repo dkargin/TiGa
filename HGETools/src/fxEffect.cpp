@@ -151,17 +151,16 @@ void FxEffect::renderAll(FxManager * manager, const Pose &base)
 		it->render(manager, base*pose);
 }
 
-// empty
 void FxEffect::query(FxManager * manager, const Pose & base) 
 {
-	// query itself
-	query(manager, base);
+	manager->renderQueue.query(base, this);	
 }
+
 void FxEffect::queryAll(FxManager * manager, const Pose & base)
 {	
-	
-	// query children
-	manager->renderQueue.query(base, this);
+	// query itself
+	query(manager, base);
+	// query children	
 	for(iterator it = begin(); it != end(); ++it)
 		it->queryAll(manager, base*pose);
 }
@@ -192,7 +191,7 @@ FxEffect::FxType FxEffect::type() const
 	return fxHolder;
 }
 
-FxEffect::Pointer FxEffect::clone() const
+FxEffect * FxEffect::clone() const
 {
 	return new FxEffect(*this);
 }

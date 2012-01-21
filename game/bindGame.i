@@ -44,7 +44,6 @@ class World
 {
 public:
 	ObjectManager *gameObjects;
-	FxEffect * background;
 	//Level level;
 	CursorInfo cursor;
 	Draw * draw;
@@ -101,6 +100,8 @@ class Game : public Core
 {
 public:
 	void initGame();
+
+	void registerTestScene(const char * scene);
 };
 
 void testGameObject(GameObject * object);

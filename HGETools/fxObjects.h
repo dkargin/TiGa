@@ -62,6 +62,9 @@ protected:
 	typedef TreeNode<Type> node_type;
 	Type * parent;
 	Type * next, *prev, *head, *tail;
+
+	virtual void onAttach( Type * object ) = 0;
+	virtual void onDetach( Type * object ) = 0;
 public:
 	TreeNode()
 	{
@@ -99,10 +102,24 @@ public:
 			tail = newChild;
 		}
 		newChild->parent = static_cast<Type*>(this);
+		onAttach(static_cast<Type*>(newChild));
 	}
 	void removeChild(node_type * child)
 	{
 		assert( hasChild(child) );
+		if( child->prev != head )
+			child->prev->next = child->next;
+		else
+			head = child->next;
+
+		if( child->next != tail )
+			child->next->prev = child->prev;
+		else
+			tail = child->prev;
+		child->next = NULL;
+		child->prev = NULL;
+		child->parent = NULL;
+		onDetach(static_cast<Type*>(child));
 	}
 	virtual void detach(node_type * child)
 	{
@@ -178,7 +195,7 @@ public:
 		}
 		bool operator != ( const iterator_type & it) const
 		{
-			return container == it.container && current == it.current;
+			return container != it.container || current != it.current;
 		}
 		Type * operator->()
 		{
@@ -281,7 +298,7 @@ public:
 	// misc
 	virtual FxType type() const;
 	virtual bool valid() const;
-	virtual Pointer clone() const;
+	virtual FxEffect * clone() const;
 	HGE * hge() const;
 protected:	
 	virtual void onAttach( FxEffect * object )
@@ -308,13 +325,13 @@ template<class FxType> inline FxType * CopyFactoryObject( std::weak_ptr<FxManage
 	friend class FxManager; \
 	typedef SharedPtr<TargetType> Pointer; \
 	typedef FxEffect Base; \
-	Pointer copy() const \
+	TargetType * copy() const \
 	{\
 		return CopyFactoryObject(manager, this); \
 	}\
-	FxEffect::Pointer clone() const \
+	FxEffect * clone() const \
 	{ \
-		return copy().get(); \
+		return copy(); \
 	} \
 	FxType type()const \
 	{ \
@@ -610,9 +627,9 @@ template<class FxType> inline FxType * CopyFactoryObject( std::weak_ptr<FxManage
 	if(!source->valid())
 		throw(std::exception("FxHelper::clone() error: invalid object\n"));
 	else {
-		FxType * place = NULL;		
-		manager.lock()->allocateRaw(place);	
-		result = new (place) FxType(*source);
+		//FxType * place = NULL;		
+		//manager.lock()->allocateRaw(place);	
+		result = new FxType(*source);
 	}
 	return result;
 }

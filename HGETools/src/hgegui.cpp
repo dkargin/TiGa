@@ -36,48 +36,49 @@ namespace GUI
 
 	Object::~Object()
 	{
-		if(parent != NULL)
-		{
-			parent->detach(this);
-			int w = 0;
-			parent = NULL;
-		}
+		detach();
 		hge->Release();
 	}
 
+	void Object::detach()
+	{
+		if(parent != NULL)
+		{
+			parent->removeChild(this);
+			int w = 0;
+			parent = NULL;
+		}
+	}
 	bool Object::isRoot() const
 	{
 		return parent == NULL;
 	}
 
-	void Object::insert(Object *object)
+	void Object::setAlign(AlignType hor, AlignType ver)
+	{
+		if( alignHor != hor || alignVer != ver )
+		{
+			layoutChanged = false;
+			alignHor = hor;
+			alignVer = ver;
+			updateLayout();
+		}		
+	}
+
+	Object * Object::insert(Object *object)
 	{
 		assert(object != this);
 		assert(object->parent != this);
 		children.push_back(object);
-		hgeRect newRect(object->desiredX, 
-						object->desiredY, 
-						object->desiredX + object->desiredWidth, 
-						object->desiredY + object->desiredHeight);
-		object->alignHor = AlignManual;
-		object->alignVer = AlignManual;
-		object->setRect(newRect);
 		object->parent = this;
-		calculateLayout(object);
+		object->layoutChanged = true;
+		if(contentsWidth || contentsHeight)
+			layoutChanged = true;
+		updateLayout();
+		return object;
 	}
 
-	void Object::insert(Object *object, AlignType hor, AlignType ver)
-	{
-		assert(object != this);
-		assert(object->parent != this);
-		children.push_back(object);
-		object->alignHor = hor;
-		object->alignVer = ver;	
-		object->parent = this;
-		calculateLayout(object);	
-	}
-
-	void Object::insert(Object * object, int cellX, int cellY, int cellWidth, int cellHeight)
+	Object * Object::insert(Object * object, int cellX, int cellY, int cellWidth, int cellHeight)
 	{
 		assert(object != this);
 		assert(object->parent != this);
@@ -85,18 +86,38 @@ namespace GUI
 		object->alignHor = AlignCell;
 		object->alignVer = AlignCell;
 		object->parent = this;
-		calculateLayout(object);	
+		object->layoutChanged = true;
+		if(contentsWidth || contentsHeight)
+			layoutChanged = true;
+		updateLayout();
+		return object;
 	}
 
-	void Object::detach(const Object::Pointer & object)
+	void Object::removeChild(const Object::Pointer & object)
 	{
 		Children::iterator it = std::find(children.begin(), children.end(), object);
 		if(it != children.end())
 			children.erase(it);
+		if( contentsHeight || contentsWidth )
+			layoutChanged == true;
+	}
+
+	void Object::updateLayout()
+	{
+		if( layouting == false || layoutChanged == false)
+			return;
+
+		if( parent )
+			parent->calculateLayout(this);
+
+		layoutChanged = false;
 	}
 
 	void Object::callUpdate(float dt)
 	{	
+		if( layoutChanged )
+			updateLayout();
+
 		onUpdate(dt);
 
 		for(Children::iterator it = children.begin(); it != children.end(); ++it)

@@ -68,13 +68,16 @@ namespace GUI
 
 		Object(const hgeRect & rc);
 		virtual			~Object();
+
+		void detach();			/// detach from parent
 		bool isRoot() const;
 		// manual align
-		void insert(Object * ptr);
-		// 
-		void insert(Object * ptr, AlignType hor, AlignType ver); 
+		Object * insert(Object * ptr);
+		Object * insert(Object * ptr, int cellX, int cellY, int cellWidth, int cellHeight);
 
-		void insert(Object * ptr, int cellX, int cellY, int cellWidth = 1, int cellHeight = 1);
+		void removeChild(const Pointer & object);
+
+		void setAlign( AlignType hor, AlignType ver );
 		// set rect
 		virtual void	setRect(const hgeRect & rc);
 		// get window rect (screen)
@@ -129,8 +132,9 @@ namespace GUI
 		virtual void callRender(const hgeRect & clipRect);
 		virtual void callUpdate(float dt);
 		HGE * getHGE();
-		void enableLayouting( bool flag );	
 
+		void enableLayouting( bool flag );	
+		void updateLayout();
 		typedef bool ObjectIterator( Object * object);
 		void findObject(const uiVec & vec, bool forceAll, std::function<ObjectIterator> fn);
 	protected:
@@ -145,6 +149,7 @@ namespace GUI
 		typedef std::list<Pointer> Children;
 		Children children;
 		WeakPtr<Object> parent;									// parent object
+		WeakPtr<Object> modal;									// modal children
 		int cellX, cellY, cellWidth, cellHeight;
 		bool clipChildren;
 		bool visible;											// if object is visible
@@ -152,11 +157,11 @@ namespace GUI
 		bool contentsWidth, contentsHeight;						// auto expand to contents size
 		HGE * hge;
 	private:
-		bool layoutUpdated;	
+		bool layoutChanged;	
 		bool layouting;
  		static size_t globalControlLastId;
 		size_t globalControlId;
-		void detach(const Pointer & object);
+		
 		// do not use it
 		Object(const Object &go);
 		Object&	operator= (const Object &go);

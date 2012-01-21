@@ -4,18 +4,37 @@
 class ShipyardWindow;
 
 const int ShipyardCellsMax = 6;
+/*
+class GameStateShipyard : public GameState
+{
+public:
+	ShipBlueprint * blueprint;
+	virtual void onEnter();
+	virtual void onExit();
+	virtual void onResume( GameState * from );
+};
+*/
 
 class ShipyardArea : public GUI::Object
 {
 public:
 	ShipyardArea(ShipyardWindow * shipyard);
 	~ShipyardArea();
+	/*
+	class Listener
+	{
+	public:
+		virtual void onDesignFinished(ShipyardArea * shipyard, ShipBlueprint * blueprint) = 0;
+	};
 
+	std::shared_ptr<ShipyardListener> listener;
+	*/
 	struct Cell
 	{
 		size_t blockId;
 		size_t objectId;
 	};
+
 	Cell cells[ShipyardCellsMax * ShipyardCellsMax];
 	int cellsCenterX, cellsCenterY, cellsWidth, cellsHeight;
 
@@ -76,8 +95,6 @@ public:
 	Instance<GUI::Button> tiles, objects, designTest, designSave;
 	Instance<ShipyardArea> shipyardArea;
 	Instance <GUI::Slider> toolboxSlider;
-
-	ShipBlueprint * editedBlueprint;		/// blueprint selected to edit
 	
 	std::list<SharedPtr<GUI::Object> > contents;
 //	std::list<GUI::Button*> tileTypes;

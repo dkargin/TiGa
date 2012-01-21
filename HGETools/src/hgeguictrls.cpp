@@ -78,7 +78,8 @@ void Text::onRender()
 Button::Button()
 	:Object(hgeRect(0,0,0,0)), font(NULL)
 {
-	insert(text, AlignExpand, AlignExpand);
+	text->setAlign(AlignExpand, AlignExpand);
+	insert(text);
 
 	visible = true;
 	enabled = true;
