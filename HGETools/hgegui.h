@@ -10,41 +10,19 @@
 #ifndef HGEGUI_H
 #define HGEGUI_H
 
-#include "frostTools/autoPtr.hpp"
+#include "../frostTools/autoPtr.hpp"
 #include <list>
 #include <functional>
-#include "frostTools/3dmath.h"
+#include "../frostTools/3dmath.h"
 
 #include "hge.h"
 #include "hgesprite.h"
 #include "hgerect.h"
 
-struct fRect
-{
-	float x,y,w,h;
-	fRect():x(0),y(0),w(0),h(0){}
-	fRect(float x,float y,float w,float h):x(x),y(y),w(w),h(h){}
-	fRect(const fRect &rc):x(rc.x),y(rc.y),w(rc.w),h(rc.h){}
-	~fRect(){}
-	bool	TestPoint(float px, float py) const
-	{
-		return px >= x && py >=y && px < x + w && py < y + h; 
-	}
-};
-
-struct TexRect
-{
-	HTEXTURE texture;
-	fRect Rect;
-};
-
-
 #define HGEGUI_NONAVKEYS		0
 #define HGEGUI_LEFTRIGHT		1
 #define HGEGUI_UPDOWN			2
 #define HGEGUI_CYCLED			4
-
-
 
 namespace GUI
 {

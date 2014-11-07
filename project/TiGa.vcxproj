@@ -112,7 +112,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_CRT_SECURE_NO_WARNINGS;_EXECUTABLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>.;../..;../game;../HGETools;../Autopilot2D;../depend/include;../../LuaBox/include;..;../pathCore/include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.;../game;../HGETools;../Autopilot2D;../depend/include;../../LuaBox/include;..;../pathCore/include</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>

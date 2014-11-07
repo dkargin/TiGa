@@ -99,7 +99,7 @@ namespace GUI
 		if(it != children.end())
 			children.erase(it);
 		if( contentsHeight || contentsWidth )
-			layoutChanged == true;
+			layoutChanged = true;
 	}
 
 	void Object::updateLayout()
@@ -110,6 +110,13 @@ namespace GUI
 		if( parent )
 			parent->calculateLayout(this);
 
+		for(Children::iterator it = children.begin(); it != children.end(); ++it)
+		{
+			Object * object = it->get();
+			if( object == NULL )
+				continue;
+			object->updateLayout();
+		}
 		layoutChanged = false;
 	}
 
@@ -202,6 +209,8 @@ namespace GUI
 	{
 		if(!visible)
 			return;
+		if( layoutChanged )
+			updateLayout();
 		HGE * hge = getHGE();
 		
 		hgeRect clip = hgeRect::Intersect(getRect(),clipRect);

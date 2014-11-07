@@ -329,8 +329,7 @@ ShipyardWindow::ShipyardWindow(Game * game)
 	shipyardArea->setAlign(GUI::AlignMax, GUI::AlignExpand);
 	insert(shipyardArea);
 
-	if( game->selectedBlueprint )
-		setBlueprint(game->selectedBlueprint, false);
+	
 }
 
 void ShipyardWindow::clearContents()

@@ -112,6 +112,7 @@ ShipBlueprint::ShipBlueprint()
 {
 	blocks = NULL;	
 	devices = NULL;	
+	tileSize = 50;
 	reset();
 }
 

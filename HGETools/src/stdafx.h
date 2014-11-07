@@ -18,9 +18,9 @@
 #include <functional>
 #include <algorithm>
 
-#include "frostTools/3dmath.h"
-#include "frostTools/autoPtr.hpp"
-#include "frosttools/frosttools.h"
+#include "../frostTools/3dmath.h"
+#include "../frostTools/autoPtr.hpp"
+#include "../frosttools/frosttools.h"
 
 #include <hge.h>
 #include <hgegui.h>

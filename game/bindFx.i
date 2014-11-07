@@ -2,9 +2,9 @@
 #include "gameObject.h"
 #include "fxObjects.h"
 
-inline fRect Rect(int x,int y,int w,int h)
+inline hgeRect Rect(int x,int y,int w,int h)
 {
-	return fRect(x,y,w,h);
+	return hgeRect(x,y,x+w,y+h);
 }
 %}
 
@@ -26,16 +26,17 @@ enum AnimationMode
 #define	ZWRITE      4
 #define	NOZWRITE    0
 
-struct fRect
+struct hgeRect
 {
-	float x,y,w,h;
-	fRect();
-	fRect(float x,float y,float w,float h);
-	fRect(const fRect &rc);
-	~fRect();
+	float x1,y1,x2,y2;
+	hgeRect();
+	hgeRect(float x,float y, float x1,float y1);
+	hgeRect(const hgeRect &rc);
+	~hgeRect();
 	bool	TestPoint(float px, float py) const;
 };
-fRect Rect(int x,int y,int w,int h);
+
+hgeRect Rect(int x,int y,int w,int h);
 
 class FxEffect
 {
@@ -149,7 +150,7 @@ class FxAnimation2: public FxEffect
 public:
 	bool crop;
 	float cropWidth,cropHeight;
-	int addFrame(const fRect &rect);
+	int addFrame(const hgeRect &rect);
 	float duration()const;
 	void setBlendMode(int mode);
 	void addBlendMode(int mode);
@@ -169,7 +170,7 @@ public:
 class FxManager
 {
 public:
-	FxAnimation2 * createAnimation(const char *texture,fRect rect,int frameWidth,int frameHeight,float fps,AnimationMode mode);
+	FxAnimation2 * createAnimation(const char *texture,hgeRect rect,int frameWidth,int frameHeight,float fps,AnimationMode mode);
 	FxAnimation2 * createAnimationFull(const char *texture,int frameWidth,int frameHeight,float fps,AnimationMode mode);
 	FxSpritePtr fxSprite(const char * texture,float x,float y,float width,float height);
 	FxParticles * fxParticles(FxSprite* sprite, hgeParticleSystemInfo &info);

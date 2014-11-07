@@ -86,6 +86,18 @@ struct DeviceSectionDesc
 	unsigned short cost;
 };
 
+
+// storage for Effects
+class FxStorage
+{
+public:
+	size_t addEffect(FxEffect::Pointer ptr);
+	size_t addNamedEffect(FxEffect::Pointer ptr, const char * name);
+	FxEffect::Pointer findByString(size_t id);
+	FxEffect::Pointer findById(size_t id);
+	std::map<std::string, size_t> names;
+	std::vector<FxEffect::Pointer> effects;				/// cached sprites	
+};
 /// Provides storage for:
 /// - resources
 /// - tile description
@@ -119,7 +131,7 @@ struct ShipBlueprint : public Referenced
 	};
 	Block * blocks;
 	size_t blocksCount;
-
+	
 	struct Device
 	{
 		short x, y;					// tile coordinates
@@ -129,7 +141,9 @@ struct ShipBlueprint : public Referenced
 	Device * devices;
 	size_t devicesCount;
 
-	char name[255];				// ship name
+	float tileSize;					// size of tile, in pixels ?
+
+	char name[255];					// ship name
 
 	ShipBlueprint();
 	~ShipBlueprint();
@@ -149,4 +163,6 @@ struct ShipBlueprint : public Referenced
 	void load(IO::StreamIn & stream);
 	void save(IO::StreamOut & stream);
 };
+
+void GenerateShipGraphics(FxEffect * effect, ShipBlueprint * blueprint, Game * game);
 #endif

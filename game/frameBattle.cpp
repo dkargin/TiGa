@@ -10,6 +10,25 @@ Multiblock * Multiblock::createFractureBody()
 	return NULL;
 }
 
+void GenerateShipGraphics(FxEffect * effect, ShipBlueprint * blueprint, Game * game)
+{
+	hgeRect bounds = blueprint->getBounds(game->gameData);
+	float centerX = (bounds.x1 + bounds.x2) * 0.5;
+	float centerY = (bounds.y1 + bounds.y2) * 0.5;
+	for( int i = 0; i < blueprint->blocksCount; i++)
+	{
+		ShipBlueprint::Block & block = blueprint->blocks[i];		
+		TileSectionDesc & desc = game->gameData->sections[block.tileType];
+		for( int y = block.y; y < block.y + desc.sizeY; y++)
+			for( int x = block.x; x < block.x + desc.sizeX; x++)
+			{				
+				FxEffect::Pointer ptr = game->gameData->getSectionSprite(desc.spriteId)->clone();				
+				ptr->setPose(Pose((x-centerX) * blueprint->tileSize, (y - centerY) * blueprint->tileSize, 0));
+				effect->attach(ptr);
+			}
+	}
+}
+
 void AddShipToWorld(World * world, ShipBlueprint * blueprint, Game * game)
 {
 	ObjectManager * manager = world->gameObjects;
@@ -29,14 +48,9 @@ void AddShipToWorld(World * world, ShipBlueprint * blueprint, Game * game)
 		cellData.health = 100;
 		for( int y = block.y; y < block.y + desc.sizeY; y++)
 			for( int x = block.x; x < block.x + desc.sizeX; x++)
-			{
 				multiblock->createCell(x, y, cellData);
-				FxEffect::Pointer ptr = game->gameData->getSectionSprite(desc.spriteId);
-				FxEffect::Pointer newPtr = ptr->clone();
-				newPtr->setPose(Pose(x * tileSize, y * tileSize, 0));
-				multiblock->effects->attach(newPtr);
-			}
 	}
+	GenerateShipGraphics(multiblock->effects, blueprint, game);
 }
 
 GameplayWindow::GameplayWindow(Game * game)

@@ -3,6 +3,15 @@
 #include "fxObjects.h"
 #include "gl/gl.h"
 
+class HeapAllocator : public FxManager::Storage
+{
+public:
+	bool allocateRaw(FxEffect *& effect);
+	bool allocateRaw(FxSound *& effect);
+	bool allocateRaw(FxSprite *& effect);
+	bool allocateRaw(FxAnimation2 *& effect);
+	bool allocateRaw(FxParticles *& effect);
+};
 //////////////////////////////////////////////////////////////////////////
 // FxManager
 // implements resource managment and lighting
@@ -11,6 +20,7 @@ FxManager::FxManager(Log * log)
 	:hge(NULL), log(log)
 {
 	resetView();
+	storage = std::shared_ptr<Storage>(new HeapAllocator);
 }
 
 FxManager::~FxManager()
@@ -70,6 +80,7 @@ FxManager::Record & FxManager::getTexture(const char *texture)
 	{
 		Record record;
 		record.file = texture;
+		record.handle = 0;
 		
 		if(!(record.handle = hge->Texture_Load(texture)))
 		{
@@ -151,7 +162,7 @@ FxHolder::Pointer FxManager::fxHolder()
 	return create<FxHolder>();
 }
 
-FxAnimation2::Pointer FxManager::createAnimation(const char *file, fRect rect, int frameWidth, int frameHeight, float fps, AnimationMode mode)
+FxAnimation2::Pointer FxManager::createAnimation(const char *file, hgeRect rect, int frameWidth, int frameHeight, float fps, AnimationMode mode)
 {
 	LogFunction(*log);
 	if( hge == NULL )
@@ -162,29 +173,29 @@ FxAnimation2::Pointer FxManager::createAnimation(const char *file, fRect rect, i
 	result->mode=mode;	
 	result->sprite.SetBlendMode(BLEND_COLORMUL|BLEND_ALPHAADD);
 	HTEXTURE tex=result->sprite.GetTexture();
-	int texWidth=hge->Texture_GetWidth(tex);
-	int texHeight=hge->Texture_GetHeight(tex);
+	int texWidth = hge->Texture_GetWidth(tex);
+	int texHeight = hge->Texture_GetHeight(tex);
 	// 1. compute frames
-	if(rect.w == 0 && rect.h == 0)
+	if(rect.width() == 0 && rect.width() == 0)
 	{
-		rect.w = texWidth;
-		rect.h = texHeight;
+		rect.x2 = rect.x1 + texWidth;
+		rect.y2 = rect.y1 + texHeight;
 	}
 	if(frameWidth == 0 && frameHeight == 0)
 	{
-		frameWidth = rect.w;
-		frameHeight = rect.h;
+		frameWidth = rect.width();
+		frameHeight = rect.height();
 	}
-	int framesX=rect.w/frameWidth;
-	int framesY=rect.h/frameHeight;
+	int framesX = rect.width() / frameWidth;
+	int framesY = rect.height() / frameHeight;
 	for(int y=0;y<framesY;y++)
 		for(int x=0;x<framesX;x++)
 		{
-			fRect frame;
-			frame.x=rect.x+x*frameWidth;
-			frame.y=rect.y+y*frameHeight;
-			frame.w=frameWidth;
-			frame.h=frameHeight;
+			hgeRect frame;
+			frame.x1 = rect.x1 + x*frameWidth;
+			frame.y1 = rect.y1 + y*frameHeight;
+			frame.x2 = frame.x1 + frameWidth;
+			frame.y2 = frame.y1 + frameHeight;
 			result->addFrame(frame);
 		}
 	result->setSize(frameWidth,frameHeight);
@@ -216,11 +227,11 @@ FxAnimation2::Pointer FxManager::createAnimationFull(const char *file, int frame
 	for(int y=0;y<framesY;y++)
 		for(int x=0;x<framesX;x++)
 		{
-			fRect frame;
-			frame.x = x*frameWidth;
-			frame.y = y*frameHeight;
-			frame.w = frameWidth;
-			frame.h = frameHeight;
+			hgeRect frame;
+			frame.x1 = x*frameWidth;
+			frame.y1 = y*frameHeight;
+			frame.x2 = frame.x1 + frameWidth;
+			frame.y2 = frame.y1 + frameHeight;
 			result->addFrame(frame);
 		}
 
@@ -262,14 +273,101 @@ void FxManager::resetView()
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////
-// Object allocateRawion
+// Heap storage implementation
 template<class Type> void allocRaw( Type *& raw )
 {
 	raw = (Type * ) new char[sizeof (Type) ];
 }
 
-bool FxManager::allocateRaw(FxEffect *& effect) { allocRaw(effect); return effect != NULL; }
-bool FxManager::allocateRaw(FxSound *& effect) { allocRaw(effect); return effect != NULL;}
-bool FxManager::allocateRaw(FxSprite *& effect) { allocRaw(effect); return effect != NULL;}
-bool FxManager::allocateRaw(FxAnimation2 *& effect) { allocRaw(effect); return effect != NULL;}
-bool FxManager::allocateRaw(FxParticles *& effect) { allocRaw(effect); return effect != NULL;}
+bool HeapAllocator::allocateRaw(FxEffect *& effect) 
+{ 
+	allocRaw(effect); 
+	return effect != NULL; 
+}
+
+bool HeapAllocator::allocateRaw(FxSound *& effect) 
+{
+	allocRaw(effect); return effect != NULL;
+}
+
+bool HeapAllocator::allocateRaw(FxSprite *& effect) 
+{ 
+	allocRaw(effect); return effect != NULL;
+}
+
+bool HeapAllocator::allocateRaw(FxAnimation2 *& effect) 
+{ 
+	allocRaw(effect); return effect != NULL;
+}
+
+bool HeapAllocator::allocateRaw(FxParticles *& effect) 
+{ 
+	allocRaw(effect); return effect != NULL;
+}
+///////////////////////////////////////////////////////////////////////////////////////
+// Pool storage implementation
+
+template<class Type>
+class Pool
+{
+protected:
+	struct Node
+	{
+		unsigned int prefs;	// pointer count
+		unsigned int orefs;	// strong pointer counter
+
+		Node * next, * prev;
+	};
+
+	class SharedPtr
+	{
+		Node * node;
+	};
+
+	Node * data;
+
+	struct ListHeader
+	{
+		Type * head, * tail;
+		ListHeader()
+		{
+			head = NULL;
+			tail = NULL;
+		}
+	}free, used;	
+
+	static Type * dataToNode(Node * node)
+	{
+		return (Type*)(node+1);
+	}
+
+	static Node * nodeToData(Type * type)
+	{
+		return (Node*)type - 1;
+	}
+public:
+	Pool()
+	{
+		data = NULL;
+	}
+
+	~Pool()
+	{
+	}
+
+	void initialize(int max)
+	{
+
+	}
+
+	void clear()
+	{
+
+	}
+
+	std::pair<Node*,Type*> allocate()
+	{
+		std::pair<Node*, Type*> result;
+		return result;
+	}
+};

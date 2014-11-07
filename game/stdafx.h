@@ -29,19 +29,19 @@
 #endif  // _DEBUG
 #define LUABOX_BINDER
 #include <box2d/box2d.h>
-#include <frostTools/3dmath.h>
-#include "frostTools/ioTools.h"
-#include "frostTools/iobuffer.h"
+#include <../frostTools/3dmath.h>
+#include "../frostTools/ioTools.h"
+#include "../frostTools/iobuffer.h"
 
 #define FrostTools_NoWarnings
 #define FrostTools_Use_Asserts
 #define FrostTools_Use_System
 #define FrostTools_Use_Threads
-#include <frosttools/logger.hpp>
-#include <frostTools/frostTools.h>
-#include <frosttools/autoptr.hpp>
-#include <frosttools/raster.hpp>
-#include <frosttools/sysFiles.hpp>
+#include <../frosttools/logger.hpp>
+#include <../frostTools/frostTools.h>
+#include <../frosttools/autoptr.hpp>
+#include <../frosttools/raster.hpp>
+#include <../frosttools/sysFiles.hpp>
 
 #include <pathProject.h>
 #include <pathDrawer.h>

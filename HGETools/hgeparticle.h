@@ -13,10 +13,10 @@
 
 #include "hge.h"
 #include "hgesprite.h"
-#include "frostTools/3dmath.h"
+
 #include "hgecolor.h"
 #include "hgerect.h"
-
+#include "../frostTools/3dmath.h"
 
 #define MAX_PARTICLES	500
 #define MAX_PSYSTEMS	100

@@ -74,6 +74,16 @@ void FxEffect::setPose(float x, float y, float rot)
 	pose.orientation = rot;
 }
 
+void FxEffect::setZ(float z)
+{
+	pose.position[2] = z;
+}
+
+float FxEffect::getZ() const
+{
+	return pose.position[2];
+}
+
 const FxEffect::Pose & FxEffect::getPose() const
 {
 	return pose;

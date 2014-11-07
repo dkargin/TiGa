@@ -55,184 +55,7 @@ enum AnimationMode
 	AnimationBounce,
 };
 
-template<class Type>
-class TreeNode
-{
-protected:
-	typedef TreeNode<Type> node_type;
-	Type * parent;
-	Type * next, *prev, *head, *tail;
 
-	virtual void onAttach( Type * object ) = 0;
-	virtual void onDetach( Type * object ) = 0;
-public:
-	TreeNode()
-	{
-		parent = NULL;
-		next = NULL;
-		prev = NULL;
-		head = NULL;
-		tail = NULL;
-	}
-	virtual Type * getTargetType() = 0;
-	void orphan_me()
-	{
-		if( parent != NULL )
-			parent->removeChild(this);
-	}
-	bool hasChild(const node_type * child) const
-	{
-		return child && child->parent == this;
-	}
-	void attach(Type * newChild)
-	{
-		newChild->orphan_me();
-		if( head == NULL)
-		{
-			head = newChild;
-			tail = newChild;
-			newChild->prev = NULL;
-			newChild->next = NULL;
-		}
-		else
-		{
-			tail->next = newChild;
-			newChild->prev = tail;
-			newChild->next = NULL;
-			tail = newChild;
-		}
-		newChild->parent = static_cast<Type*>(this);
-		onAttach(static_cast<Type*>(newChild));
-	}
-	void removeChild(node_type * child)
-	{
-		assert( hasChild(child) );
-		if( child->prev != head )
-			child->prev->next = child->next;
-		else
-			head = child->next;
-
-		if( child->next != tail )
-			child->next->prev = child->prev;
-		else
-			tail = child->prev;
-		child->next = NULL;
-		child->prev = NULL;
-		child->parent = NULL;
-		onDetach(static_cast<Type*>(child));
-	}
-	virtual void detach(node_type * child)
-	{
-		removeChild(child);
-	}
-	virtual ~TreeNode()
-	{
-		orphan_me();
-	}
-	class const_iterator
-	{
-		protected:
-		const Type * container;
-		const Type * current;
-	public:
-		typedef const_iterator iterator_type;
-		const_iterator(const Type * container_, const Type * current_)
-		{
-			container = container_;
-			current = current_;
-		}
-		const_iterator(const const_iterator &it)
-		{
-			container = it.container;
-			current = it.current;
-		}
-		bool operator == ( const iterator_type & it) const
-		{
-			return container == it.container && current == it.current;
-		}
-		bool operator != ( const iterator_type & it) const
-		{
-			return container != it.container || current != it.current;
-		}
-		const Type * operator->()
-		{
-			return current;
-		}
-		iterator_type & operator++()	// prefix
-		{
-			assert(current != NULL);
-			current = current->next;
-			return *this;
-		}
-		iterator_type operator++(int)	// postfix
-		{
-			assert(current != NULL);
-			const_iterator result(*this);
-			current = current->next;
-			return result;
-		}
-	};
-	class iterator
-	{
-	protected:
-		Type * container;
-		Type * current;
-	public:
-		typedef iterator iterator_type;
-		iterator(Type * container_, Type * current_)
-		{
-			container = container_;
-			current = current_;
-		}
-		iterator(const const_iterator &it)
-		{
-			container = it.container;
-			current = it.current;
-		}
-		bool operator == ( const iterator_type & it) const
-		{
-			return container == it.container && current == it.current;
-		}
-		bool operator != ( const iterator_type & it) const
-		{
-			return container != it.container || current != it.current;
-		}
-		Type * operator->()
-		{
-			return current;
-		}
-		iterator_type & operator++()	// prefix
-		{
-			assert(current != NULL);
-			current = current->next;
-			return *this;
-		}
-		iterator_type operator++(int)	// postfix
-		{
-			assert(current != NULL);
-			const_iterator result(*this);
-			current = current->next;
-			return result;
-		}
-	};
-
-	const_iterator begin() const
-	{
-		return const_iterator(static_cast<const Type*>(this), head);
-	}
-	const_iterator end() const
-	{
-		return const_iterator(static_cast<const Type*>(this), NULL);
-	}
-	iterator begin()
-	{
-		return iterator(static_cast<Type*>(this),head);
-	}
-	iterator end()
-	{
-		return iterator(static_cast<Type*>(this), NULL);
-	}
-};
 
 class FxEffect : public Referenced, public TreeNode<FxEffect>
 {
@@ -269,6 +92,8 @@ public:
 	virtual void rewind();					// rewind track
 	virtual Time_t duration() const;			// get animation duration
 	// geometry interface
+	void setZ(float z);
+	float getZ() const;
 	virtual void setPose(float x,float y,float r);
 	virtual void setScale(float s);
 	virtual float getScale() const;	
@@ -437,7 +262,7 @@ public:
 	FxAnimation2(const FxAnimation2 &effect);
 	~FxAnimation2();
 	void init(HTEXTURE tex, float x, float y, float w, float h);
-	int addFrame(const fRect &rect);	// insert additional frame from existing texture
+	int addFrame(const hgeRect &rect);	// insert additional frame from existing texture
 	void setBlendMode(int mode);
 	void addBlendMode(int mode);
 	bool valid() const;
@@ -463,7 +288,7 @@ protected:
 	float width,height;				// world sprite size
 	float tiledWidth, tiledHeight;	//
 	bool tiled;						// if tiled mode is active. Turned off by default
-	std::vector<fRect> frames;		// all frames	
+	std::vector<hgeRect> frames;		// all frames	
 	float fps;						// frame rate
 	float current;					// current frame
 	bool run;						// is animation active
@@ -572,7 +397,7 @@ public:
 	void init(HGE * hge);			/// init resource system
 	Log * logger() { return log; }
 	/// factory
-	FxAnimation2::Pointer createAnimation(const char *texture,fRect rect,int frameWidth,int frameHeight,float fps,AnimationMode mode);	// create animation from texture's part
+	FxAnimation2::Pointer createAnimation(const char *texture,hgeRect rect,int frameWidth,int frameHeight,float fps,AnimationMode mode);	// create animation from texture's part
 	FxAnimation2::Pointer createAnimationFull(const char *texture,int frameWidth,int frameHeight,float fps,AnimationMode mode);			// create animation from whole texture
 	FxParticles::Pointer fxParticles(FxSprite::Pointer sprite,hgeParticleSystemInfo &info);
 	FxSprite::Pointer fxSprite(const char * texture,float x,float y,float width,float height);
@@ -592,17 +417,23 @@ public:
 	Record & getTexture(const char *texture);							//
 	int freeTexture(HTEXTURE texture);									//
 
-	
-	bool allocateRaw(FxEffect *& effect);
-	bool allocateRaw(FxSound *& effect);
-	bool allocateRaw(FxSprite *& effect);
-	bool allocateRaw(FxAnimation2 *& effect);
-	bool allocateRaw(FxParticles *& effect);
+	class Storage
+	{
+	public:
+		virtual ~Storage(){};
+		virtual bool allocateRaw(FxEffect *& effect) = 0;
+		virtual bool allocateRaw(FxSound *& effect) = 0;
+		virtual bool allocateRaw(FxSprite *& effect) = 0;
+		virtual bool allocateRaw(FxAnimation2 *& effect) = 0;
+		virtual bool allocateRaw(FxParticles *& effect) = 0;
+	};
+
+	std::shared_ptr<Storage> storage;
 
 	template< class FxType> FxType * create()
 	{
 		FxType * result = NULL;
-		allocateRaw(result);
+		storage->allocateRaw(result);
 		new( result ) FxType(this);
 		return result;
 	}

@@ -265,10 +265,10 @@ void Image::onRender()
 	if( sprite != NULL )
 	{
 		hgeRect rect = getRect();
-		float width = sprite->sprite.GetWidth();
-		float height = sprite->sprite.GetHeight();
-		Pose2z pose(0.5 * (rect.x2 + rect.x1 + width), 0.5 * (rect.y2 + rect.y1 + height), 0, 0);
-		sprite->render(sprite->getManager(), pose);
+		float width = sprite->getWidth();
+		float height = sprite->getHeight();
+		Pose2z pose(0.5 * (rect.x2 + rect.x1), 0.5 * (rect.y2 + rect.y1), 0, 0);
+		sprite->renderAll(sprite->getManager(), pose);
 	}
 }
 

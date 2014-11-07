@@ -69,7 +69,7 @@ FxAnimation2::FxAnimation2(const FxAnimation2 &effect)
 
 FxAnimation2::~FxAnimation2(){}
 
-int FxAnimation2::addFrame(const fRect &rect)
+int FxAnimation2::addFrame(const hgeRect &rect)
 {
 	frames.push_back(rect);
 	return frames.size();
@@ -166,19 +166,19 @@ void FxAnimation2::update(float dt)
 
 float FxAnimation2::getWidth()
 {
-	return scale*width;
+	return scale * width;
 }
 
 float FxAnimation2::getHeight()
 {
-	return scale*height;
+	return scale * height;
 }
 
 void FxAnimation2::render(FxManager * manager, const Pose &base)
 {
 	if(!valid() || !visible)
 		return;
-	const fRect &rc=frames[current];
+	const hgeRect &rc=frames[current];
 	if(((int)current)==frames.size())
 		int w=0;
 	
@@ -187,8 +187,8 @@ void FxAnimation2::render(FxManager * manager, const Pose &base)
 	{
 		//if(crop)
 		{
-			sprite.SetTextureRect(rc.x,rc.y,rc.w*cropWidth,rc.h*cropHeight);
-			sprite.SetHotSpot(rc.w*cropWidth,rc.h*cropHeight);
+			sprite.SetTextureRect(rc.x1,rc.y1, rc.width()*cropWidth,rc.height()*cropHeight);
+			sprite.SetHotSpot(rc.width()*cropWidth,rc.height()*cropHeight);
 			drawSprite(manager->hge,&sprite,p,cropWidth*width*0.5*scale,cropHeight*height*0.5*scale,drawRect);
 		}
 		//else
@@ -219,8 +219,8 @@ void FxAnimation2::render(FxManager * manager, const Pose &base)
 
 				//if(crop)
 				{
-					sprite.SetTextureRect(rc.x,rc.y,rc.w*cropWidth,rc.h*cropHeight);
-					sprite.SetHotSpot(rc.w*cropWidth,rc.h*cropHeight);
+					sprite.SetTextureRect(rc.x1,rc.y1,rc.width()*cropWidth,rc.height()*cropHeight);
+					sprite.SetHotSpot(rc.width()*cropWidth,rc.height()*cropHeight);
 					drawSprite(manager->hge,&sprite,bp,cropWidth*width*0.5*scale,cropHeight*height*0.5*scale,drawRect);
 				}
 				//else

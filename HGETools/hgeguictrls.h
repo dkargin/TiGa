@@ -135,7 +135,7 @@ namespace GUI
 	{
 	public:
 		Image();
-		FxSpritePtr sprite;
+		FxEffect::Pointer sprite;
 		virtual void onRender();
 	};
 
