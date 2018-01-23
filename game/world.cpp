@@ -1,4 +1,3 @@
-#include "stdafx.h"
 #include "device.h"
 #include "projectile.h"
 #include "unit.h"

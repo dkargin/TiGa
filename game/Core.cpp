@@ -1,11 +1,12 @@
-#include "stdafx.h"
-
 #include <math.h>
 
 //#include "world.h"
-#include "iup.h"
+//#include "iup.h"
+
+#ifdef FUCK_THIS
 #include "../LuaBox/src/iup_class.h"
 #include "../LuaBox/src/iup_register.h"
+#endif
 
 #ifdef USE_IUP
 #pragma comment(lib, "Comctl32.lib")
@@ -21,9 +22,12 @@
 #pragma comment(lib, "opengl32.lib")
 #pragma comment(lib, "iupluacontrols51.lib")
 #endif
+
+#ifdef FUCK_THIS
 #include "iuplua.h"
 #include "iupgl.h"
 #include "iupluagl.h"
+#endif
 //#include "iupluacontrols.h"
 #include "Core.h"
 

@@ -1,4 +1,3 @@
-#include "stdafx.h"
 #include "Core.h"
 
 int hgeMain();

@@ -1,4 +1,3 @@
-#include "stdafx.h"
 //#include "traffic.h"
 #include "navGraph.h"
 

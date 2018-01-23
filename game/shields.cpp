@@ -1,5 +1,3 @@
-#include "stdafx.h"
-
 #include "objectManager.h"
 #include "device.h"
 #include "shields.h"

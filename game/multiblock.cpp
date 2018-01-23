@@ -1,5 +1,4 @@
 //#include "common.h"
-#include "stdafx.h"
 #include "multiblock.h"
 #include "gameObject.h"
 

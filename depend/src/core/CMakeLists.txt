@@ -1,0 +1,11 @@
+add_library(hge
+	graphics.cpp
+	ini.cpp
+	input.cpp
+	power.cpp
+	random.cpp
+	resource.cpp
+	sound.cpp
+	system.cpp
+	timer.cpp
+)

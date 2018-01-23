@@ -1,5 +1,13 @@
 #pragma once
 
+#include <set>
+#include <math3/math.h>
+#include <memory> 		//for shared_ptr
+
+#include "treenode.hpp"
+#include "hgerect.h"
+#include "hge.h"
+
 #define	COLORADD    1
 #define	COLORMUL    0
 
@@ -19,7 +27,7 @@ class HGE;
 
 struct FxView2
 {
-	Pose2z pose;
+	math3::Pose2z pose;
 	float scale, zNear, zFar;
 	hgeRect viewport;
 };
@@ -56,12 +64,12 @@ enum AnimationMode
 };
 
 
-
-class FxEffect : public Referenced, public TreeNode<FxEffect>
+class FxEffect : public std::enable_shared_from_this<FxEffect>, 
+				 public TreeNode<FxEffect>
 {
 public:
-	typedef SharedPtr<FxEffect> Pointer;
-	typedef Pose2z Pose;
+	typedef std::shared_ptr<FxEffect> Pointer;
+	typedef math3::Pose2z Pose;
 public:		
 	enum FxType
 	{
@@ -128,11 +136,14 @@ public:
 protected:	
 	virtual void onAttach( FxEffect * object )
 	{
-		Referenced::ObjectInfo::addReference(object);
+		// TODO: implement it
+		//Referenced::ObjectInfo::addReference(object);
 	}
 	virtual void onDetach( FxEffect * object )
 	{
-		Referenced::ObjectInfo::removeReference(object);
+		// TODO: implement it
+		//Referenced::ObjectInfo::addReference(object);
+		//Referenced::ObjectInfo::removeReference(object);
 	}
 
 	std::weak_ptr<FxManager> manager;	
@@ -148,7 +159,7 @@ template<class FxType> inline FxType * CopyFactoryObject( std::weak_ptr<FxManage
 
 #define FX_TYPE(TargetType,TypeID) \
 	friend class FxManager; \
-	typedef SharedPtr<TargetType> Pointer; \
+	typedef std::shared_ptr<TargetType> Pointer; \
 	typedef FxEffect Base; \
 	TargetType * copy() const \
 	{\
@@ -231,8 +242,8 @@ class FxParticles: public FxEffect
 public:	
 	struct Particle
 	{
-		vec2f position;
-		vec2f velocity;
+		math3::vec2f position;
+		math3::vec2f velocity;
 		float angle;			// model angle
 		FxParticles * master;
 	};

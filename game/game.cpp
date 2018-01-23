@@ -1,4 +1,3 @@
-#include "stdafx.h"
 #include "core.h"
 #include "world.h"
 #include "game.h"

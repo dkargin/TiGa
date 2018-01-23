@@ -19,6 +19,7 @@
 #include <algorithm>
 
 #include "../frostTools/3dmath.h"
+#error "Get rid of this shitty stdafx.h!"
 #include "../frostTools/autoPtr.hpp"
 #include "../frosttools/frosttools.h"
 

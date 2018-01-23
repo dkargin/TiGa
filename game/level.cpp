@@ -1,4 +1,3 @@
-#include "stdafx.h"
 #include "world.h"
 #include <cmath>
 
