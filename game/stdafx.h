@@ -30,9 +30,8 @@
 // C RunTime Header Files
 #include <stdlib.h>
 #include <malloc.h>
-#include <memory.h>
+#include <memory>
 
-//#include <io.h>	// WTF is this?
 
 #define LUABOX_BINDER
 
@@ -67,8 +66,6 @@
 
 #define LUABOX_BINDER_SWIG
 #include <scripter.hpp>
-//using namespace boost;
-
 
 inline const vec2f & conv(const b2Vec2 &v)
 {

@@ -7,8 +7,8 @@
 */
 
 #include "stdafx.h"
-#include "hgestrings.h"
 #include <ctype.h>
+#include <hge_old/hgestrings.h>
 
 const char STRHEADERTAG[]="[HGESTRINGTABLE]";
 const char STRFORMATERROR[]="String table %s has incorrect format.";

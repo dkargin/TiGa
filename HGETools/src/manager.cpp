@@ -1,10 +1,12 @@
 #include <algorithm>
-#include "fxObjects.h"
+#include <GL/gl.h>
 
-#include "sound.h"
-//#include "hge.h"
+#include "fxobjects.h"
+#include "fxsound.h"
+
 #include "manager.h"
-#include "GL/gl.h"
+
+
 
 namespace Fx
 {
@@ -79,7 +81,7 @@ FxManager::Record & FxManager::getTexture(const char *texture)
 		if(!(record.handle = textureManager->Texture_Load(texture)))
 		{
 			//log->line(2,"Cannot load texture <%s>",texture);
-			throw (std::exception("FxManager::getTexture(): cannot load texture"));
+			throw (std::runtime_error("FxManager::getTexture(): cannot load texture"));
 		}
 		record.ref = 0;
 		textures.push_back(record);
@@ -93,7 +95,7 @@ int FxManager::freeTexture(FxTextureId texture)
 {
 	auto it = find(texture);
 	if(it != textures.end())
-	{
+	{typedef int32_t HEFFECT;
 		if(--(it->ref))
 		{
 			textureManager->Texture_Free(it->handle);
@@ -107,7 +109,7 @@ int FxManager::freeTexture(FxTextureId texture)
 
 FxSoundPtr FxManager::fxSound(const char * path)
 {
-	FxSound * result = new FxSound();
+	FxSound * result = new FxSound(nullptr);
 	result->init( path);
 	return FxSoundPtr(result);
 }
@@ -134,6 +136,7 @@ FxSpritePtr FxManager::fxSprite(const char * texture,float x,float y,float width
 	return FxSpritePtr(result);
 }
 
+#ifdef FUCK_THIS
 FxParticlesPtr FxManager::fxParticles(FxSprite::Pointer sprite, ParticleSystemInfo &info)
 {
 	FxParticles * result = NULL;
@@ -147,6 +150,7 @@ FxParticlesPtr FxManager::fxParticles(FxSprite::Pointer sprite, ParticleSystemIn
 	}*/
 	return FxParticlesPtr(result);
 }
+#endif
 
 EntityPtr FxManager::fxHolder()
 {	
@@ -224,12 +228,10 @@ FxAnimation2Ptr FxManager::createAnimationFull(const char *file, int frameWidth,
 	return FxAnimation2Ptr(result);
 }
 
-void FxManager::setView( const FxView2 & view )
+void FxManager::setView( const FxView2 & view, int screenWidth, int screenHeight )
 {
 	viewPose = view.pose;
 	viewScale = view.scale;
-	int screenWidth = hge->System_GetState(HGE_SCREENWIDTH);
-	int screenHeight = hge->System_GetState(HGE_SCREENHEIGHT);
 	float x = -viewPose.position[0];
 	float y = -viewPose.position[1];
 	float z = -viewPose.position[2];
@@ -254,106 +256,4 @@ void FxManager::resetView()
 	viewScale = 1.0;
 }
 
-///////////////////////////////////////////////////////////////////////////////////////
-// Heap storage implementation
-#ifdef FUCK_THIS
-template<class Type> void allocRaw( Type *& raw )
-{
-	raw = (Type * ) new char[sizeof (Type) ];
-}
-
-bool HeapAllocator::allocateRaw(Entity *& effect)
-{
-	allocRaw(effect); 
-	return effect != NULL; 
-}
-
-bool HeapAllocator::allocateRaw(FxSound *& effect) 
-{
-	allocRaw(effect); return effect != NULL;
-}
-
-bool HeapAllocator::allocateRaw(FxSprite *& effect) 
-{ 
-	allocRaw(effect); return effect != NULL;
-}
-
-bool HeapAllocator::allocateRaw(FxAnimation2 *& effect) 
-{ 
-	allocRaw(effect); return effect != NULL;
-}
-
-bool HeapAllocator::allocateRaw(FxParticles *& effect) 
-{ 
-	allocRaw(effect); return effect != NULL;
-}
-///////////////////////////////////////////////////////////////////////////////////////
-// Pool storage implementation
-
-template<class Type>
-class Pool
-{
-protected:
-	struct Node
-	{
-		unsigned int prefs;	// pointer count
-		unsigned int orefs;	// strong pointer counter
-
-		Node * next, * prev;
-	};
-
-	class SharedPtr
-	{
-		Node * node;
-	};
-
-	Node * data;
-
-	struct ListHeader
-	{
-		Type * head, * tail;
-		ListHeader()
-		{
-			head = NULL;
-			tail = NULL;
-		}
-	}free, used;	
-
-	static Type * dataToNode(Node * node)
-	{
-		return (Type*)(node+1);
-	}
-
-	static Node * nodeToData(Type * type)
-	{
-		return (Node*)type - 1;
-	}
-public:
-	Pool()
-	{
-		data = NULL;
-	}
-
-	~Pool()
-	{
-	}
-
-	void initialize(int max)
-	{
-
-	}
-
-	void clear()
-	{
-
-	}
-
-	std::pair<Node*,Type*> allocate()
-	{
-		std::pair<Node*, Type*> result;
-		return result;
-	}
-};
-
-#endif
-}
+} // namespace Fx

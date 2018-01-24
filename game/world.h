@@ -148,6 +148,7 @@ public:
 	void render();
 	/// restore surfaces
 	void restore();
+
 	/// Callbacks
 	/// executed from WndProc
 	void onControl(int key,KeyEventType type,int x,int y,float wheel);
@@ -171,6 +172,7 @@ public:
 	/// world state
 	void saveLevel(const char * file);
 	void loadLevel(const char * file);
+
 	void saveState(IO::StreamOut &stream);
 	bool loadState(IO::StreamIn &stream);
 	/// attachable effects manager

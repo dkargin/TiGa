@@ -6,8 +6,9 @@
 ** hgeResourceManager helper class implementation
 */
 
+#include <hge_old/hgeresource.h>
+
 #include "stdafx.h"
-#include "hgeresource.h"
 #include "parser.h"
 #include "resources.h"
 

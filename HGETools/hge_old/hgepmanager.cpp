@@ -6,8 +6,9 @@
 ** hgeParticleManager helper class implementation
 */
 
+#include <hge_old/hgeparticle.h>
+
 #include "stdafx.h"
-#include "hgeparticle.h"
 
 
 hgeParticleManager::hgeParticleManager()

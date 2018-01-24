@@ -1,8 +1,7 @@
-#include "../sim/device.h"
+#include "device.h"
 
-#include "../sim/objectManager.h"
-#include "../sim/unit.h"
-#include "stdafx.h"
+#include "objectManager.h"
+#include "unit.h"
 
 extern Log * g_logger;
 //////////////////////////////////////////////////////////////////////

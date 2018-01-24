@@ -7,8 +7,8 @@
 
 #pragma once
 
-#include "fxObjects.h"
-#include "hgeparticle.h"
+#include <fxobjects.h>
+#include <hge_old/hgeparticle.h>
 
 class ParticleSystemInfo;
 

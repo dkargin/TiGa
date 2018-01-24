@@ -3,14 +3,15 @@
 #include "world.h" 
 #include "draw.h"
 
-#include "../sim/commandAI.h"
-#include "../sim/inventory.h"
-#include "../sim/moverVehicle.h"
-#include "../sim/perception.h"
-#include "../sim/projectile.h"
-#include "../sim/unit.h"
-#include "../sim/weapon.h"
-extern float screenWidth,screenHeight;
+#include "sim/commandAI.h"
+#include "sim/inventory.h"
+#include "sim/moverVehicle.h"
+#include "sim/perception.h"
+#include "sim/projectile.h"
+#include "sim/unit.h"
+#include "sim/weapon.h"
+
+extern float screenWidth, screenHeight;
 
 void drawLine(HGE * hge,const vec2f &from,const vec2f &to,DWORD color)
 {

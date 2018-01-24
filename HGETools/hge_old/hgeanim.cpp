@@ -5,8 +5,9 @@
 **
 ** hgeAnimation helper class implementation
 */
+#include <hge_old/hgeanim.h>
+
 #include "stdafx.h"
-#include "hgeanim.h"
 
 
 

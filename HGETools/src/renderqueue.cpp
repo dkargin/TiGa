@@ -1,7 +1,11 @@
-#include "stdafx.h"
 #include <algorithm>
-#include "fxObjects.h"
+#include "fxobjects.h"
+#include "manager.h"
 
+namespace Fx
+{
+
+#ifdef FUCK_THIS
 ObjectTracker ObjectTracked::effectTracker;
 //////////////////////////////////////////////////////////////////////////
 ObjectTracker::ID ObjectTracker::allocID()
@@ -46,8 +50,9 @@ ObjectTracked::~ObjectTracked()
 	effectTracker.freeID(id);
 }
 
+#endif
 /////////////////////////////////////////////////////////////////////////////////
-void Pyro::runEffect(FxPointer effect)
+void Pyro::runEffect(EntityPtr effect)
 {
 	TimedEffect desc;
 	desc.left = effect->duration();
@@ -76,14 +81,14 @@ void Pyro::update(FxManager * manager, float dt)
 	}
 }	
 
-void Pyro::render(FxManager * manager, const FxEffect::Pose &pose,float scale)
+void Pyro::render(RenderQueue* queue, const Pose &pose,float scale)
 {
 	for(size_t i = 0; i < effects.size(); i++)
 	{
-		TimedEffect &e=effects[i];
-		if(e.effect != NULL)
+		TimedEffect &e = effects[i];
+		if(e.effect)
 		{
-			e.effect->query(manager, pose);				
+			queue->enqueue(pose, e.effect);
 		}
 	}
 }
@@ -94,7 +99,7 @@ void RenderQueue::flush()
 	heap.resize(0);
 }
 
-void RenderQueue::render(FxManager * manager, const FxEffect::Pose & base)
+void RenderQueue::render(RenderContext* rc, const Pose & base)
 {
 	if(heap.empty())
 		return;
@@ -109,12 +114,12 @@ void RenderQueue::render(FxManager * manager, const FxEffect::Pose & base)
 	});
 	for(size_t i = 0; i < heap.size(); i++)
 	{
-		array[i].effect->render(manager, base * array[i].pose);
+		array[i].effect->render(rc, base * array[i].pose);
 	}
 	flush();
 }
 
-void RenderQueue::query(const FxEffect::Pose & pose, FxEffect * effect)
+void RenderQueue::enqueue(const Pose & pose, EntityPtr effect)
 {
 	int index = objects.size();
 	HeapEntry entry = {pose,effect};
@@ -130,3 +135,5 @@ void RenderQueue::query(const FxEffect::Pose & pose, FxEffect * effect)
 		return za > zb;
 	});*/
 }
+
+} // namespace Fx

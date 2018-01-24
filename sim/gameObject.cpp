@@ -1,7 +1,5 @@
-#include "../sim/gameObject.h"
-
-#include "../sim/objectManager.h"
-#include "stdafx.h"
+#include "gameObject.h"
+#include "objectManager.h"
 
 /////////////////////////////////////////////////////////////////////////
 // SolidObject basic definition
@@ -155,16 +153,7 @@ GameObjectDef::~GameObjectDef()
 	//if(body)delete body;
 	detach();
 }
-void GameObjectDef::attach()
-{
-	//if(manager)
-	//	manager->ObjStore<GameObjectDef>::registerObject(this);
-}
-void GameObjectDef::detach()
-{
-	//if(manager)
-	//	manager->ObjStore<GameObjectDef>::remove(this);
-}
+
 _Scripter * GameObjectDef::getScripter()
 {
 	return manager->getScripter();
@@ -190,6 +179,7 @@ size_t GameObjectDef::getPopulation()const
 GameObject::GameObject(ObjectManager *parent,GameObjectDef* def)
 	:health(1.0f),onDamage(NULL),player(0),definition(def),localID(invalidID),collisionGroup(cgBody)
 {
+	manager = nullptr;
 	objectNext = NULL;
 	objectPrev = NULL;
 

@@ -19,8 +19,10 @@ int hgeMain()
 // Game class implementation
 /////////////////////////////////////////////////////////////////////
 Game::Game()
-	:active(NULL)
-{}
+	:active(nullptr)
+{
+	selectedBlueprint = nullptr;
+}
 
 Game::~Game()
 {
@@ -95,7 +97,7 @@ void Game::showMainMenu()
 }
 
 void Game::showHangar()
-{		
+{
 	makeActive(new HangarWindow(this));
 }
 

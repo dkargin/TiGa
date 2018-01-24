@@ -1,26 +1,27 @@
-#include "stdafx.h"
-#include "fxObjects.h"
+#include <fxobjects.h>
 
-///////////////////////////////////////////////////////
-// Basic effect
-///////////////////////////////////////////////////////
-FxEffect::FxEffect(FxManager * manager):manager(manager),visible(true),scale(1.0f), cloned(false)//,xOrg(0),yOrg(0)
+#include "stdafx.h"
+
+namespace Fx
 {
-	//logger()->line(0,"FxEffect()");
+
+Entity::Entity(FxManager * manager):manager(manager),visible(true),scale(1.0f), cloned(false)//,xOrg(0),yOrg(0)
+{
+	//logger()->line(0,"Entity()");
 }
 
-FxEffect::FxEffect(const FxEffect &effect)
+Entity::Entity(const Entity &effect)
 	:manager(effect.manager),visible(effect.visible),pose(effect.pose),scale(effect.scale),cloned(true)//,xOrg(effect.xOrg),yOrg(effect.yOrg)
 {
-	//logger()->line(0,"FxEffect(const FxEffect &)");
+	//logger()->line(0,"Entity(const Entity &)");
 }
 
-FxEffect::~FxEffect()
+Entity::~Entity()
 {	
-	//logger()->line(0,"~FxEffect()");	
+	//logger()->line(0,"~Entity()");
 }
 
-Log * FxEffect::logger() const
+Log * Entity::logger() const
 {
 	if( manager )
 		return manager->logger();
@@ -28,44 +29,44 @@ Log * FxEffect::logger() const
 		return NULL;
 }
 
-void FxEffect::setPose(const FxEffect::Pose::pos3 &v,const FxEffect::Pose::rot &r)
+void Entity::setPose(const Entity::Pose::pos3 &v,const Entity::Pose::rot &r)
 {
 	pose.position = v;
 	pose.orientation=r;
 }
 
-void FxEffect::setScale(float s)
+void Entity::setScale(float s)
 {
 	scale = s;
 }
 
-float FxEffect::getScale() const
+float Entity::getScale() const
 {
 	return scale;
 }
 
-void FxEffect::setPose(const FxEffect::Pose &p)
+void Entity::setPose(const Entity::Pose &p)
 {
 	pose=p;
 }
 
-FxEffect::Pose FxEffect::getPose() const
+Entity::Pose Entity::getPose() const
 {
 	return pose;
 }
 
-FxEffect::Pose FxEffect::getGlobalPose()const
+Entity::Pose Entity::getGlobalPose()const
 {
 	return parent ? parent->getGlobalPose() * pose : pose;
 }
 
-void FxEffect::start()
+void Entity::start()
 {
 	if(!valid())
 		return;
 }
 
-void FxEffect::query(const FxEffect::Pose & base)
+void Entity::query(const Entity::Pose & base)
 {
 	if(manager)
 		manager->renderQueue.query(base,this);
@@ -80,7 +81,7 @@ void FxEffect::query(const FxEffect::Pose & base)
 	//_RPT0(0,"FxSprite::FxSprite()\n");
 }*/
 FxSprite::FxSprite(FxManager *manager,HTEXTURE tex, float x, float y, float w, float h)
-	:sprite(tex,x,y,w,h),FxEffect(manager),scale_h(1.f)
+	:sprite(tex,x,y,w,h),Entity(manager),scale_h(1.f)
 {}
 
 FxSprite::FxSprite(const FxSprite &spr)
@@ -124,7 +125,7 @@ void FxSprite::setBlendMode(int mode)
 	sprite.SetBlendMode(mode);
 }
 
-void drawSprite(HGE *hge,hgeSprite *sprite,const FxEffect::Pose &p,float width,float height,bool rect=false);
+void drawSprite(HGE *hge,hgeSprite *sprite,const Entity::Pose &p,float width,float height,bool rect=false);
 
 void FxSprite::render(const Pose &base)
 {
@@ -135,17 +136,18 @@ void FxSprite::render(const Pose &base)
 	drawSprite(manager->hge,&sprite,p,w*0.5*scale,h*0.5*scale_h*scale,false);
 }
 
+#ifdef FUCK_THIS
 ///////////////////////////////////////////////////////
 // Sound
 ///////////////////////////////////////////////////////
 FxSound::FxSound(FxManager * manager, HGE *hge,const char *file)
-	:sound(hge->Effect_Load(file)),hge(hge),name(file),FxEffect(manager), channel(0)
+	:sound(hge->Effect_Load(file)),hge(hge),name(file),Entity(manager), channel(0)
 {
 	//_RPT0(0,"FxSound::FxSound()\n");
 }
 
 FxSound::FxSound(const FxSound &effect)
-	:name(effect.name),hge(effect.hge),FxEffect(effect)
+	:name(effect.name),hge(effect.hge),Entity(effect)
 {
 	//_RPT0(0,"FxSound::FxSound(const FxSound &spr)\n");
 	sound = hge->Effect_Load(name.c_str());
@@ -191,10 +193,10 @@ bool FxSound::valid()const
 
 //////////////////////////////////////////////////////////////////////////
 // FxHolder
-// всё к чему можно прицепить спецэффект
+// пїЅпїЅ пїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 //////////////////////////////////////////////////////////////////////////
 FxHolder::FxHolder(FxManager * manager)
-	:FxEffect(manager)
+	:Entity(manager)
 {
 	//_RPT0(0,"FxHolder::FxHolder()\n");
 }
@@ -213,7 +215,7 @@ FxHolder::~FxHolder()
 	/*
 	while(!empty())
 	{
-		FxEffect * effect = begin().get();
+		Entity * effect = begin().get();
 		if(effect != NULL)
 			delete begin().get();
 		else
@@ -272,3 +274,6 @@ void FxHolder::query(const Pose & base)
 	for(iterator it=begin();it!=end();++it)
 		it->query(base*pose);
 }
+#endif
+
+} //namespace Fx

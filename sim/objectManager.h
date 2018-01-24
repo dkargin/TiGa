@@ -1,5 +1,6 @@
 #pragma once
-#include "../sim/gameObject.h"
+
+#include "gameObject.h"
 // generates ID for GameObject
 typedef unsigned int ID;
 const ID invalidID = -1;
@@ -63,6 +64,7 @@ namespace NetCmd
 		cmdTakeControl,
 		cmdHello,
 	};
+
 	class Base
 	{
 	public:		
@@ -85,6 +87,7 @@ namespace NetCmd
 		virtual bool read(IO::StreamIn &stream){return true;}
 		virtual bool write(IO::StreamOut &stream){return true;}
 	};
+
 	// every peer send it on connection
 	struct Hello: public NetCmdHelper<true,false,cmdHello,Hello>{};
 
@@ -99,11 +102,12 @@ namespace NetCmd
 	TakeControl *toTakeControl(Base *base);
 	Hello *toHello(Base *base);
 };
+
 ///////////////////////////////////////////////////////////////////////////////
 struct RayHitInfo
 {
 	GameObject *object;
-	vec2f point,normal;
+	math3::vec2f point,normal;
 	float fraction;
 	float distance;
 	static bool compare(const RayHitInfo &a,const RayHitInfo &b)
@@ -139,7 +143,7 @@ public:
 	{
 		return true;
 	}
-	virtual bool addVision(float distance,float fov,const Pose &pose, GameObject * owner)
+	virtual bool addVision(float distance, float fov,const Pose& pose, GameObject * owner)
 	{
 		if(owner && allowVision(owner))
 		{

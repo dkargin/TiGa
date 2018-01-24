@@ -6,55 +6,65 @@
 ** hgeGUI helper class implementation
 */
 
-#include "guibase.h"
+#include <algorithm>
+#include <stdexcept>
 
-#include "stdafx.h"
+#include "guibase.h"
 
 namespace GUI
 {
 	size_t Object::globalControlLastId = 0;
-	Object::Object(const hgeRect & rc)
-	:visible(true)
-	,enabled(true)
-	,alignHor(AlignManual)
-	,alignVer(AlignManual)
-	,borderSize(0)
-	,windowRect(rc)
-	,desiredX(rc.x1)
-	,desiredY(rc.y1)
-	,desiredWidth(rc.x2 - rc.x1)
-	,desiredHeight(rc.y2 - rc.y1)
+
+	Object::Object(const Fx::Rect & rc)
 	{ 
-		color = 0xFFFFFFFF; 
-		hge=hgeCreate(HGE_VERSION);
+		visible = true;
+		enabled = true;
+		alignHor = AlignManual;
+		alignVer = AlignManual;
+		borderSize = 0;
+		windowRect = rc;
+		desiredX = rc.x1;
+		desiredY = rc.y1;
+		desiredWidth = rc.x2 - rc.x1;
+		desiredHeight = rc.y2 - rc.y1;
+		color = Fx::MakeARGB(255, 255, 255, 255);
 		clipChildren = false;
 		contentsWidth = false;
 		contentsHeight = false;
+		layoutIsActive = false;
+		cellWidth = 1;
+		cellHeight = 1;
+		cellX = 0;
+		cellY = 0;
+		layoutChanged = true;
+		margin = 1.0;
 		globalControlId = ++globalControlLastId;
+
 		/// maybe this can happen one day
 		if( globalControlLastId == ~(size_t)0 )
-			std::_Xoverflow_error("globalControlLastId");
+			std::runtime_error("Object::globalControlLastId overflow");
 	}
 
 	Object::~Object()
 	{
 		detach();
-		hge->Release();
 	}
+
 
 	void Object::detach()
 	{
-		if(parent != NULL)
+		if(auto ptr = parent.lock())
 		{
-			parent->removeChild(this);
-			int w = 0;
-			parent = NULL;
+			ptr->removeChild(shared_from_this());
+			parent.reset();
 		}
 	}
+
 	bool Object::isRoot() const
 	{
-		return parent == NULL;
+		return parent.expired();
 	}
+
 
 	void Object::setAlign(AlignType hor, AlignType ver)
 	{
@@ -64,36 +74,25 @@ namespace GUI
 			alignHor = hor;
 			alignVer = ver;
 			updateLayout();
-		}		
+		}
 	}
 
-	Object * Object::insert(Object *object)
+
+	void Object::insert(Pointer object)
 	{
-		assert(object != this);
-		assert(object->parent != this);
+		Pointer thisptr = shared_from_this();
+
+		assert(object != thisptr);
 		children.push_back(object);
-		object->parent = this;
+
+		object->parent = thisptr;
 		object->layoutChanged = true;
 		if(contentsWidth || contentsHeight)
 			layoutChanged = true;
 		updateLayout();
-		return object;
 	}
 
-	Object * Object::insert(Object * object, int cellX, int cellY, int cellWidth, int cellHeight)
-	{
-		assert(object != this);
-		assert(object->parent != this);
-		children.push_back(object);
-		object->alignHor = AlignCell;
-		object->alignVer = AlignCell;
-		object->parent = this;
-		object->layoutChanged = true;
-		if(contentsWidth || contentsHeight)
-			layoutChanged = true;
-		updateLayout();
-		return object;
-	}
+
 
 	void Object::removeChild(const Object::Pointer & object)
 	{
@@ -106,21 +105,21 @@ namespace GUI
 
 	void Object::updateLayout()
 	{
-		if( layouting == false || layoutChanged == false)
+		if (layoutIsActive == false || layoutChanged == false)
 			return;
 
-		if( parent )
-			parent->calculateLayout(this);
+		if (Pointer parentPtr = parent.lock())
+			parentPtr->calculateLayout(shared_from_this());
 
-		for(Children::iterator it = children.begin(); it != children.end(); ++it)
+		for(Pointer object: children)
 		{
-			Object * object = it->get();
-			if( object == NULL )
+			if( !object )
 				continue;
 			object->updateLayout();
 		}
 		layoutChanged = false;
 	}
+
 
 	void Object::callUpdate(float dt)
 	{	
@@ -136,13 +135,14 @@ namespace GUI
 				object->callUpdate(dt);
 		}
 	}
+
 	/*
-	hgeRect Object::calculateChildrenRect() const
+	Fx::Rect Object::calculateChildrenRect() const
 	{	
 		// TODO:
 		if( children.empty() )
-			return hgeRect();
-		hgeRect result;
+			return Fx::Rect();
+		Fx::Rect result;
 		for(Children::const_iterator it = children.begin(); it != children.end(); ++it)
 		{
 			Object * object = it->get();
@@ -152,26 +152,21 @@ namespace GUI
 			}
 		}
 		return result;
-	}
+	}*/
 	
-	void Object::runLayout()
+	Fx::Rect Object::calculateContentsRect() const
 	{
-
-	}
-	*/
-	hgeRect Object::calculateContentsRect() const
-	{		
-		hgeRect result;		
+		Fx::Rect result;
 		bool first = true;
 
 		for(Children::const_iterator it = children.begin(); it != children.end(); ++it)
 		{
 			Object * child = it->get();
-			hgeRect childRect = child->getRect();
+			Fx::Rect childRect = child->getRect();
 
 			if( child->contentsWidth || child->contentsHeight )
 			{
-				hgeRect childContentsRect = child->calculateContentsRect();
+				Fx::Rect childContentsRect = child->calculateContentsRect();
 
 				if( child->contentsWidth )
 				{
@@ -191,7 +186,7 @@ namespace GUI
 			}
 			else
 			{
-				result = hgeRect::Merge(result, childRect);
+				result = Fx::Rect::Merge(result, childRect);
 			}
 		}
 		return result;
@@ -199,60 +194,66 @@ namespace GUI
 
 	void Object::enableLayouting( bool flag )
 	{
-		if( layouting != flag )
+		if( layoutIsActive != flag )
 		{
-			layouting = flag;
+			layoutIsActive = flag;
 			//if( layouting )
 			//	runLayout();
 		}
 	}
 
-	void Object::callRender(const hgeRect & clipRect)
+
+	void Object::callRender(Fx::RenderContext* context, const Fx::Rect & clipRect)
 	{
 		if(!visible)
 			return;
-		if( layoutChanged )
+
+		if(layoutChanged)
 			updateLayout();
-		HGE * hge = getHGE();
-		
-		hgeRect clip = hgeRect::Intersect(getRect(),clipRect);
+
+		Fx::Rect clip = Fx::Rect::Intersect(getRect(),clipRect);
+
 		// if avialable area is zero - return
 		if(clip.IsClean())
 			return;
+
 		// craw self
 		const bool uiDebug = false;
+
 		// draw children
 		if( clipChildren )
-			hge->Gfx_SetClipping(clip.x1, clip.y1, clip.x2 - clip.x1, clip.y2 - clip.y1);
+			context->setClipping(clip);
+
 		if(uiDebug)
-			drawRect(hge, getRect(), ARGB(255,64,255,64));
-		onRender();
+			context->drawRect(getRect(), Fx::MakeARGB(255,64,255,64));
+		onRender(context);
 		// turn off clipping
 		if( clipChildren )
-			hge->Gfx_SetClipping();
-				
-		//clip = hgeRect::Intersect(getClientRect(),clipRect);
+			context->disableClipping();
+
 		// render children
-		for(Children::iterator it = children.begin(); it != children.end(); ++it)
+		for(Pointer object: children)
 		{
-			Object * object = it->get();
-			if(object)
-				object->callRender(clip);
+			assert(object);
+			object->callRender(context, clip);
 		}		
 	}
 
-	void Object::findObject( const vec2f & vec, bool forceAll, std::function<ObjectIterator> fn)
+	void Object::findObject( const uiVec& vec, bool forceAll, std::function<ObjectIterator> fn)
 	{
 		if(!forceAll && (!visible || !enabled))
 			return;
-		hgeRect rect = getRect();
+		Fx::Rect rect = getRect();
+
 		if(!rect.TestPoint(vec[0], vec[1]))
 			return;
+
 		if(fn && fn(this))
 			return;
+
 		for(Children::iterator it = children.begin(); it != children.end(); ++it)
 		{
-			Object * object = it->get();			
+			Object * object = it->get();
 			object->findObject(vec, forceAll, fn);
 		}
 	}
@@ -261,7 +262,7 @@ namespace GUI
 	{
 		if(!visible || !enabled)
 			return false;
-		hgeRect rect = getRect();
+		Fx::Rect rect = getRect();
 		// test if point is outside
 		if(!rect.TestPoint(vec[0], vec[1]))
 			return false;
@@ -272,7 +273,7 @@ namespace GUI
 		// update children
 		for(Children::iterator it = children.begin(); it != children.end(); ++it)
 		{
-			Object * object = it->get();						
+			Object * object = it->get();
 			if( object->callMouseMove(mouseId, vec, state) )
 				return true;
 		}
@@ -283,7 +284,7 @@ namespace GUI
 	{
 		if(!visible || !enabled)
 			return false;
-		hgeRect rect = getRect();
+		Fx::Rect rect = getRect();
 		// test if point is outside
 		if(!rect.TestPoint(vec[0], vec[1]))
 			return false;
@@ -308,10 +309,11 @@ namespace GUI
 	{
 	}
 
+
 	void Object::calculateLayout(const Object::Pointer & object)
 	{
-		hgeRect rect = getClientRect();
-		hgeRect newRect = object->getRect();
+		Fx::Rect rect = getClientRect();
+		Fx::Rect newRect = object->getRect();
 		switch(object->alignHor)
 		{
 		case AlignManual:
@@ -333,6 +335,7 @@ namespace GUI
 		case AlignMax:		// right
 			newRect.x1 = rect.x2 - object->desiredWidth;
 			newRect.x2 = rect.x2;
+			break;
 		case AlignCell:		// TODO: implement
 			break;
 		}
@@ -359,7 +362,8 @@ namespace GUI
 			newRect.y1 = rect.y2 - object->desiredHeight;
 			newRect.y2 = rect.y2;
 			break;			
-		case AlignCell:	// TODO: implement
+		case AlignCell:
+			// TODO: implement
 			break;
 		}
 		object->setRect(newRect);
@@ -367,10 +371,11 @@ namespace GUI
 
 	bool Object::sendSignalUp(Object::Signal & msg)
 	{
-		if( parent )
+		if (!parent.expired())
 		{
-			if(!parent->onSignalUp(msg))
-				return parent->sendSignalUp(msg);
+			auto ptr = parent.lock();
+			if(!ptr->onSignalUp(msg))
+				return ptr->sendSignalUp(msg);
 			else
 				return true;
 		}
@@ -382,19 +387,20 @@ namespace GUI
 		/// 1. notify immediate children
 		for( Children::iterator it = children.begin(); it != children.end(); ++it )
 		{
-			Object * object = *it;
+			Object::Pointer object = *it;
 			if( object && object->onSignalDown( msg ))	/// object can be occasionly dead
 				return true;
 		}
 		/// 2. propagate signal further to children
 		for( Children::iterator it = children.begin(); it != children.end(); ++it )
 		{
-			Object * object = *it;
-			if( object && object->sendSignalDown(msg))
-				return  true;
-		}		
+			Object::Pointer object = *it;
+			if (object && object->sendSignalDown(msg))
+				return true;
+		}
 		return false;
 	}
+
 
 	void Object::setDesiredPos(float x, float y)
 	{
@@ -402,55 +408,49 @@ namespace GUI
 		desiredY = y;
 	}
 
+
 	void Object::setDesiredSize(float width, float height)
 	{
 		desiredWidth = width;
 		desiredHeight = height;
 	}
 
-	void Object::setRect(const hgeRect & rect)
+
+	void Object::setRect(const Fx::Rect & rect)
 	{
-		hgeRect oldRect = getRect();
+		Fx::Rect oldRect = getRect();
 		windowRect = rect;
 		for(Children::iterator it = children.begin(); it != children.end(); ++it)
 			calculateLayout(*it);
 		onSize(rect.width(), rect.height());
 	}
 
-	hgeRect Object::getRect() const
+	Fx::Rect Object::getRect() const
 	{
 		return windowRect;
 	}
 
-	hgeRect Object::getClientRect() const
+	Fx::Rect Object::getClientRect() const
 	{
-		return hgeRect(windowRect.x1 + borderSize, windowRect.y1 + borderSize, windowRect.x2 - borderSize, windowRect.y2 - borderSize);
-	}
-
-	HGE * Object::getHGE()
-	{
-		return hge;
+		return Fx::Rect(windowRect.x1 + borderSize, windowRect.y1 + borderSize, windowRect.x2 - borderSize, windowRect.y2 - borderSize);
 	}
 } // namespace GUI
 
+#if FUCK_THIS_2
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void drawRect(HGE * hge, const hgeRect & rect, DWORD color)
+void drawRect(HGE * hge, const Fx::Rect& rect, Fx::FxRawColor color)
 {
-	hge->Gfx_RenderLine(rect.x1, rect.y1,
-						rect.x2, rect.y1, color);
-	hge->Gfx_RenderLine(rect.x2, rect.y1,
-						rect.x2, rect.y2, color);
-	hge->Gfx_RenderLine(rect.x2, rect.y2,
-						rect.x1, rect.y2, color);
-	hge->Gfx_RenderLine(rect.x1, rect.y2,
-						rect.x1, rect.y1, color);
+	hge->Gfx_RenderLine(rect.x1, rect.y1, rect.x2, rect.y1, color);
+	hge->Gfx_RenderLine(rect.x2, rect.y1, rect.x2, rect.y2, color);
+	hge->Gfx_RenderLine(rect.x2, rect.y2, rect.x1, rect.y2, color);
+	hge->Gfx_RenderLine(rect.x1, rect.y2, rect.x1, rect.y1, color);
 }
 
-void drawRectSolid(HGE * hge, const hgeRect & rect, DWORD color)
+void drawRectSolid(HGE * hge, const Fx::Rect& rect, Fx::FxRawColor color)
 {
 	float z = 0;
 
-	auto assign = [&](hgeVertex & target, float x, float y)
+	auto assign = [&](Fx::Vertex & target, float x, float y)
 	{
 		target.x = x;
 		target.y = y;
@@ -460,7 +460,7 @@ void drawRectSolid(HGE * hge, const hgeRect & rect, DWORD color)
 		target.col = color;
 	};
 	
-	hgeQuad background;
+	Fx::Quad background;
 	background.tex = 0;
 	background.blend = 0;
 	
@@ -471,3 +471,4 @@ void drawRectSolid(HGE * hge, const hgeRect & rect, DWORD color)
 
 	hge->Gfx_RenderQuad(&background);
 }
+#endif

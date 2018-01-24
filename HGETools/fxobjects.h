@@ -36,6 +36,7 @@ class FxAnimation2;
 class FxParticles;
 
 class FxManager;
+class RenderContext;
 
 typedef std::shared_ptr<Entity> EntityPtr;
 typedef std::shared_ptr<FxSound> FxSoundPtr;
@@ -65,6 +66,7 @@ struct ObjectTracker
 	void check();
 };
 
+#ifdef FUCK_THIS
 // Get rid if this shit
 class ObjectTracked
 {
@@ -74,6 +76,7 @@ public:
 	virtual ~ObjectTracked();
 	static ObjectTracker effectTracker;
 };
+#endif
 
 #define FX_TYPE(TargetType,TypeID) \
 	friend class FxManager; \
@@ -119,7 +122,6 @@ class Entity :
 {
 public:
 	Entity();
-	Entity(const Entity &effect);
 
 	virtual ~Entity();
 
@@ -150,14 +152,15 @@ public:
 	Rect getClipRect() const;						//< return rect to determine, should we clip
 	virtual Rect getLocalRect() const;	//< get bound only for root, excluding children
 	// scene graph interface
-	inline void show(bool flag) { visible = flag; }
-	inline bool isVisible() const {return visible; }
+	void setVisible(bool flag);
+	bool isVisible() const;
+
 #ifdef FUCK_THIS_LESS
-	virtual void query(FxManager * manager, const Pose & base);
-	void queryAll(FxManager * manager, const Pose & base);			// query all hierarchy
+	virtual void query(FxManager * manager, const Pose& base);
+	void queryAll(FxManager * manager, const Pose& base);			// query all hierarchy
 #endif
-	virtual void render(FxManager * manager, const Pose & base);
-	void renderAll(FxManager * manager, const Pose & base);					// render all hierarchy
+	virtual void render(RenderContext* context, const Pose& base);
+	void renderAll(RenderContext* manager, const Pose& base);					// render all hierarchy
 
 	virtual void update(float dt);
 	void updateAll( float dt );								//< update all hierarchy
@@ -167,7 +170,9 @@ public:
 	virtual EffectType type() const;
 	virtual bool valid() const;
 	virtual Entity * clone() const;
-protected:	
+protected:
+	Entity(const Entity &effect);
+
 	virtual void onAttach( Entity * object );
 	virtual void onDetach( Entity * object );
 
@@ -185,14 +190,15 @@ public:
 	struct HeapEntry
 	{
 		Pose pose;
-		Entity * effect;
+		EntityPtr effect;
 	};
+
 	std::vector<HeapEntry> objects;
 	std::vector<int> heap;
 
-	void query(const Pose & base, Entity * effect);
+	void enqueue(const Pose & base, EntityPtr effect);
 	void flush();			/// clear heap
-	void render(FxManager * manager, const Pose & base);			/// render all stored effects
+	void render(RenderContext* rc, const Pose & base);			/// render all stored effects
 protected:
 
 };
@@ -222,9 +228,9 @@ public:
 	void flipVer();
 
 	virtual Rect getLocalRect() const;
-	virtual bool valid() const;
-	virtual void update(float dt);
-	virtual void render(FxManager * manager, const Pose &base);	
+	virtual bool valid() const override;
+	virtual void update(float dt) override;
+	virtual void render(RenderContext* manager, const Pose &base) override;
 
 protected:
 	SpriteData sprite;

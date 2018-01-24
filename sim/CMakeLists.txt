@@ -1,0 +1,19 @@
+add_library(sim
+	device.cpp
+	gameObject.cpp
+	inventory.cpp
+	mover.cpp
+	moverCharacter.cpp
+	moverVehicle.cpp
+	moverVehicleDriver.cpp
+	objectManager.cpp
+	perception.cpp
+	perceptionAI.cpp
+	projectile.cpp
+	thruster.cpp
+	turret.cpp
+	weapon.cpp
+	weaponBeam.cpp
+	weaponProjectile.cpp
+	weaponTurret.cpp
+)

@@ -54,6 +54,7 @@ enum CollisionGroup
 	cgBorder,
 	cgMax,
 };
+
 typedef Pose2z Pose;
 
 class PerceptionClient;
@@ -86,8 +87,7 @@ public:
 	virtual int readState(IO::StreamIn &buffer)=0;	
 };
 
-
-#include "fxObjects.h"
+#include <fxobjects.h>
 
 template<class Type> struct TypeInfo{};
 
@@ -177,6 +177,7 @@ public:
 	AABB2	getOOBB()const;			// get object oriented bounding box	
 };
 
+#ifdef FUCK_THIS
 // Basic definition for game object. 
 class GameObjectDef: virtual public LuaObject, virtual public Referenced
 {
@@ -187,18 +188,16 @@ public:
 	friend class GameObject;
 	friend class ObjectManager;
 
-	size_t localID;				/// object id	
+	size_t localID;						/// object id
 	Container::iterator back;	/// back link for fast remove
-	std::string name;			/// do we need this name?
-
-//	FxModel::Pointer model;
-	FxPointer fxIdle;	
-	FxPointer fxDie;
-	//WeakPtr<BodyDesc> body;
+	std::string name;					/// do we need this name?
+	Fx::EntityPtr fxIdle;
+	Fx::EntityPtr fxDie;
 	BodyDesc body;
 
 	GameObjectDef(ObjectManager *store);
 	ObjectManager * manager;
+
 	virtual ~GameObjectDef();
 	virtual GameObject * create(IO::StreamIn *context)=0;
 	virtual int init(){return 0;};
@@ -208,18 +207,16 @@ public:
 	size_t id() const {return localID;}	
 protected:
 	GameObjectDef(const GameObjectDef &def);
-	void addRef();			/// increase population
-	void decRef();			/// decrease population	
-
-	void attach();
-	void detach();			/// detach from storage
+	void addRef();				/// increase population
+	void decRef();				/// decrease population
 private:
 	size_t population;		/// current population	
 };
+#endif
 
 typedef float Health;
 
-class GameObject: public SolidObject, public NetObject,virtual public LuaObject, virtual public Referenced
+class GameObject: public SolidObject, public NetObject,virtual public LuaObject
 {
 public:
 	typedef GameObject RootObject;
@@ -235,29 +232,25 @@ public:
 	FxEffect::Pointer effects;
 //	FxModel *model;
 	IDamageListener * onDamage;
-	int player;				/// the player owning this object
+	int player;				///< the player owning this object
 protected:	
-	Health health, maxHealth;		/// current health
-	GameObjectDef * definition;		/// object definition
-	CollisionGroup collisionGroup;	/// current collison group
-	ObjectManager * manager;		/// where is it stored
-	GameObject * objectPrev, * objectNext;
-public:
-	
+	Health health, maxHealth;				///< current health
+	GameObjectDef * definition;			///< object definition
+	CollisionGroup collisionGroup;	///< current collison group
+	ObjectManager * manager;				///< where is it stored
 
+public:
 	GameObject(ObjectManager *parent, GameObjectDef* def);
 	virtual ~GameObject();
 
 	virtual void save(IO::StreamOut & stream);
 	virtual void load(IO::StreamIn & stream);
 
-	GameObject * getNext();
 	virtual GameObjectDef * getDefinition();
 	virtual ObjectManager * getManager();
 	virtual ObjectType getType() const;
 	virtual _Scripter * getScripter();
 
-	void makeUnique();	/// create new definition
 	bool isUnique()const;
 
 	float getSphereSize() const
@@ -290,7 +283,6 @@ public:
 	virtual int writeState(IO::StreamOut &buffer);
 	virtual int readState(IO::StreamIn &buffer);
 	
-	//virtual _AABB<Pose::vec> getAABB()const=0;
 	size_t id() const{return localID;}
 protected:
 	size_t localID;			/// object id	

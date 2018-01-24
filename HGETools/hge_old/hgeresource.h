@@ -11,13 +11,13 @@
 #define HGERESOURCE_H
 
 
+#include <hge_old/hgeanim.h>
+#include <hge_old/hgedistort.h>
+#include <hge_old/hgefont.h>
+#include <hge_old/hgeparticle.h>
+#include <hge_old/hgestrings.h>
 #include "hge.h"
 #include "hgesprite.h"
-#include "hgeanim.h"
-#include "hgefont.h"
-#include "hgeparticle.h"
-#include "hgedistort.h"
-#include "hgestrings.h"
 
 
 #define RESTYPES 13

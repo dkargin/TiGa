@@ -1,9 +1,9 @@
 #pragma once
 
+#include <fxobjects.h>
 #include "basetypes.h"
 
 #include "texture_manager.h"
-#include "fxObjects.h"
 
 namespace Fx
 {
@@ -24,7 +24,7 @@ class Pyro
 public:
 	void runEffect(EntityPtr effect);
 	void update(FxManager * manager, float dt);
-	void render(FxManager * manager, const Pose &pose,float scale);
+	void render(RenderQueue* queue, const Pose &pose,float scale);
 };
 
 /**
@@ -62,7 +62,7 @@ public:
 	FxSoundPtr fxSound(const char * path);
 	EntityPtr fxHolder();
 
-	void setView( const FxView2 & view );
+	void setView( const FxView2& view, int screen_width, int screen_height);
 	void resetView();
 
 	void clearObjects();												// release manufactured list
@@ -70,6 +70,8 @@ public:
 
 	Record & getTexture(const char *texture);							//
 	int freeTexture(FxTextureId texture);									//
+
+
 
 	// Storage pool for scene objects
 	class Storage

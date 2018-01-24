@@ -6,8 +6,9 @@
 ** hgeParticleSystem helper class implementation
 */
 
+#include <hge_old/hgeparticle.h>
+
 #include "stdafx.h"
-#include "hgeparticle.h"
 
 typedef vec2f hgeVector;
 HGE	*hgeParticleSystem::hge=0;

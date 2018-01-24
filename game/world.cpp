@@ -607,10 +607,9 @@ void World::world2map(float worldCoords[2],int mapCoords[2])
 
 void World::onControl(int key,KeyEventType type,int x,int y,float wheel)
 {
-//	LogFunction(*g_logger);
 	int screen[] = {x,y};
 
-	cursor.screenPos=vec2f(x,y);
+	cursor.screenPos = vec2f(x,y);
 	screen2world(screen,cursor.worldPos);
 
 	cursor.object = gameObjects->objectAtPoint(cursor.worldPos);
@@ -618,7 +617,7 @@ void World::onControl(int key,KeyEventType type,int x,int y,float wheel)
 	getScripter()->call("onControl", key, (int)type, x, y, wheel);
 }
 
-int World::processHit(GameObject *a,ObjectType typea,GameObject *b,ObjectType typeb,const vec2f &normal,const vec2f &tangent)
+int World::processHit(GameObject *a, ObjectType typea,GameObject *b,ObjectType typeb,const vec2f &normal,const vec2f &tangent)
 {	
 //	LogFunction(*g_logger);
 	if(a && typea==typeProjectile)

@@ -1,5 +1,3 @@
-
-
 add_executable(game 
 	Core.cpp 
 	draw.cpp 
@@ -13,10 +11,8 @@ add_executable(game
 	luaTools.cpp
 	multiblock.cpp
 	navGraph.cpp
-	netLowHigh.h
 	shields.cpp
-	stdafx.cpp
 	world.cpp
-	)
+)
 
-target_link_libraries(game fx)
+target_link_libraries(game fx sim)

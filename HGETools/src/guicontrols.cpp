@@ -6,16 +6,17 @@
 ** hgeGUI default controls implementation
 */
 
-#include <guictrls.h>
-
-#include "stdafx.h"
+#include <stdarg.h>
+#include "guictrls.h"
+#include "keycodes.h"
+#include "string.h"
 
 namespace GUI
 {
 /*
 ** hgeGUIText
 */
-Text::Text() : Object(hgeRect())
+Text::Text() : Object(Fx::Rect())
 {
 	//static=true;
 	visible = true;
@@ -26,7 +27,7 @@ Text::Text() : Object(hgeRect())
 	text[0]=0;
 }
 
-Text::Text(const hgeRect & rect, FontPtr fnt)
+Text::Text(const Fx::Rect & rect, FontPtr fnt)
 	:Object(rect)
 {
 	//static=true;
@@ -55,7 +56,12 @@ void Text::SetText(const char *_text)
 
 void Text::printf(const char *format, ...)
 {
-	vsprintf(text, format, (char *)&format+sizeof(format));
+	//vsprintf(text, format, (char *)&format+sizeof(format));
+  va_list args;
+  va_start (args, format);
+  vsprintf (text, format, args);
+  //perror (buffer);
+  va_end (args);
 }
 
 void Text::onRender()
@@ -77,7 +83,7 @@ void Text::onRender()
 ** Button2
 */
 Button::Button()
-	:Object(hgeRect(0,0,0,0)), font(NULL)
+	:Object(Fx::Rect(0,0,0,0)), font(NULL)
 {
 	text->setAlign(AlignExpand, AlignExpand);
 	insert(text);
@@ -91,18 +97,18 @@ Button::Button()
 
 Button::~Button(){}
 
-void Button::onRender()
+void Button::onRender(Fx::RenderContext* rc)
 {
 	if( sprite != NULL )
 	{
-		hgeRect rect = getRect();
+		Fx::Rect rect = getRect();
 		float width = sprite->getWidth();
 		float height = sprite->getHeight();
-		Pose2z pose(0.5 * (rect.x2 + rect.x1), 0.5 * (rect.y2 + rect.y1), 0, 0);
-		sprite->render(sprite->getManager(), pose);
+		Fx::Pose pose(0.5 * (rect.x2 + rect.x1), 0.5 * (rect.y2 + rect.y1), 0, 0);
+		sprite->render(rc, pose);
 	}
 	if(bPressed)
-		drawRectSolid(getHGE(), getRect(), ARGB(255,65,65,65));
+		rc->drawRectSolid(getRect(), Fx::MakeARGB(255,65,65,65));
 }
 
 void Button::setText(const char * msg, FontPtr fnt)
@@ -146,7 +152,7 @@ bool Button::onMouse(int mouseId, int key, int state, const Button::uiVec & pos)
 /*
 ** Frame
 */
-Frame::Frame():Object(hgeRect(0,0,0,0)), drawFrame(true), drawBackground(true)
+Frame::Frame():Object(Fx::Rect(0,0,0,0)), drawFrame(true), drawBackground(true)
 {
 	offsetHor = 0;
 	offsetVer = 0;
@@ -156,7 +162,7 @@ Frame::Frame():Object(hgeRect(0,0,0,0)), drawFrame(true), drawBackground(true)
 	blockMouse = false;
 }
 
-Frame::Frame(const hgeRect & rect)
+Frame::Frame(const Fx::Rect & rect)
 	:Object(rect),drawFrame(true), drawBackground(true)
 {
 	offsetHor = 0;
@@ -167,12 +173,12 @@ Frame::Frame(const hgeRect & rect)
 	blockMouse = false;
 }
 
-void Frame::onRender()
+void Frame::onRender(Fx::RenderContext* rc)
 {
 	if(drawBackground)
-		drawRectSolid(getHGE(), windowRect, color);
+		rc->drawRectSolid(windowRect, color);
 	if(drawFrame)
-		drawRect(getHGE(), windowRect, clrFrame);	
+		rc->drawRect(windowRect, clrFrame);
 }
 
 void Frame::setOffsetHor( float offset )
@@ -180,12 +186,11 @@ void Frame::setOffsetHor( float offset )
 	if( offset != offsetHor )
 	{
 		float delta = offset - offsetHor;
-		for( Children::iterator it = children.begin(); it != children.end(); it++)
+		for(Pointer object: children)
 		{
-			Object * object = *it;
-			hgeRect rect = object->getRect();			
+			Fx::Rect rect = object->getRect();
 			object->setDesiredPos(rect.x1 + delta, rect.y1);
-			calculateLayout(*it);
+			calculateLayout(object);
 		}
 		offsetHor = offset;
 	}
@@ -196,13 +201,12 @@ void Frame::setOffsetVer( float offset )
 	if( offset != offsetVer )
 	{
 		float delta = offset - offsetVer;
-		for( Children::iterator it = children.begin(); it != children.end(); it++)
+		for(Object::Pointer object: children)
 		{
-			Object * object = *it;
-			hgeRect rect = object->getRect();			
+			Fx::Rect rect = object->getRect();
 			
 			object->setDesiredPos(rect.x1, rect.y1 + delta);
-			calculateLayout(*it);
+			calculateLayout(object);
 		}
 		offsetVer = offset;
 		//runLayout();
@@ -258,18 +262,18 @@ bool	Frame::onMouse(int mouseId, int key, int state, const uiVec & vec)
 ** Image
 */
 Image::Image()
-	:Object(hgeRect(0,0,0,0))
+	:Object(Fx::Rect(0,0,0,0))
 {}
 
-void Image::onRender()
+void Image::onRender(Fx::RenderContext* rc)
 {
 	if( sprite != NULL )
 	{
-		hgeRect rect = getRect();
+		Fx::Rect rect = getRect();
 		float width = sprite->getWidth();
 		float height = sprite->getHeight();
-		Pose2z pose(0.5 * (rect.x2 + rect.x1), 0.5 * (rect.y2 + rect.y1), 0, 0);
-		sprite->renderAll(sprite->getManager(), pose);
+		Fx::Pose pose(0.5 * (rect.x2 + rect.x1), 0.5 * (rect.y2 + rect.y1), 0, 0);
+		sprite->renderAll(rc, pose);
 	}
 }
 
@@ -277,7 +281,7 @@ void Image::onRender()
 ** Slider
 */
 Slider::Slider()
-	:Object(hgeRect())
+	:Object(Fx::Rect())
 {
 	bPressed=false;
 	bVertical = true;
@@ -297,11 +301,11 @@ void Slider::setValue(float _fVal)
 	else fVal=_fVal;
 }
 
-void Slider::onRender()
+void Slider::onRender(Fx::RenderContext* rc)
 {
 	float xx, yy;
 	float x1,y1,x2,y2;
-	hgeRect rect = getRect();
+	Fx::Rect rect = getRect();
 	
 
 	float sl_w = 0, sl_h = 0;
@@ -309,11 +313,10 @@ void Slider::onRender()
 	{
 		sl_w = sprite->getWidth();
 		sl_h = sprite->getHeight();
-	}	
+	}
 
 	xx=rect.x1+(rect.x2-rect.x1 - sl_w)*(fVal-fMin)/(fMax-fMin);
 	yy=rect.y1+(rect.y2-rect.y1 - sl_h)*(fVal-fMin)/(fMax-fMin);
-	
 
 	if(bVertical)
 		switch(mode)
@@ -336,7 +339,7 @@ void Slider::onRender()
 			case HGESLIDER_SLIDER: x1=xx-sl_w/2; y1=(rect.y1+rect.y2-sl_h)/2; x2=xx+sl_w/2; y2=(rect.y1+rect.y2+sl_h)/2; break;
 		}
 	if( sprite )
-		sprite->render( sprite->getManager(), FxEffect::Pose((x1 + x2)/2, yy + sl_h/2) );
+		sprite->render(rc, Fx::Pose((x1 + x2)/2, yy + sl_h/2) );
 	//sprSlider->RenderStretch(x1, y1, x2, y2);
 }
 
@@ -353,7 +356,7 @@ bool Slider::onMouseMove(int mouseId, const uiVec & vec, Slider::MoveState state
 	if(bPressed)
 	{
 		float value = fVal;
-		hgeRect rect = getRect();
+		Fx::Rect rect = getRect();
 		if(bVertical)
 		{
 			if(y > rect.height()) 
@@ -385,14 +388,14 @@ bool Slider::onMouseMove(int mouseId, const uiVec & vec, Slider::MoveState state
 ** Listbox
 */
 
-Listbox::Listbox(int _id, const hgeRect & rect, hgeFont *fnt, DWORD tColor, DWORD thColor, DWORD hColor)
+Listbox::Listbox(int _id, const Fx::Rect & rect, Fx::Font *fnt, Fx::FxRawColor tColor, Fx::FxRawColor thColor, Fx::FxRawColor hColor)
 	:Object(rect)
 {
 	//bStatic = false;
 	//bVisible = true;
 	//bEnabled = true;
 	font=fnt;
-	sprHighlight = new hgeSprite(0, 0, 0, (rect.x2 - rect.x1), fnt->GetHeight());
+	sprHighlight = new Fx::SpriteData(0, 0, 0, (rect.x2 - rect.x1), fnt->GetHeight());
 	sprHighlight->SetColor(hColor);
 	textColor=tColor;
 	texthilColor=thColor;
@@ -472,7 +475,7 @@ void Listbox::Clear()
 	nItems=0;
 }
 
-void Listbox::onRender()
+void Listbox::onRender(Fx::RenderContext* rc)
 {
 	int i;
 	ListboxItem *pItem=pItems;
@@ -484,7 +487,8 @@ void Listbox::onRender()
 
 		if(nTopItem+i == nSelectedItem)
 		{
-			sprHighlight->Render(windowRect.x1,windowRect.y1+i*font->GetHeight());
+
+			rc->Render(sprHighlight, windowRect.x1,windowRect.y1+i*font->GetHeight());
 			font->SetColor(texthilColor);
 		}
 		else

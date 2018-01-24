@@ -1,4 +1,5 @@
-#include "fxObjects.h"
+#include "fxobjects.h"
+#include "rendercontext.h"
 
 namespace Fx
 {
@@ -6,22 +7,24 @@ namespace Fx
 // Sprite
 ///////////////////////////////////////////////////////
 FxSprite::FxSprite(FxManager *manager, FxTextureId texture, float texx, float texy, float w, float h)
-	:Entity(manager), sprite(texture, texx, texy, w, h), scale_h(1.f)
+	:sprite(texture, texx, texy, w, h), scale_h(1.f)
 {
 }
 
 FxSprite::FxSprite(const FxSprite &spr)
-	:Base(spr), sprite(spr.sprite), scale_h(spr.scale_h)
+	:Entity(spr), sprite(spr.sprite), scale_h(spr.scale_h)
 {
 }
 
 FxSprite::FxSprite(FxManager * manager)
-	:Base(manager), sprite(0, 0, 0, 0, 0), scale_h(1.f)
+	:sprite(0, 0, 0, 0, 0), scale_h(1.f)
 {
 }
 
 FxSprite::~FxSprite()
-{}
+{
+	// TODO: release acquired texture object
+}
 
 bool FxSprite::valid() const
 {
@@ -72,16 +75,14 @@ void FxSprite::flipVer()
 	sprite.SetFlip(flipX, !flipY);
 }
 
-void drawSprite(HGE *hge, SpriteData* sprite,const Pose& p, float width, float height, bool rect=false);
-
-void FxSprite::render(FxManager * manager, const Pose& base)
+void FxSprite::render(RenderContext* context, const Pose& base)
 {
 	if(!valid() || !visible)return;
 	Pose p = base*getPose();
 
 	int w = sprite.GetWidth();
 	int h = sprite.GetHeight();	
-	drawSprite(nullptr, &sprite, p, w*0.5*scale, h*0.5*scale_h*scale, sprite.GetTexture() == 0);
+	context->drawSprite(&sprite, p, w*0.5*scale, h*0.5*scale_h*scale, sprite.GetTexture() == 0);
 }
 
 }

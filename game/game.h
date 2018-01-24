@@ -22,7 +22,7 @@ public:
 	//SharedPtr<ShipyardWindow> shipyard;
 	//SharedPtr<HangarWindow> hangar;
 
-	GUI::FontPtr		 font;				/// font for debug layer
+	GUI::FontPtr		 font;						///< font for debug layer
 	SharedPtr<GameData> gameData;
 	//World * world;
 	SharedPtr<GUI::Object> active, newActive;
@@ -91,18 +91,19 @@ struct DeviceSectionDesc
 class FxStorage
 {
 public:
-	size_t addEffect(FxEffect::Pointer ptr);
-	size_t addNamedEffect(FxEffect::Pointer ptr, const char * name);
-	FxEffect::Pointer findByString(size_t id);
-	FxEffect::Pointer findById(size_t id);
+	size_t addEffect(Fx::EntityPtr ptr);
+	size_t addNamedEffect(Fx::EntityPtr ptr, const char * name);
+	Fx::EntityPtr findByString(size_t id);
+	Fx::EntityPtr findById(size_t id);
+protected:
 	std::map<std::string, size_t> names;
-	std::vector<FxEffect::Pointer> effects;				/// cached sprites	
+	std::vector<Fx::EntityPtr> effects;				/// cached sprites
 };
 /// Provides storage for:
 /// - resources
 /// - tile description
 /// - blueprints
-class GameData : public Referenced
+class GameData
 {
 public:
 	GameData(Game * game);
@@ -112,8 +113,8 @@ public:
 	size_t blueprintsCount;
 
 	/// fast access
-	FxEffect::Pointer getSectionSprite(size_t sectionId);	
-	FxEffect::Pointer getSprite(size_t spriteId);
+	Fx::EffectPtr getSectionSprite(size_t sectionId);
+	Fx::EffectPtr getSprite(size_t spriteId);
 	/// resources
 	std::vector<TileSectionDesc> sections;
 	std::vector<FxEffect::Pointer> sprites;				/// cached sprites	
@@ -129,6 +130,7 @@ struct ShipBlueprint : public Referenced
 		short direction;			// tile direction
 		unsigned short tileType;	
 	};
+
 	Block * blocks;
 	size_t blocksCount;
 	
@@ -138,6 +140,7 @@ struct ShipBlueprint : public Referenced
 		short angle;				// device orientation in degrees
 		unsigned short deviceType;	// device type
 	};
+
 	Device * devices;
 	size_t devicesCount;
 
@@ -155,14 +158,17 @@ struct ShipBlueprint : public Referenced
 	
 	unsigned int getTotalCost() const;
 	unsigned int getTotalMass() const;
+
 	/// remove all blueprint contents
 	void reset();	
 	/// copy all data from <source>
 	void copy(ShipBlueprint * source, bool suffix = false);	
+
 	/// serialisation
 	void load(IO::StreamIn & stream);
 	void save(IO::StreamOut & stream);
 };
 
-void GenerateShipGraphics(FxEffect * effect, ShipBlueprint * blueprint, Game * game);
+void GenerateShipGraphics(Fx::Entity* root, ShipBlueprint * blueprint, Game * game);
+
 #endif

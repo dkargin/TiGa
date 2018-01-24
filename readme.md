@@ -12,9 +12,15 @@ This is an old sumulation/game platform that I used as a base for my graduation 
 # Current plan #
 
 1. Make C++ part mostly buildable by cmake
+	- add all projects to cmake
+	- fix FX/GUI library
+		- strip direct references to HGE
+		- implement proper wrappers for resource access: RenderContext, PolyBatch
+	- add proper HGE version
+1. Make it runnable again. Just in minimal way, without scripts
 1. Deal with SWIG/Lua. I want to get more direct bindings between simulation objects and lua scripts
-1. Run it again
 1. Blow half of it and refactor. Old idea of ObjectDef<->Object pair is total crap and I should rework it. Any sort of 'ObjectDef' stuff will be merged to appropriate class
 1. Implement delta-sync for sim objects. Making a special 'state sync' packet type for every object is very very bad idea. Not so bad, but it takes too much effort to extend it with new data, especially from scripts
+1. Implement spinner for lua coroutined scripts. Who needs scripts without proper async spinners?
 1. Fix IUP-related stuff. I need some generic ugly UI to observe game/sim data
 

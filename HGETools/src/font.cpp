@@ -6,8 +6,9 @@
 ** hgeFont helper class implementation
 */
 
+#include <hge_old/hgefont.h>
+
 #include "stdafx.h"
-#include "hgefont.h"
 
 const char FNTHEADERTAG[] = "[HGEFONT]";
 const char FNTBITMAPTAG[] = "Bitmap";

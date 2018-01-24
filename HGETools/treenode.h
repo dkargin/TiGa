@@ -1,13 +1,12 @@
 #pragma once
 
 #include <assert.h>
-//\addtogroup Containers
-//@{
 
-/// Intrusive tree node
+///
 /**
- * 	Each node can have several children.
- *	Children are stored in double-linked list
+ * Intrusive tree node
+ * Each node can have several children.
+ * Children are stored in double-linked list
  */
 template<class Type> class TreeNode
 {
@@ -28,11 +27,11 @@ public:
 	/// Constructor
 	TreeNode()
 	{
-		parent = NULL;
-		next = NULL;
-		prev = NULL;
-		head = NULL;
-		tail = NULL;
+		parent = nullptr;
+		next = nullptr;
+		prev = nullptr;
+		head = nullptr;
+		tail = nullptr;
 	}
 
 	/// Get pointer to target type
@@ -41,7 +40,7 @@ public:
 	/// Disconnect self from tree
 	void orphan_me()
 	{
-		if( parent != NULL )
+		if(parent != nullptr)
 			parent->removeChild(this);
 	}
 
@@ -57,18 +56,18 @@ public:
 	void attach(Type * newChild)
 	{
 		newChild->orphan_me();
-		if( head == NULL)
+		if(head == nullptr)
 		{
 			head = newChild;
 			tail = newChild;
-			newChild->prev = NULL;
-			newChild->next = NULL;
+			newChild->prev = nullptr;
+			newChild->next = nullptr;
 		}
 		else
 		{
 			tail->next = newChild;
 			newChild->prev = tail;
-			newChild->next = NULL;
+			newChild->next = nullptr;
 			tail = newChild;
 		}
 		newChild->parent = static_cast<Type*>(this);
@@ -88,9 +87,9 @@ public:
 			child->next->prev = child->prev;
 		else
 			tail = child->prev;
-		child->next = NULL;
-		child->prev = NULL;
-		child->parent = NULL;
+		child->next = nullptr;
+		child->prev = nullptr;
+		child->parent = nullptr;
 		onDetach(static_cast<Type*>(child));
 	}
 
@@ -146,14 +145,14 @@ public:
 		/// Prefix increment. Moves to the next element
 		iterator_type & operator++()
 		{
-			assert(current != NULL);
+			assert(current != nullptr);
 			current = current->next;
 			return *this;
 		}
 		/// Postfix increment
 		iterator_type operator++(int)	// postfix
 		{
-			assert(current != NULL);
+			assert(current != nullptr);
 			const_iterator result(*this);
 			current = current->next;
 			return result;
@@ -198,14 +197,14 @@ public:
 		/// Prefix increment
 		iterator_type & operator++()	// prefix
 		{
-			assert(current != NULL);
+			assert(current != nullptr);
 			current = current->next;
 			return *this;
 		}
 		/// Postfix increment
 		iterator_type operator++(int)	// postfix
 		{
-			assert(current != NULL);
+			assert(current != nullptr);
 			const_iterator result(*this);
 			current = current->next;
 			return result;
@@ -221,7 +220,7 @@ public:
 	/// Get const iterator to the last child
 	const_iterator end() const
 	{
-		return const_iterator(static_cast<const Type*>(this), NULL);
+		return const_iterator(static_cast<const Type*>(this), nullptr);
 	}
 
 	/// Get iterator to the first child
@@ -232,6 +231,6 @@ public:
 	/// Get iterator to the last child
 	iterator end()
 	{
-		return iterator(static_cast<Type*>(this), NULL);
+		return iterator(static_cast<Type*>(this), nullptr);
 	}
 };

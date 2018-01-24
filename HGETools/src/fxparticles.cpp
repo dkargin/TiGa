@@ -1,6 +1,7 @@
-#include "stdafx.h"
-#include "fxObjects.h"
+#include <fxobjects.h>
 
+namespace Fx
+{
 ///////////////////////////////////////////////////////
 // Particle system
 ///////////////////////////////////////////////////////
@@ -51,4 +52,6 @@ Time_t FxParticles::duration() const
 {
 	// TODO:
 	return 1;
+}
+
 }

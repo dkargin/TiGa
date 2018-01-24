@@ -1,10 +1,8 @@
-#include "fxObjects.h"
+#include "fxobjects.h"
 
 namespace Fx
 {
-///////////////////////////////////////////////////////
-// Basic effect
-///////////////////////////////////////////////////////
+
 Entity::Entity()
 {	
 	scale = 1.f;
@@ -87,6 +85,16 @@ bool Entity::valid() const
 	return true;
 }
 
+void Entity::setVisible(bool flag)
+{
+	visible = flag;
+}
+
+bool Entity::isVisible() const
+{
+	return visible;
+}
+
 float Entity::duration()const
 {
 	float result = 0;
@@ -134,10 +142,12 @@ void Entity::updateAll(float dt)
 		it->update(dt);
 }
 
-// empty
-void Entity::render(FxManager * manager, const Pose &base) {}
+void Entity::render(RenderContext* manager, const Pose& base)
+{
+	// empty
+}
 
-void Entity::renderAll(FxManager * manager, const Pose &base)
+void Entity::renderAll(RenderContext* manager, const Pose& base)
 {
 	for(iterator it=begin();it!=end();++it)
 		it->render(manager, base*pose);

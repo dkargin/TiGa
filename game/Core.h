@@ -1,7 +1,7 @@
 #ifndef _CORE_H_
 #define _CORE_H_
 
-#include <fxObjects.h>
+#include <fxobjects.h>
 
 typedef struct Ihandle_ Ihandle;
 
@@ -73,8 +73,8 @@ public:
 	/// general callbacks, mostly from HGE
 	virtual void onPreRender(){}
 	virtual void onRender();
-	virtual void onUpdate();	
-	virtual void onExit(){}
+	virtual void onUpdate();
+	virtual void onExit() {}
 	virtual void onRestore() {}
 
 	Scripter * getScripter() { return &scripter;} 

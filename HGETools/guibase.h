@@ -7,11 +7,15 @@
 #include "math3/math.h"
 #include "spritedata.h"
 #include "rect.h"
+#include "rendercontext.h"
 
 #define HGEGUI_NONAVKEYS		0
 #define HGEGUI_LEFTRIGHT		1
 #define HGEGUI_UPDOWN			2
 #define HGEGUI_CYCLED			4
+
+class HGE;
+class RenderContext;
 
 namespace GUI
 {
@@ -28,10 +32,11 @@ namespace GUI
 	 * Object
 	 * Base GUI class and layout container as well
 	 */
-	class Object : public Referenced
+	class Object : public std::enable_shared_from_this<Object>
 	{
 	public:
 		typedef math3::vec2f uiVec;
+		typedef std::shared_ptr<Object> Pointer;
 
 		Object(const Fx::Rect & rc);
 		virtual ~Object();
@@ -39,8 +44,7 @@ namespace GUI
 		void detach();			/// detach from parent
 		bool isRoot() const;
 		// manual align
-		Object* insert(Object* ptr);
-		Object* insert(Object* ptr, int cellX, int cellY, int cellWidth, int cellHeight);
+		void insert(Pointer ptr);
 
 		void removeChild(const Pointer & object);
 
@@ -70,18 +74,18 @@ namespace GUI
 		virtual bool	onSignalUp(Signal & msg) { return false;}
 		/// recieved signal from children
 		virtual bool	onSignalDown(Signal & msg) { return false;}
-		virtual void	onRender() {}
+		virtual void	onRender(Fx::RenderContext* rc) {}
 		virtual void	onUpdate(float dt) {} 
 		virtual void	onSize(float width, float height) {}
 		virtual bool	IsDone() { return true; }
 	
-		virtual bool	sizeFixed() const { return false; }
-		virtual void	SetColor(DWORD _color) { color=_color; }
+		virtual bool sizeFixed() const { return false; }
+		virtual void SetColor(Fx::FxRawColor color) { this->color=color; }
 
 		virtual void show(bool flag) {visible = flag;}
 	
-		Rect			windowRect;
-		DWORD			color;
+		Fx::Rect windowRect;
+		Fx::FxRawColor color;
 
 		enum MoveState
 		{
@@ -89,20 +93,21 @@ namespace GUI
 			MoveRemain,
 			MoveLeave
 		};
+
 		// event handlers
 		virtual bool onMouse(int mouseId, int key, int state, const uiVec & vec) {return false;}	
 		virtual bool onMouseMove(int mouseId, const uiVec & vec, MoveState state = MoveRemain) { return false;}
+
 		// event callers
 		virtual bool callMouseMove(int mouseId, const uiVec & vec, MoveState state = MoveRemain);
 		virtual bool callMouse(int mouseId, int key, int state, const uiVec & vec);
 		virtual void callKeyClick(int key, int chr);
-		virtual void callRender(const Fx::Rect& clipRect);
+		virtual void callRender(Fx::RenderContext* context, const Fx::Rect& clipRect);
 		virtual void callUpdate(float dt);
-		HGE * getHGE();
 
 		void enableLayouting(bool flag );
 		void updateLayout();
-		typedef bool ObjectIterator(Object * object);
+		typedef bool ObjectIterator(Object* object);
 		void findObject(const uiVec & vec, bool forceAll, std::function<ObjectIterator> fn);
 	protected:
 		//virtual void runLayout();
@@ -115,17 +120,17 @@ namespace GUI
 		
 		typedef std::list<Pointer> Children;
 		Children children;
-		WeakPtr<Object> parent;									//< parent object
-		WeakPtr<Object> modal;									//< modal child
-		int cellX, cellY, cellWidth, cellHeight;
+		std::weak_ptr<Object> parent;			//< parent object
+		std::weak_ptr<Object> modal;			//< modal child
+		// Cell parameters for grid layout
+		int cellX = 0, cellY = 0, cellWidth = 1, cellHeight = 1;
 		bool clipChildren;
 		bool visible;											//< if object is visible
 		bool enabled;											//< if object responds to events
 		bool contentsWidth, contentsHeight;						//< auto expand to contents size
-		HGE * hge;
 	private:
 		bool layoutChanged;	
-		bool layouting;
+		bool layoutIsActive;
  		static size_t globalControlLastId;
 		size_t globalControlId;
 		
@@ -135,8 +140,4 @@ namespace GUI
 	};
 
 } // namespace GUI
-
-void drawRectSolid(HGE* hge, const Fx::Rect& rect, DWORD color);
-void drawRect(HGE* hge, const Fx::Rect& rect, DWORD color);
-
 

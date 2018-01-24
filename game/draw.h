@@ -1,13 +1,6 @@
 #pragma once;
 
-//class Block;
-//class Projectile;
-//class Item;
-//class MoverVehicle;
-//class Unit;
-//typedef _Mover<SolidObject> Mover;
-
-class Draw: /*public PathDrawerGDI/,*/ public b2Draw
+class Draw: public b2Draw
 {	
 	Mt3x3 local;
 	
@@ -24,14 +17,17 @@ public:
 	//void translate(const vec2f &pos);
 	Draw();
 	~Draw();
+
 	void init(HGE *hge);
 	void drawObject(GameObject *gameObject);
 	void draw(const VisionManager::Vision &vision);
 	//void draw(const Mover *mover);
 	//void draw(Perception *perception);
 	//void draw(Item *item);
+
 	void draw(Unit *unit);
 	void drawSprite(const Pose &pose, hgeSprite *sprite);
+
 	/// from b2DebugRender
 	virtual void DrawTransform(const b2Transform &);
 	virtual void DrawPolygon (const b2Vec2 *vertices, int32 vertexCount, const b2Color &color);

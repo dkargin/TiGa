@@ -1,19 +1,13 @@
-#ifndef HGEGUICTRLS_H
-#define HGEGUICTRLS_H
+#pragma once
 
-#include <guibase.h>
+#include <map>
 #include <functional>
 
-
-#include "hge.h"
-#include "basetypes.h"
+#include "guibase.h"
+#include "fxobjects.h"
 #include "spritedata.h"
-#include "hgefont.h"
-#include "rect.h"
-#include "fxObjects.h"
+#include "font.h"
 
-namespace Fx
-{
 
 #define hgeButtonGetState(gui,id)		((hgeGUIButton*)gui->GetCtrl(id))->GetState()
 #define hgeButtonSetState(gui,id,b)		((hgeGUIButton*)gui->GetCtrl(id))->SetState(b)
@@ -24,7 +18,7 @@ namespace Fx
 
 namespace GUI
 {
-	typedef std::shared_ptr<hgeFont> FontPtr;
+	typedef std::shared_ptr<Fx::Font> FontPtr;
 	/**
 	 * Text widget
 	 */
@@ -32,7 +26,7 @@ namespace GUI
 	{
 	public:
 		Text();
-		Text(const Rect & rect, FontPtr fnt);
+		Text(const Fx::Rect & rect, FontPtr fnt);
 
 		void SetMode(int _align);
 		void SetText(const char *_text);
@@ -53,9 +47,9 @@ namespace GUI
 	{
 	public:
 		Frame();
-		Frame(const Rect & rc);
+		Frame(const Fx::Rect & rc);
 
-		virtual void onRender();
+		virtual void onRender(Fx::RenderContext* rc) override;
 		void setOffsetHor(float offset);
 		void setOffsetVer(float offset);
 
@@ -64,7 +58,7 @@ namespace GUI
 
 		bool drawFrame;
 		bool drawBackground;
-		FxRawColor clrFrame;
+		Fx::FxRawColor clrFrame;
 
 		bool slideHor;
 		bool slideVer;
@@ -115,7 +109,7 @@ namespace GUI
 		void setState(bool _bPressed) { bPressed=_bPressed; }
 		bool setState() const { return bPressed; }
 
-		virtual void onRender();
+		virtual void onRender(Fx::RenderContext* rc) override;
 		virtual bool onMouse(int mouseId, int key, int state, const uiVec & vec);
 
 		typedef void EventOnStateChange(bool down);
@@ -123,11 +117,11 @@ namespace GUI
 		std::function<void ()> onPressed;
 		virtual void executeOnStateChange(bool down) {}
 
-		EffectPtr sprite;
+		Fx::EntityPtr sprite;
 	private:
 		FontPtr font;
 		bool useSprites;
-		Instance<Text> text;
+		std::shared_ptr<Text> text;
 		//Frame		frame;
 		bool useText;
 
@@ -143,8 +137,8 @@ namespace GUI
 	{
 	public:
 		Image();
-		FxEffect::Pointer sprite;
-		virtual void onRender();
+		Fx::EntityPtr sprite;
+		virtual void onRender(Fx::RenderContext* rc) override;
 	};
 
 	/*
@@ -165,14 +159,14 @@ namespace GUI
 		void setValue(float _fVal);
 		float setValue() const { return fVal; }
 
-		virtual void onRender();
 		virtual bool onMouseMove(int mouseId, const uiVec & vec, MoveState state);
+		virtual void onRender(Fx::RenderContext* rc) override;
 		virtual bool onMouse(int mouseId, int key, int state, const uiVec & vec);
 
 		typedef void EventOnStateChange(Slider * slider, float value, float min, float max);
 		std::function<EventOnStateChange> onStateChange;
 
-		FxSpritePtr sprite;
+		Fx::FxSpritePtr sprite;
 	private:
 		bool			bPressed;
 		bool			bVertical;
@@ -191,7 +185,7 @@ namespace GUI
 	class Listbox : public Object
 	{
 	public:
-		Listbox(int id, const Rect & rect, hgeFont *fnt, DWORD tColor, DWORD thColor, DWORD hColor);
+		Listbox(int id, const Fx::Rect & rect, Fx::Font* fnt, Fx::FxRawColor tColor, Fx::FxRawColor thColor, Fx::FxRawColor hColor);
 		virtual ~Listbox();
 
 		int AddItem(char *item);
@@ -206,7 +200,7 @@ namespace GUI
 		int GetNumRows() { return int((windowRect.y2-windowRect.y1)/font->GetHeight()); }
 		void Clear();
 
-		virtual void onRender();
+		virtual void onRender(Fx::RenderContext* rc) override;
 		virtual bool MouseMove(float x, float y) { mx=x; my=y; return false; }
 		virtual bool MouseLButton(bool bDown);
 		virtual bool MouseWheel(int nNotches);
@@ -216,9 +210,9 @@ namespace GUI
 		virtual void executeOnLClick(int element) {}
 		virtual void executeOnSelChange(int element) {}
 	private:
-		SpriteData *sprHighlight;
-		hgeFont *font;
-		FxColorRaw textColor, texthilColor;
+		Fx::SpriteData *sprHighlight;
+		Fx::Font *font;
+		Fx::FxRawColor textColor, texthilColor;
 
 		int nItems, nSelectedItem, nTopItem;
 		float mx, my;
@@ -242,4 +236,3 @@ namespace GUI
 	};
 } // namespace Gui
 
-} // namespace Fx
