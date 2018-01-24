@@ -1,7 +1,8 @@
-#include "objectManager.h"
-#include "device.h"
 #include "shields.h"
-#include "unit.h"
+
+#include "../sim/device.h"
+#include "../sim/objectManager.h"
+#include "../sim/unit.h"
 
 ////////////////////////////////////////////////////////////////
 // ForceFieldDef implementation

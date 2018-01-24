@@ -1,6 +1,6 @@
 #ifndef _MULTIBLOCK_H_
 #define _MULTIBLOCK_H_
-#include "gameObject.h"
+#include "../sim/gameObject.h"
 
 enum AdjacentDirection	{	DirLeft = 0, DirRight = 1, DirTop = 2, DirBottom = 3, DirSame, DirInvalid	};
 

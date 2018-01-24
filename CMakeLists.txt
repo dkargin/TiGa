@@ -7,6 +7,6 @@ set (CMAKE_CXX_STANDARD 11)
 include_directories(depend/include)
 include_directories(HGETools)
 
-
+add_subdirectory(HGETools)
 add_subdirectory(depend)
 add_subdirectory(game)

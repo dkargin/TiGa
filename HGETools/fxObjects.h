@@ -1,12 +1,13 @@
 #pragma once
 
+#include <treenode.h>
 #include <set>
-#include <math3/math.h>
 #include <memory> 		//for shared_ptr
 
-#include "treenode.hpp"
-#include "hgerect.h"
-#include "hge.h"
+#include "basetypes.h"
+#include "spritedata.h"
+
+//#include "hge.h"
 
 #define	COLORADD    1
 #define	COLORMUL    0
@@ -17,21 +18,41 @@
 #define	ZWRITE      4
 #define	NOZWRITE    0
 
-typedef float Time_t;
-
-class FxManager;
-
-class hgeSprite;
 class hgeResourceManager;
 class HGE;
 
+namespace Fx
+{
+
+// Helper classes
+class ParticleSystemInfo;
+
+
+// Fs object classes
+class Entity;
+class FxSound;
+class FxSprite;
+class FxAnimation2;
+class FxParticles;
+
+class FxManager;
+
+typedef std::shared_ptr<Entity> EntityPtr;
+typedef std::shared_ptr<FxSound> FxSoundPtr;
+typedef std::shared_ptr<FxSprite> FxSpritePtr;
+typedef std::shared_ptr<FxParticles> FxParticlesPtr;
+typedef std::shared_ptr<FxAnimation2> FxAnimation2Ptr;
+
+
+// Contains view pose + scale + range limits
 struct FxView2
 {
 	math3::Pose2z pose;
 	float scale, zNear, zFar;
-	hgeRect viewport;
+	Fx::Rect viewport;
 };
 
+// Get rid if this shit
 struct ObjectTracker
 {
 	typedef unsigned int ID;
@@ -44,6 +65,7 @@ struct ObjectTracker
 	void check();
 };
 
+// Get rid if this shit
 class ObjectTracked
 {
 public:
@@ -52,6 +74,18 @@ public:
 	virtual ~ObjectTracked();
 	static ObjectTracker effectTracker;
 };
+
+#define FX_TYPE(TargetType,TypeID) \
+	friend class FxManager; \
+	typedef std::shared_ptr<TargetType> Pointer; \
+	Entity * clone() const \
+	{ \
+		return new TargetType(*this); \
+	} \
+	EffectType type()const \
+	{ \
+		return TypeID; \
+	}
 
 enum AnimationMode
 {
@@ -63,41 +97,40 @@ enum AnimationMode
 	AnimationBounce,
 };
 
+enum class EffectType
+{
+	EffectGroup,
+	fxSprite,
+	fxAnimation,
+	fxAnimation2,
+	fxParticles,
+	fxLight,
+	fxBeam,
+	fxSound,
+	fxModel,HTEXTURE
+};
 
-class FxEffect : public std::enable_shared_from_this<FxEffect>, 
-				 public TreeNode<FxEffect>
+/**
+ * Base class for any effect in scene graph
+ */
+class Entity :
+		public std::enable_shared_from_this<Entity>,
+		public TreeNode<Entity>
 {
 public:
-	typedef std::shared_ptr<FxEffect> Pointer;
-	typedef math3::Pose2z Pose;
-public:		
-	enum FxType
-	{
-		fxHolder,
-		fxSprite,
-		fxAnimation,
-		fxAnimation2,
-		fxParticles,
-		fxLight,
-		fxBeam,
-		fxSound,
-		fxModel,
-	};
+	Entity();
+	Entity(const Entity &effect);
 
-	FxEffect(FxManager * manager);
-	FxEffect(const FxEffect &effect);
-	virtual ~FxEffect();
+	virtual ~Entity();
 
-	FxEffect * getTargetType()
+	Entity * getTargetType()
 	{
 		return this;
 	}
-	FxManager * getManager() const;
-	Log * logger() const;
-	// animation interface
+
 	virtual void start(AnimationMode mode = AnimationNoChange);					// starts animation (if there is any)
 	virtual void stop(bool immediate);		// stops animation (if there is any)
-	virtual void rewind();					// rewind track
+	virtual void rewind();								// rewind track
 	virtual Time_t duration() const;			// get animation duration
 	// geometry interface
 	void setZ(float z);
@@ -109,171 +142,113 @@ public:
 	virtual void setPose(const Pose &p);
 	virtual const Pose & getPose() const;			// get pose relative to parent object
 	Pose & poseRef() { return pose;}
-	virtual Pose getGlobalPose()const;		
+	virtual Pose getGlobalPose()const;
 
-	float getWidth() const;				// get screen width
-	float getHeight() const;			// get screen width	
-	hgeRect getClipRect() const;		// return rect to determine, should we clip 
+	float getWidth() const;							//< Get screen width
+	float getHeight() const;						//< Get screen width
 
-	virtual hgeRect getLocalRect() const;		// get bound only for root, excluding children
+	Rect getClipRect() const;						//< return rect to determine, should we clip
+	virtual Rect getLocalRect() const;	//< get bound only for root, excluding children
 	// scene graph interface
 	inline void show(bool flag) { visible = flag; }
-	inline bool isVisible() const {return visible; }	
+	inline bool isVisible() const {return visible; }
+#ifdef FUCK_THIS_LESS
 	virtual void query(FxManager * manager, const Pose & base);
-	void queryAll(FxManager * manager, const Pose & base);	// query all hierarchy	
+	void queryAll(FxManager * manager, const Pose & base);			// query all hierarchy
+#endif
 	virtual void render(FxManager * manager, const Pose & base);
 	void renderAll(FxManager * manager, const Pose & base);					// render all hierarchy
 
 	virtual void update(float dt);
-	void updateAll( float dt );								// update all hierarchy
+	void updateAll( float dt );								//< update all hierarchy
 	
 	virtual bool shouldClip(const FxView2 & view) const;	
 	// misc
-	virtual FxType type() const;
+	virtual EffectType type() const;
 	virtual bool valid() const;
-	virtual FxEffect * clone() const;
-	HGE * hge() const;
+	virtual Entity * clone() const;
 protected:	
-	virtual void onAttach( FxEffect * object )
-	{
-		// TODO: implement it
-		//Referenced::ObjectInfo::addReference(object);
-	}
-	virtual void onDetach( FxEffect * object )
-	{
-		// TODO: implement it
-		//Referenced::ObjectInfo::addReference(object);
-		//Referenced::ObjectInfo::removeReference(object);
-	}
+	virtual void onAttach( Entity * object );
+	virtual void onDetach( Entity * object );
 
-	std::weak_ptr<FxManager> manager;	
-	// geometry
 	Pose pose;
 	float scale;
 	bool visible;
 };
 
-typedef FxEffect::Pointer FxPointer;
+/*
+ * Render queue with z&state-sorting
+ */
+class RenderQueue
+{
+public:
+	struct HeapEntry
+	{
+		Pose pose;
+		Entity * effect;
+	};
+	std::vector<HeapEntry> objects;
+	std::vector<int> heap;
 
-template<class FxType> inline FxType * CopyFactoryObject( std::weak_ptr<FxManager> manager, const FxType * source);
+	void query(const Pose & base, Entity * effect);
+	void flush();			/// clear heap
+	void render(FxManager * manager, const Pose & base);			/// render all stored effects
+protected:
 
-#define FX_TYPE(TargetType,TypeID) \
-	friend class FxManager; \
-	typedef std::shared_ptr<TargetType> Pointer; \
-	typedef FxEffect Base; \
-	TargetType * copy() const \
-	{\
-		return CopyFactoryObject(manager, this); \
-	}\
-	FxEffect * clone() const \
-	{ \
-		return copy(); \
-	} \
-	FxType type()const \
-	{ \
-		return TypeID; \
-	}
+};
 
-class FxSprite: public FxEffect
+
+/**
+ * Sprite in scene graph
+ */
+class FxSprite: public Entity
 {
 protected:
 	FxSprite();
-	FxSprite(FxManager *manager,HTEXTURE tex, float x, float y, float w, float h);
+	FxSprite(FxManager *manager, FxTextureId tex, float x, float y, float w, float h);
+
 public:
-	FX_TYPE(FxSprite,FxEffect::fxSprite);
-	hgeSprite sprite;
-	float scale_h;	
+	FX_TYPE(FxSprite, EffectType::fxSprite);
+
 	FxSprite(hgeResourceManager &manager,const char *name);
 	FxSprite(FxManager * manager);
+
 	FxSprite(const FxSprite &spr);
 	~FxSprite();
+	
 	void setBlendMode(int mode);
 	void addBlendMode(int mode);
 	void flipHor();
 	void flipVer();
-	virtual hgeRect getLocalRect() const;
+
+	virtual Rect getLocalRect() const;
 	virtual bool valid() const;
 	virtual void update(float dt);
 	virtual void render(FxManager * manager, const Pose &base);	
+
+protected:
+	SpriteData sprite;
+	float scale_h;	
 };
 
-typedef FxSprite::Pointer FxSpritePtr;
-
-class FxSound: public FxEffect
-{
-public:
-	HEFFECT sound;
-	std::string name;
-	bool positional;	/// if we affect loudness depending on viewer position
-	HCHANNEL channel;
-public:
-	FX_TYPE(FxSound,FxEffect::fxSound);
-	FxSound(FxManager * manager);
-	//FxSound(FxManager * manager, HGE *hge, const char *file);
-	FxSound(const FxSound &effect);
-	~FxSound();
-	void init( const char * name );
-	virtual void stop(bool immediate);
-	virtual void start(AnimationMode mode = AnimationNoChange);
-	virtual Time_t duration() const;
-	virtual void update(float dt);
-	virtual void render(const Pose &base);
-	virtual bool valid()const;
-};
-
-//class FxAnimation: public FxEffect//FxHelper<FxAnimation,FxEffect::fxAnimation>
-//{
-//public:
-//	hgeAnimation animation;
-//	FX_TYPE(FxAnimation,FxEffect::fxAnimation);
-//	FxAnimation(FxManager * manager,HTEXTURE tex, int nframes, float FPS, float x, float y, float w, float h);
-//	//FxAnimation(hgeResourceManager &manager,const char *name);
-//	FxAnimation(const FxAnimation &effect);
-//	~FxAnimation();
-//	void start(AnimationMode mode = AnimationNoChange);
-//	void stop(bool immediate);
-//	virtual bool valid() const;
-//	virtual void update(float dt);
-//	virtual void render(const Pose &base);
-//};
-
-class FxParticles: public FxEffect
-{
-public:	
-	struct Particle
-	{
-		math3::vec2f position;
-		math3::vec2f velocity;
-		float angle;			// model angle
-		FxParticles * master;
-	};
-	hgeParticleSystem particles; 
-	FX_TYPE(FxParticles,FxEffect::fxParticles);
-	FxParticles(FxManager * manager);	
-	FxParticles(const FxParticles &p);
-	void init(hgeParticleSystemInfo &info);
-	virtual bool valid() const;
-	virtual void update(float dt);
-	virtual void render(const Pose &base);
-	/// animation interface
-	virtual void start(AnimationMode mode = AnimationNoChange);
-	virtual void stop(bool immediate);
-	virtual Time_t duration() const;
-};
-typedef FxEffect FxHolder;
-
-// All animation frames should be inside single texture page
-class FxAnimation2: public FxEffect
+/**
+ * Animation class
+ *
+ * All animation frames should be inside single texture page
+ */
+//
+class FxAnimation2: public Entity
 {
 	friend class FxManager;	
 public:	
-	FX_TYPE(FxAnimation2,FxEffect::fxAnimation2);
-	FxAnimation2(FxManager * manager);
-	FxAnimation2(FxManager *manager,HTEXTURE tex, float x, float y, float w, float h);
-	FxAnimation2(const FxAnimation2 &effect);
+	FX_TYPE(FxAnimation2, EffectType::fxAnimation2);
+
+	FxAnimation2(FxManager* manager);
+	FxAnimation2(FxManager* manager,FxTextureId tex, float x, float y, float w, float h);
+	FxAnimation2(const FxAnimation2& effect);
 	~FxAnimation2();
-	void init(HTEXTURE tex, float x, float y, float w, float h);
-	int addFrame(const hgeRect &rect);	// insert additional frame from existing texture
+	void init(FxTextureId tex, float x, float y, float w, float h);
+	int addFrame(const Rect& rect);				// insert additional frame from existing texture
 	void setBlendMode(int mode);
 	void addBlendMode(int mode);
 	bool valid() const;
@@ -284,27 +259,29 @@ public:
 	void rewind();
 	Time_t duration() const;
 
-	void render(FxManager * manager, const Pose &base);
+	void render(FxManager* manager, const Pose &base);
 	void setSize(float w,float h,bool mid=true);	// set tile size
 	void xTile(float length);						// enable tiled mode
 	bool isTiled()const;
 	
 	float cropWidth,cropHeight;	
 	bool crop;
-	bool drawRect;		// draw bounding rect
-	float getWidth();	// returns sprite width
-	float getHeight();	// returns sprite height
+	bool drawRect;				//< draw bounding rect
+	float getWidth();			//< returns sprite width
+	float getHeight();		//< returns sprite height
 protected:	
-	hgeSprite sprite;
-	float width,height;				// world sprite size
-	float tiledWidth, tiledHeight;	//
-	bool tiled;						// if tiled mode is active. Turned off by default
-	std::vector<hgeRect> frames;		// all frames	
-	float fps;						// frame rate
-	float current;					// current frame
-	bool run;						// is animation active
+	SpriteData sprite;
+	float width,height;						//< world sprite size
+	float tiledWidth, tiledHeight;	//< Number of tiles to be rendered
+	bool tiled;									//< if tiled mode is active. Turned off by default
+	std::vector<Rect> frames;		//< all frames
+	float fps;									//< frame rate
+	float current;							//< current frame
+	bool run;										//< is animation active
 	AnimationMode mode;
 };
+
+}	// namespace Fx
 
 //// Light source. Also may cast shadows
 //class FxLight: public FxHelper<FxLight,FxEffect::fxLight>
@@ -312,8 +289,8 @@ protected:
 //public:
 //	bool shadows;
 //	vec4f color;	// light color
-//	float size;		// 
-//	float angle;	// 
+//	float size;		//
+//	float angle;	//
 //
 //	FxLight(FxManager *_manager);
 //	FxLight(const FxLight &light);
@@ -322,42 +299,6 @@ protected:
 //	virtual void update(float dt);
 //	virtual void render(const Pose &base);
 //};
-
-/////////////////////////////////////////////////////////////////////////
-// Render queue with z&state-sorting
-/////////////////////////////////////////////////////////////////////////
-class RenderQueue
-{
-public:
-	typedef FxEffect::Pose Pose;
-	struct HeapEntry
-	{
-		Pose pose;
-		FxEffect * effect;
-	};
-	std::vector<HeapEntry> objects;	
-	std::vector<int> heap;
-	void query(const Pose & base,FxEffect * effect);	
-	void flush();			/// clear heap
-	void render(FxManager * manager, const Pose & base);			/// render all stored effects
-};
-////////////////////////////////////////////////////////////////////////
-// Storage for timed effects
-////////////////////////////////////////////////////////////////////////
-class Pyro
-{
-	struct TimedEffect
-	{
-		float left;
-		FxPointer effect;
-	};
-	typedef FxEffect::Pose Pose;
-	std::vector<TimedEffect> effects;
-public:
-	void runEffect(FxPointer effect);
-	void update(FxManager * manager, float dt);
-	void render(FxManager * manager, const Pose &pose,float scale);
-};
 
 //class ResourceManager
 //{
@@ -379,87 +320,9 @@ public:
 //		virtual void free(ResourceManager * manager);
 //	};
 //};
-/////////////////////////////////////////////////////////////////////////
-// Resource manager and Fx factory
-/////////////////////////////////////////////////////////////////////////
 
-
-class FxManager : public std::enable_shared_from_this<FxManager>
-{
-public:
-	//hgeResourceManager manager;
-	HGE *hge;
-	struct Record									/// Record for each resource file
-	{
-		std::string file;							/// file name
-		DWORD handle;								/// assigned handle
-		int ref;									/// reference counter
-	};	
-
-	//typedef std::list<FxPointer> Manufactured;
-	//Manufactured manufactured;				/// keep all created objects here
-	typedef std::list<Record> Records;				/// container type for all allocated resources
-	Records textures,sounds;						/// Allocated resources
-	RenderQueue renderQueue;	
-	Pyro pyro;										/// holded effects will be destroyed when counter expires
-	LogPtr log;
-	FxManager(LogPtr logger);	//
-	~FxManager();			
-	void init(HGE * hge);			/// init resource system
-	Log * logger() { return log; }
-	/// factory
-	FxAnimation2::Pointer createAnimation(const char *texture,hgeRect rect,int frameWidth,int frameHeight,float fps,AnimationMode mode);	// create animation from texture's part
-	FxAnimation2::Pointer createAnimationFull(const char *texture,int frameWidth,int frameHeight,float fps,AnimationMode mode);			// create animation from whole texture
-	FxParticles::Pointer fxParticles(FxSprite::Pointer sprite,hgeParticleSystemInfo &info);
-	FxSprite::Pointer fxSprite(const char * texture,float x,float y,float width,float height);
-	FxSprite::Pointer fxSolidQuad( float width, float height, DWORD color );
-//	FxAnimation::Pointer fxAnimation(const char * texture,int frames,float fps);
-	FxSound::Pointer fxSound(const char * path);
-	FxHolder::Pointer fxHolder();
-	//FxAnimation * fxAnimation(const char *name);
-	//FxSprite * fxSprite(const char *name);
-	//FxBeam::Pointer fxBeam(FxAnimation2 *start=NULL,FxAnimation2 *middle=NULL,FxAnimation2 *end=NULL);	
-	void setView( const FxView2 & view );
-	void resetView();
-
-	void clearObjects();												// release manufactured list
-	void clearResources();												// release all resources
-
-	Record & getTexture(const char *texture);							//
-	int freeTexture(HTEXTURE texture);									//
-
-	class Storage
-	{
-	public:
-		virtual ~Storage(){};
-		virtual bool allocateRaw(FxEffect *& effect) = 0;
-		virtual bool allocateRaw(FxSound *& effect) = 0;
-		virtual bool allocateRaw(FxSprite *& effect) = 0;
-		virtual bool allocateRaw(FxAnimation2 *& effect) = 0;
-		virtual bool allocateRaw(FxParticles *& effect) = 0;
-	};
-
-	std::shared_ptr<Storage> storage;
-
-	template< class FxType> FxType * create()
-	{
-		FxType * result = NULL;
-		storage->allocateRaw(result);
-		new( result ) FxType(this);
-		return result;
-	}
-
-	typedef std::shared_ptr<FxManager> SharedPtr;
-	typedef std::weak_ptr<FxManager> WeakPtr;
-protected:
-	//FxEffect * remember(FxEffect *effect);
-	Records::iterator find(const char *file);							//
-	Records::iterator find(HTEXTURE tex);								//
-	Pose2z viewPose;
-	float viewScale;
-};
-
-typedef FxManager::SharedPtr FxManagerPtr;
+// WTF Is this shit???
+#ifdef FUCK_THIS
 #pragma push_macro("new")
 #undef new
 void FAR* operator new(size_t cb);
@@ -467,7 +330,7 @@ template<class FxType> inline FxType * CopyFactoryObject( std::weak_ptr<FxManage
 {
 	FxType * result = NULL; 
 	if(!source->valid())
-		throw(std::exception("FxHelper::clone() error: invalid object\n"));
+		throw(std::exception("FxHelper::clone() error: invalid object"));
 	else {
 		//FxType * place = NULL;		
 		//manager.lock()->allocateRaw(place);	
@@ -476,4 +339,5 @@ template<class FxType> inline FxType * CopyFactoryObject( std::weak_ptr<FxManage
 	return result;
 }
 #pragma pop_macro("new")
+#endif //FUCK_THIS
 

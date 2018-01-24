@@ -1,16 +1,15 @@
 #include "stdafx.h"
 #include "gl/gl.h"
-#include "unit.h"
-//#include "gameObject.h"
-#include "perception.h"
-#include "moverVehicle.h"
-#include "projectile.h"
-#include "inventory.h"
-#include "weapon.h"
 #include "world.h" 
-#include "commandAI.h"
-
 #include "draw.h"
+
+#include "../sim/commandAI.h"
+#include "../sim/inventory.h"
+#include "../sim/moverVehicle.h"
+#include "../sim/perception.h"
+#include "../sim/projectile.h"
+#include "../sim/unit.h"
+#include "../sim/weapon.h"
 extern float screenWidth,screenHeight;
 
 void drawLine(HGE * hge,const vec2f &from,const vec2f &to,DWORD color)
@@ -103,7 +102,7 @@ void Draw::DrawTransform(const b2Transform& xf)
 }
 
 ////////////////////////////////////////////////////////////////////
-// Draw. Рисует всю сцену.
+// Draw. пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ.
 ////////////////////////////////////////////////////////////////////
 Draw::Draw()
 :local(Mt3x3::identity()),hge(NULL)

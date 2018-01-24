@@ -1,7 +1,8 @@
-#include "device.h"
-#include "projectile.h"
-#include "unit.h"
 #include "world.h"
+
+#include "../sim/device.h"
+#include "../sim/projectile.h"
+#include "../sim/unit.h"
 #include "draw.h"
 
 #include "Game.h"

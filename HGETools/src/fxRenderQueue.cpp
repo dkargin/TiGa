@@ -114,7 +114,7 @@ void RenderQueue::render(FxManager * manager, const FxEffect::Pose & base)
 	flush();
 }
 
-void RenderQueue::query(const FxEffect::Pose & pose,FxEffect * effect)
+void RenderQueue::query(const FxEffect::Pose & pose, FxEffect * effect)
 {
 	int index = objects.size();
 	HeapEntry entry = {pose,effect};

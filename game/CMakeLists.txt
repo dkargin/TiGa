@@ -18,3 +18,5 @@ add_executable(game
 	stdafx.cpp
 	world.cpp
 	)
+
+target_link_libraries(game fx)

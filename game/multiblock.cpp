@@ -1,6 +1,7 @@
 //#include "common.h"
 #include "multiblock.h"
-#include "gameObject.h"
+
+#include "../sim/gameObject.h"
 
 Pose2 GetPose(const b2Body * body)
 {
@@ -82,8 +83,8 @@ void Multiblock::onLinkCreated(Link * link, int x, int y, AdjacentDirection dir,
 
 }
 
-const float impulseAdsorbedByCellMax = 100;	// максимальный импульс, поглощаемый ячейкой
-const float impulseToCellDamage = 1.0;			// преобразование импульса в дамаг
+const float impulseAdsorbedByCellMax = 100;	// пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ, пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
+const float impulseToCellDamage = 1.0;			// пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅ
 
 const float impulseAdsorbedByLink = 20;
 
