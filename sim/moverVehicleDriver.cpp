@@ -1,8 +1,8 @@
-#include "../sim/device.h"
-#include "../sim/mover.h"
-#include "../sim/moverVehicle.h"
-#include "../sim/unit.h"
-#include "stdafx.h"
+#include "device.h"
+#include "mover.h"
+#include "moverVehicle.h"
+#include "unit.h"
+
 using namespace pathProject;
 using namespace std;
 
@@ -97,6 +97,7 @@ void DriverFlocking::render(HGE * hge)
 		
 	}	
 }
+
 Mover::Driver * createFlockingDriver(Mover *m)
 {
 	return new DriverFlocking(m);

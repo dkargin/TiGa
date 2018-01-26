@@ -1,19 +1,14 @@
-#include "../sim/unit.h"
+#include "unit.h"
+#include "commandAI.h"
+#include "device.h"
+#include "mover.h"
+#include "inventory.h"
+#include "objectManager.h"
+#include "perception.h"
+#include "projectile.h"
+#include "weapon.h"
 
-#include "../sim/commandAI.h"
-#include "../sim/device.h"
-#include "../sim/inventory.h"
-#include "../sim/mover.h"
-#include "../sim/objectManager.h"
-#include "../sim/perception.h"
-#include "../sim/projectile.h"
-#include "../sim/weapon.h"
-#include "stdafx.h"
-//#include "world.h"
-
-////////////////////////////////////////////////////////
-// UnitDef
-////////////////////////////////////////////////////////
+#ifdef FUCK_THIS
 UnitDef::UnitDef(ObjectManager *m)
 :GameObjectDef(m),fxMove(NULL)//,perception(NULL)
 {
@@ -89,33 +84,37 @@ void UnitDef::clearMounts()
 {
 	mounts.clear();
 }
+
+#endif
 ////////////////////////////////////////////////////////
 // Unit
 ////////////////////////////////////////////////////////
-Unit::Unit(UnitDef *def)
-:definition(def)
-,useAI(true)
-,GameObject(def->manager,def)
+Unit::Unit(Unit* def)
+:GameObject(def->manager)
 ,controller(new Controller(this))
-{	
-//	LogFunction(*g_logger);
-	health=definition->health;	
-	setCollisionGroup(cgUnit);
-	if(def->fxIdle)
+{
+	useAI = false;
+	if(def != nullptr)
 	{
-		effects->attach(def->fxIdle->clone());	
-		effects->start();
-	}
-	// install all the devices from the definition
-	for_each(definition->mounts.begin(),definition->mounts.end(),[this](MountDef & mount)
-	{
-		Device * device = mount.device->create();
-		if(device)
+		if(def->fxIdle)
 		{
-			devices.push_back(device);			
-			device->onInstall(this, devices.size()-1, mount.pose);
+			effects->attach(def->fxIdle->clone());
+			effects->start();
 		}
-	});
+
+		// install all the devices from the definition
+		for(const MountDef& mount: def->mounts)
+		{
+			Device* device = mount.device->create();
+			devices.push_back(device);
+			device->onInstall(this, devices.size()-1, mount.pose);
+		};
+
+		health = def->health;
+		definition = def;
+	}
+
+	setCollisionGroup(cgUnit);
 
 	controller->initDevices();
 }

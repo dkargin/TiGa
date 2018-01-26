@@ -1,12 +1,15 @@
 #pragma once
 
 #include "gameObject.h"
-// generates ID for GameObject
-typedef unsigned int ID;
-const ID invalidID = -1;
-typedef ID DefID;	// object definition identifier
-typedef ID ObjID;	// object identifier
+#include "luabox/scripter.hpp"
 
+#include "basetypes.h"
+#include "fxobjects.h"
+
+namespace sim
+{
+
+class PerceptionManager;
 class IOBuffer;
 
 enum DeviceCmd
@@ -53,6 +56,8 @@ enum DeviceResult
 	dcmdWrongPort,
 	dcmdNoMaster,
 };
+
+// Old networked bullshit
 namespace NetCmd
 {	
 	enum Type
@@ -72,10 +77,11 @@ namespace NetCmd
 		virtual Type type()const=0;
 		virtual bool confirm()const =0;				//  send confirmaton when recieve
 		virtual bool remote()const=0;				//	remote command (send to all or execute only locally)
-		virtual bool read(IO::StreamIn &stream)=0;
-		virtual bool write(IO::StreamOut &stream)=0;
+		virtual bool read(StreamIn &stream)=0;
+		virtual bool write(StreamOut &stream)=0;
 		virtual Base * toBase()=0;
 	};
+
 	template<bool bRemote,bool bConfirm,NetCmd::Type lType,class Target> class NetCmdHelper: public Base
 	{
 	public:
@@ -84,20 +90,21 @@ namespace NetCmd
 		virtual bool confirm()const		{return bConfirm;}
 		virtual bool remote()const		{return bRemote;}
 		virtual Base * toBase()			{return this;}
-		virtual bool read(IO::StreamIn &stream){return true;}
-		virtual bool write(IO::StreamOut &stream){return true;}
+		virtual bool read(StreamIn &stream){return true;}
+		virtual bool write(StreamOut &stream){return true;}
 	};
 
-	// every peer send it on connection
+	// every peer sends it on connection
 	struct Hello: public NetCmdHelper<true,false,cmdHello,Hello>{};
 
 	struct TakeControl: public NetCmdHelper<true,true,cmdTakeControl,TakeControl>
 	{
 		ObjID unit;
 		TakeControl():unit(-1){};
-		TakeControl(Unit *obj);;
-		virtual bool read(IO::StreamIn &stream);
-		virtual bool write(IO::StreamOut &stream);
+		TakeControl(Unit *obj);
+
+		virtual bool read(StreamIn &stream);
+		virtual bool write(StreamOut &stream);
 	};	
 	TakeControl *toTakeControl(Base *base);
 	Hello *toHello(Base *base);
@@ -118,43 +125,7 @@ struct RayHitInfo
 
 typedef std::vector<RayHitInfo> RayHits;
 
-class VisionManager
-{
-public:
-	struct Vision
-	{
-		int player;
-		float distance;
-		float fov;
-		Pose pose;
-	};
-	typedef std::vector<Vision> Container;
-	enum {ReservedVision=256};
-	Container vision;
-	VisionManager()
-	{
-		vision.reserve(ReservedVision);
-	}
-	void clear()
-	{
-		vision.resize(0);
-	}
-	virtual bool allowVision(GameObject * owner)
-	{
-		return true;
-	}
-	virtual bool addVision(float distance, float fov,const Pose& pose, GameObject * owner)
-	{
-		if(owner && allowVision(owner))
-		{
-			Vision res={ owner->getPlayer(), distance, fov, pose };
-			vision.push_back(res);
-			return true;
-		}
-		return false;
-	}
-};
-
+#ifdef FUCK_THAT
 ///////////////////////////////////////////////////////////////////
 // PathFinder in a separate thread
 ///////////////////////////////////////////////////////////////////
@@ -313,8 +284,9 @@ protected:
 	}*data;
 };
 
+#endif
+
 class Device;
-class DeviceDef;
 
 /// Iterator for gameobjects list
 struct ObjectIterator
@@ -322,12 +294,10 @@ struct ObjectIterator
 	ObjectManager * container;
 	GameObject * current;
 };
-///////////////////////////////////////////////////////////////////////////////
-// Manages creation, storage, serialisation and net synchronisation of game objects
-///////////////////////////////////////////////////////////////////////////////
-class ObjectManager :	public VisionManager
-{	
-public:		
+
+class ObjectManager
+{
+public:
 	class Listener
 	{
 	public:
@@ -347,21 +317,26 @@ public:
 	friend class PerceptionManager;
 	friend class WeponManager;
 
-	typedef ObjStore<GameObjectDef> Definitions;
+	//typedef ObjStore<GameObject> Definitions;
 
-	typedef std::list< GameObject* > ObjectList; 
-	std::list< DeviceDef * > deviceDefinitions;
-	std::list< GameObjectDef * > objectDefinitions;
+	typedef std::list<GameObject*> ObjectList;
+
+	std::list<Device * > deviceDefinitions;
+	std::list<GameObject* > objectDefinitions;
 
 	GameObject * objectsHead, * objectsTail;
 	// theese are for unit parts
-	PerceptionManager *perceptionManager;	// replace it by DeviceManager in future	
-	FxManager::SharedPtr fxManager;
+	PerceptionManager* perceptionManager;	// replace it by DeviceManager in future
+	Fx::FxManagerPtr fxManager;
 	//b2BlockAllocator allocator;
 	b2World * scene;
+
+#ifdef FUCK_THAT
 	pathProject::PathCore * pathCore;
 	PathFinder pathFinder;
+#endif
 	
+	// Network role
 	enum Role
 	{
 		Master,
@@ -370,13 +345,13 @@ public:
 	}role;
 	Scripter *scripter;	
 public:
-	ObjectManager(Scripter *lua, FxManager::SharedPtr fx);	
+	ObjectManager(Scripter *lua, Fx::FxManagerPtr fx);
 	virtual ~ObjectManager();
 
-	void initSimulation( b2World * dn, pathProject::PathCore *pathCore );
+	void initSimulation( b2World * dn);
 
-	virtual void saveState(IO::StreamOut & stream);
-	virtual void loadState(IO::StreamIn & stream);
+	virtual void saveState(StreamOut & stream);
+	virtual void loadState(StreamIn & stream);
 
 	void registerObject(GameObject * object);
 	void removeObject(GameObject * object);
@@ -396,6 +371,7 @@ public:
 	/// spatial queries
 	// raycasting, returns sorted hit list
 	void raycast(const Pose &ray,float range,RayHits & hits);
+
 	// generic raycast
 	template<typename Callback> void raycastGeneric(const Pose & ray, float maxRange, Callback & callback)
 	{
@@ -408,16 +384,19 @@ public:
 			virtual float32 ReportFixture(	b2Fixture* fixture, const b2Vec2& point,const b2Vec2& normal, float32 fraction)
 			{
 				RayHitInfo hit;
-				hit.point=conv(point);
-				hit.normal=conv(normal);
-				hit.object=(GameObject*)fixture->GetBody()->GetUserData();
-				hit.fraction=fraction;
-				hit.distance=vecDistance(ray.position,hit.point);
+				hit.point = conv(point);
+				hit.normal = conv(normal);
+				hit.object = (GameObject*)fixture->GetBody()->GetUserData();
+				hit.fraction = fraction;
+				hit.distance = math3::vecDistance(ray.getPosition(),hit.point);
 				callback(hit);
 				return 1;
 			}
 		}raycaster(ray, callback);
-		scene->RayCast(&raycaster,b2conv(ray.position),b2conv(ray.position + maxRange * ray.getDirection()));
+
+		b2Vec2 start = b2conv(ray.getPosition());
+		b2Vec2 end = b2conv(ray.getPosition() + maxRange * ray.getDirection());
+		scene->RayCast(&raycaster, start, end);
 	}
 
 	GameObjectPtr objectAtPoint(const Pose::pos & pos);							/// get object in specific position
@@ -427,9 +406,8 @@ public:
 	//virtual void updatePerception(Perception * p,float dt);
 	virtual bool canSee(const Pose & pose, float distance, float fov, GameObject * object);
 	/// networks
-	//void readMessages(IO::StreamIn &buf,int client=0);
-	//void writeMessages(IO::StreamOut &buf,int client=0);	
-	void useDevice(Unit *unit,int device,int port,int action,IOBuffer *buffer);	
+
+	void useDevice(Unit *unit,int device,int port,int action, IOBuffer *buffer);
 
 	// vision control
 	enum VisionMode
@@ -450,11 +428,12 @@ public:
 	
 	/// access methods
 	b2World* getDynamics();
-	FxManager* getFxManager();
+	Fx::FxManager* getFxManager();
 	lua_State* getLua();
-	_Scripter* getScripter();
+	Scripter* getScripter();
 protected:
 
+	/// Why the hell is this structure doing here?
 	struct ClientInfo
 	{
 		bool sendObjects;			//< send objectCreate msg for all objects
@@ -462,11 +441,11 @@ protected:
 		long lastSync;
 		std::set<ID> objects;
 		std::list<ID> destroyed;
-		IO::StreamOut *messages;		// additional data to send
+		StreamOut *messages;		// additional data to send
 		ClientInfo();
 		~ClientInfo();
 		bool haveMessages()const;
-		IO::StreamOut & getMessages();
+		StreamOut & getMessages();
 		void cleanMessages();
 	};
 
@@ -480,7 +459,7 @@ protected:
 	//GameObject * create(ID defid, ID id, IO::StreamIn * context);
 	// remote object creation
 	//bool ownDef(ID id);
-	void cleanDead();			// destroy all objects on the graveyard
+	void cleanDead(); // destroy all objects on the graveyard
 	void raiseObjectDead(GameObject * unit);	// send unit to the graveyard and raise "onDie" event
 
 	void onAdd(GameObject *object);
@@ -492,12 +471,12 @@ protected:
 	typedef std::set<Listener*> Listeners;
 	Listeners listeners;
 
-	//void writeObjectUpdate(GameObject *object,MsgBuffer &buf);
-
 	// Get this shit out of here
-	void startHeader(IO::StreamOut &buffer,int type);
-	int finishHeader(IO::StreamOut &buffer);
+	void startHeader(StreamOut &buffer,int type);
+	int finishHeader(StreamOut &buffer);
 	int headerPos;
 };
 
 int randRange(int min,int max);
+
+}

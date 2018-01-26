@@ -3,7 +3,8 @@
 #include "objectManager.h"
 #include "unit.h"
 
-extern Log * g_logger;
+namespace sim {
+
 //////////////////////////////////////////////////////////////////////
 //
 //DeviceManager::DeviceManager(ObjectManager *manager)
@@ -18,7 +19,7 @@ class CmdActionInvoker: public CmdInvoker
 {
 public:
 	int keyAction;
-	int invoke(Device *device,InvokerContainer::Key key,bool down,const Pose::pos &pos,float wheel)
+	int invoke(Device *device,InvokerContainer::Key key, int down,const Pose::pos &pos,float wheel) override
 	{
 		if(key!=keyAction)
 			return 0;
@@ -31,7 +32,7 @@ class CmdToggleInvoker: public CmdInvoker
 {
 public:
 	int keyToggle;
-	int invoke(Device *device,InvokerContainer::Key key,bool down,const Pose::pos &pos,float wheel)
+	int invoke(Device *device,InvokerContainer::Key key, int down,const Pose::pos &pos,float wheel) override
 	{		
 		if(key != keyToggle)
 			return 0;
@@ -44,7 +45,8 @@ class CmdParamInvoker: public CmdInvoker
 {
 public:
 	int keyLeft,keyRight;
-	int invoke(Device *device,InvokerContainer::Key key,bool down,const Pose::pos &pos,float wheel)
+
+	int invoke(Device *device,InvokerContainer::Key key, int down,const Pose::pos &pos,float wheel) override
 	{		
 		if(key==keyLeft && down)
 			device->query_Direction(port,dcmdDir_inc, 1.0f);
@@ -62,7 +64,7 @@ class CmdTargetInvoker: public CmdInvoker
 {
 public:
 	int keySet,keyReset,keyUpdate;
-	int invoke(Device *device,InvokerContainer::Key key,bool down,const Pose::pos &pos,float wheel)
+	int invoke(Device *device,InvokerContainer::Key key, int down,const Pose::pos &pos,float wheel) override
 	{
 		if(key==keySet && down)
 			device->query_Target(port,dcmdTarget_set,pos);
@@ -124,7 +126,7 @@ int InvokerContainer::invokerAction(int port,InvokerContainer::Key action)
 	return commands.size()-1;
 }
 
-int InvokerContainer::onControl(Device * device,InvokerContainer::Key key,bool down,float x,float y,float wheel)
+int InvokerContainer::onControl(Device * device,InvokerContainer::Key key, int down,float x,float y,float wheel)
 {
 	if ( !useInvokers())
 		return 0;
@@ -141,22 +143,36 @@ bool InvokerContainer::useInvokers()const
 {
 	return true;
 }
-///////////////////////////////////////////////////////////////////////////
-_Scripter * DeviceDef::getScripter()
-{
-	return manager.scripter;
-}
+
 ///////////////////////////////////////////////////////////////////////////
 // Device
 ///////////////////////////////////////////////////////////////////////////
-Device::Device(DeviceDef *def)
-:master(NULL),deviceMode(dmManual),definition(def), effects(def->manager.fxManager.get())
+Device::Device(Device* def)
 {	
-	g_logger->line(0,"Device::Device");
-	if(def->fxIdle)
+	id = 0;
+	lua = 0;
+
+	master = nullptr;
+	deviceMode = dmManual;
+	prototype = nullptr;
+
+	if(def)
 	{
-		fxIdle=def->fxIdle->clone();
-		effects.attach(fxIdle);
+		effectContainer.reset(def->effectContainer->clone());
+		prototype = def;
+
+		if(def->fxIdle)
+		{
+			fxIdle.reset(def->fxIdle->clone());
+		}
+	}
+
+	if(fxIdle)
+	{
+		if(effectContainer)
+		{
+			effectContainer.attach(fxIdle);
+		}
 	}
 }
 
@@ -165,9 +181,9 @@ Device::~Device()
 	g_logger->line(0,"Device::~Device");
 }
 
-DeviceDef * Device::getDefinition()
+Device * Device::getDefinition()
 {
-	return definition;
+	return prototype;
 }
 
 void Device::onInstall(Unit * master, size_t id, const Pose & pose)
@@ -181,9 +197,12 @@ void Device::onInstall(Unit * master, size_t id, const Pose & pose)
 //{
 //	return Interfaces();
 //}
-int Device::onControl(InvokerContainer::Key key,bool down,float x,float y,float wheel)
+
+int Device::onControl(InvokerContainer::Key key, int down,float x,float y,float wheel)
 {
-	return getDefinition()->onControl(this,key,down,x,y,wheel);
+	//return getDefinition()->onControl(this,key,down,x,y,wheel);
+	// TODO: I've lost InvokeContainer somewhere in DeviceDef
+	return 0;
 }
 
 Pose Device::getGlobalPose() const
@@ -205,12 +224,14 @@ int Device::query(int port,DeviceCmd action,IOBuffer *buffer)
 {
 	if(!master)
 	{
-		throw(std::exception("Device::Query - error: no master\n"));
+		throw(std::runtime_error("Device::Query - error: no master\n"));
 		return 0;
 	}
 	if(!validCommand(port,action))
 		return xWrongCmd();
-	g_logger->line(0,"Device::query(%d,%d)\n", id, action);
+
+	//g_logger->line(0,"Device::query(%d,%d)\n", id, action);
+
 	master->useDevice(id,port,action,buffer);
 	
 	return dcmdOk;
@@ -230,7 +251,7 @@ int Device::query_Toggle(int port,DeviceCmd cmd)
 int Device::query_Direction(int port,DeviceCmd cmd,float delta)
 {
 	assert(cmdIsDirection(cmd));
-	IOBuffer buffer(false,16);
+	IOBuffer buffer(false, 16);
 	buffer.write(delta);
 	buffer.flip();
 	return query(port,cmd,&buffer);
@@ -238,7 +259,7 @@ int Device::query_Direction(int port,DeviceCmd cmd,float delta)
 
 int Device::query_Target(int port,DeviceCmd subtype,const Pose::pos &target)
 {
-	IOBuffer buffer(false,16);
+	IOBuffer buffer(false, 16);
 	buffer.write(target);
 	buffer.flip();
 	return query(port,subtype,&buffer);
@@ -302,13 +323,13 @@ int Device::getPorts()const
 
 int Device::xWrongCmd()
 {
-	throw(std::exception("Device::xWrongCmd\n"));
+	throw(std::runtime_error("Device::xWrongCmd\n"));
 	return dcmdWrongType;
 }
 
 int Device::xWrongPort()
 {
-	throw(std::exception("Device::xWrongPort\n"));
+	throw(std::runtime_error("Device::xWrongPort\n"));
 	return 0;
 }
 
@@ -356,18 +377,20 @@ const Pose& Device::getPose() const
 /////////////////////////////////////////////////////////////////
 bool Device::takeControl(Device::Pointer device)
 {
-	if(!canControl(device))
+	if(!canControl(device.get()))
 		return false;
 	if(device->deviceMode == dmSlave)	/// cannot take control over slave
 		return false;	
 	
 	device->deviceMode = dmSlave;
-	device->controller = this;
+
+	// Is it proper pointer linking?
+	device->controller = shared_from_this();
 
 	return true;
 }
 
-bool Device::canControl(Device* device) const
+bool Device::canControl(const Device* device) const
 {	
 	return false;
 }
@@ -392,3 +415,5 @@ bool Device::useInvokers() const
 {
 	return deviceMode == dmManual;
 }
+
+} // namespace sim

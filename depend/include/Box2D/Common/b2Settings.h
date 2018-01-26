@@ -33,7 +33,7 @@ typedef signed short int16;
 #endif
 #ifndef int32
 typedef signed int int32;
-#endif int32
+#endif
 #ifndef uint8
 typedef unsigned char uint8;
 #endif

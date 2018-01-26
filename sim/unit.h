@@ -1,7 +1,12 @@
 #pragma once
-#include "../sim/device.h"
-#include "../sim/gameObject.h"
-#include "../sim/objectManager.h"
+
+#include "device.h"
+#include "gameObject.h"
+#include "objectManager.h"
+
+namespace sim
+{
+
 class Unit;
 class Item;
 class Inventory;
@@ -34,19 +39,19 @@ enum UnitState
 //////////////////////////////////////////////////////////////
 //base class for all units with devices
 //////////////////////////////////////////////////////////////
-class UnitDef: public GameObjectDef//,public AssemblyDef
+#ifdef FUCK_THIS
+class UnitDef: public GameObjectDef
 {
 public:
 	friend class ObjectManager;
 	friend class Unit;
 
-	OBJECT_DEF(Unit,typeUnit);
+	//OBJECT_DEF(Unit, typeUnit);
 
 	float health;
 
-	FxEffect *fxMove;
+	Fx::EntityPtr fxMove;
 	std::vector<MountDef> mounts;
-	//enum{MaxMounts = 16};
 	
 	//StaticArray<MountDef,MaxMounts> mounts;
 //	/// adds mounta
@@ -58,39 +63,40 @@ public:
 	void clearMounts();
 	
 	int init();
-	Unit* construct(IO::StreamIn *context);
-	GameObject * create(IO::StreamIn * buffer);
+	Unit* construct(StreamIn *context);
+	GameObject * create(StreamIn * buffer);
 protected:
 	UnitDef(const UnitDef& def);
 };
+#endif
 
 class Unit: public GameObject
 {
 	friend class Device;
 public:
-	struct DeviceListener : virtual public Referenced
+
+	class DeviceListener
 	{
+	public:
 		virtual void onInstallDevice(Device::Pointer device, int id) {}
 		virtual void onRemoveDevice(Device::Pointer device) {}
 		//virtual void onInitFinished(Assembly * assembly) {}
 	};
 	typedef ObjectManager Manager;
 
-	//Inventory *inventory;
-	//CommandAI * ai;
 	bool local;
 	bool useAI;
 	unsigned char  stats[StatsMax];
 
 	std::vector<Device*> devices;
-	//Mover *mover;
-	//Perception * perception;
-
 	Controller *controller;			// player or AI
-	UnitDef *definition;
+	Unit *definition;
+
+	Fx::EntityPtr fxMove;
+	std::vector<MountDef> mounts;
+
 public:		
-	OBJECT_IMPL(Unit,typeUnit);
-	Unit(UnitDef *def);	
+	Unit(Unit* def=nullptr);
 	~Unit();
 	
 	Controller * getController();
@@ -113,17 +119,17 @@ public:
 	virtual void update(float dt);	
 
 	/// from Assembly
-	virtual void useDevice(int device,int port,int action,IOBuffer *buffer);		
+	virtual void useDevice(int device,int port,int action, IOBuffer *buffer);
 	// NetObject implementation
 	//int writeDesc(IOBuffer &buffer);
 	//int readDesc(IOBuffer &buffer);
 	Device * getDevice(size_t id);
 
-	int writeState(IO::StreamOut &buffer);
-	int readState(IO::StreamIn &buffer);	
+	int writeState(StreamOut &buffer);
+	int readState(StreamIn &buffer);
 	// for level saving
-	virtual void save(IO::StreamOut & stream);
-	virtual void load(IO::StreamIn & stream);
+	virtual void save(StreamOut & stream);
+	virtual void load(StreamIn & stream);
 	// commands
 	void cmdStop();	// clear all orders
 	void cmdStand(float distance);
@@ -134,9 +140,11 @@ public:
 	void cmdGuard(float x,float y,float distance);
 };
 
-typedef SharedPtr<Unit> UnitPtr;
+typedef std::shared_ptr<Unit> UnitPtr;
 
 /////////////////////////////////////////////////////////////////
 // lua/tolua utilities
 bool equal(const GameObject * a,const GameObject * b);
 Unit *toUnit(GameObject *object);
+
+} // namespace sim

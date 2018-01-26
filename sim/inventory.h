@@ -1,11 +1,17 @@
 #pragma once
-#include "../sim/gameObject.h"
+
+
+#include "gameObject.h"
+
+namespace sim
+{
 class Item;
 class ObjectManager;
 typedef ObjectManager ItemManager;
 class Unit;
 
-class ItemDef: public GameObjectDef
+#ifdef FUCK_THIS
+class ItemDef
 {
 public:
 	friend Item;
@@ -27,6 +33,8 @@ protected:
 	ItemDef(const ItemDef &def);
 };
 
+#endif
+
 class Item : public GameObject
 {
 public:
@@ -36,22 +44,34 @@ public:
 		placeLand,
 	}state;	
 	int stack;			// number of items in stack
-	OBJECT_IMPL(Item,typeItem);
+
+	// From ItemDesc
+	std::string itemType;
+	int maxStack;
+	int maxHealth;
+
+	float size;			// all items are square shape
 public:
-	Item(ItemDef *def);
+	Item(ItemManager* im, Item* proto);
 	~Item();
 
+#ifdef FUCK_THIS
 	int writeDesc(IOBuffer &context);
 	int readDesc(IOBuffer &context);
+#endif
 	
 	virtual void update(float dt);
 
-	CollisionGroup getCollisionGroup()const
+	CollisionGroup getCollisionGroup() const
 	{
 		return cgBody;
 	}
+
+private:
+	Item* prototype;
 };
 
+/// Contains a set of items
 class Inventory
 {
 public:
@@ -62,13 +82,15 @@ public:
 	typedef std::list<Item*> Container;
 	Container items;
 public:
-	Inventory(Unit *own,const Pose &offs);
-	~Inventory();
+	Inventory(Unit *own, const Pose &offs);
+	virtual ~Inventory();
 	virtual void addItem(Item *item);
 	virtual void removeItem(Item *item);
 	virtual bool hasItem(Item *item);
 	virtual void update(float dt);
 
-	virtual void save(IO::StreamOut & stream);
-	virtual void load(IO::StreamIn & stream);
+	virtual void save(StreamOut & stream);
+	virtual void load(StreamIn & stream);
 };
+
+}

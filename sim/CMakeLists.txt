@@ -1,7 +1,10 @@
+add_subdirectory(luabox)
+
 add_library(sim
-	device.cpp
+	solidobject.cpp
 	gameObject.cpp
 	inventory.cpp
+	device.cpp
 	mover.cpp
 	moverCharacter.cpp
 	moverVehicle.cpp
@@ -16,4 +19,7 @@ add_library(sim
 	weaponBeam.cpp
 	weaponProjectile.cpp
 	weaponTurret.cpp
+	
 )
+
+target_link_libraries(sim lua)

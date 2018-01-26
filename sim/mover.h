@@ -1,32 +1,16 @@
 #ifndef MOVER_INCLUDED
 #define MOVER_INCLUDED
 
-#include "../sim/device.h"
-#include "../sim/gameObject.h"
-#include "../sim/objectManager.h"
-//////////////////////////////////////////////////////////////////////////
-// ��� �� ������ �����: ��������� � �����, ��������� � ����� � ������������
-//////////////////////////////////////////////////////////////////////////
+#include "device.h"
+#include "gameObject.h"
+#include "objectManager.h"
 
-class Mover: public Device//, public WorldObject
+class Mover: public Device
 {
 	friend class ObjectManager;	
 public:
-	class Definition: public DeviceDef
-	{
-	public:
-		Definition(ObjectManager & manager);
-		virtual ~Definition();
-		/// pathfinder settings
-		int adjacency;
-		bool bounds;
-		bool smooth;	
-		bool heuristic;
-		pathProject::PathProcess * pathProcess;	// for grid pathfinding
-	};
-	typedef Definition MoverDef;
-	class Driver;
 	friend class Driver;
+
 	enum State
 	{
 		Idle,
@@ -39,7 +23,7 @@ public:
 		virtual void onSetState(int state,float value)=0;
 	}*listener;
 
-	Mover(MoverDef *def);
+	Mover(Mover* def);
 	//int readDesc(IOBuffer &context);
 	//int writeDesc(IOBuffer &context);	
 	int readState(IO::StreamIn &buffer);
@@ -58,18 +42,26 @@ public:
 
 	virtual void directionControl(const Pose::vec& direction, float speed) = 0;
 	virtual float getMaxVelocity(int dir) const { return 0.f;}
+
 #ifdef DEVICE_RENDER
 	virtual void render(HGE * hge);
 #endif
+
 	pathProject::PathProcess * pathProcess();
 	Pose::vec getLastControl() const;
+
 protected:	
 	Pose::vec lastControl;
 	Driver * driver;
-	State state;	
-};
+	State state;
 
-typedef Mover::Definition MoverDef;
+	/// From definition
+	int adjacency;
+	bool bounds;
+	bool smooth;
+	bool heuristic;
+	//pathProject::PathProcess * pathProcess;	// for grid pathfinding
+};
 
 class Mover::Driver : public PathFinder::Client
 {

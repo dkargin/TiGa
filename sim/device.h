@@ -1,14 +1,16 @@
 #pragma once
-#include "../sim/objectManager.h"
+
+#include "basetypes.h"
+#include "objectManager.h"
+
+namespace sim
+{
 
 class Assembly;
+class Device;
+
 typedef int DCmd;
 const int DeviceMaxPorts = 4;
-
-class _Scripter;
-//class lua_State;
-//class CmdInvoker;
-
 
 template<class Type,int N> inline std::vector<Type> makeVec(Type source[N])
 {
@@ -27,7 +29,7 @@ public:
 	//int device;		//	device index
 	int port;		//	command port
 	virtual ~CmdInvoker(){};
-	virtual int invoke(Device *device,Key key,bool down,const Pose::pos &pos,float wheel)=0;
+	virtual int invoke(Device *device, Key key, int down, const Pose::pos &pos, float wheel) =0;
 };
 ///////////////////////////////////////////////////////////////////////////
 /// Contains the set of invokers
@@ -52,7 +54,7 @@ public:
 	// add invoker for dcmdAction
 	int invokerAction(int port,Key action);
 	// invoke actions
-	int onControl(Device * device,Key key,bool down,float x,float y,float wheel);
+	int onControl(Device * device, Key key, int status, float x, float y, float wheel);
 	/// if we use invoker system
 	virtual bool useInvokers() const;
 };
@@ -65,29 +67,28 @@ enum DeviceMode
 	dmManual,			/// device is controlled by player manually (keyboard + mouse?)
 };
 
+/// Description for mounting point
+/// Device can be attached to mount points
 struct MountDef
 {	
 	Pose pose;
-	DeviceDef *device;	
-	MountDef():device(NULL){}
-	MountDef(const MountDef &def):device(def.device),pose(def.pose){}
+	Device* device = nullptr;
 };
 /////////////////////////////////////////////////////////////////////////
 // Base class for any device that can be mounted on unit
-// 
 /////////////////////////////////////////////////////////////////////////
-class Device: virtual public NetObject, virtual public Referenced
+class Device:
+		public NetObject,
+		public std::enable_shared_from_this<Device>
 {
 	friend ObjectManager;
-	friend bool connectDevices(Device * controller,Device *controlled);
+	friend bool connectDevices(Device * controller, Device *controlled);
 public:
 	typedef Device RootObject;
-	typedef DeviceDef RootObjectDef;
-	typedef SharedPtr<Device> Pointer;
-	
+	typedef std::shared_ptr<Device> Pointer;
 	typedef ObjectManager Manager;
 
-	Device(DeviceDef *def);
+	Device(Device* prototype=nullptr);
 	virtual ~Device();
 
 	virtual void onInstall(Unit * unit, size_t id, const Pose & pose);	// called when device installed into an assembly
@@ -97,17 +98,15 @@ public:
 #ifdef DEVICE_RENDER
 	virtual void render(HGE * hge){}
 #endif
-	virtual ObjectManager * getManager();	
-	virtual DeviceDef * getDefinition();
+	virtual ObjectManager * getManager();
+	virtual Device * getDefinition();
 	virtual b2Body * getBody();
 	virtual Unit * getMaster(){return master;}
 	virtual const b2Body * getBody()const;
 
 	/// control interfaces
-	virtual bool canControl(Device * device) const;
+	virtual bool canControl(const Device * device) const;
 	virtual bool takeControl(Device::Pointer device);
-//	typedef std::vector<DevInterface*> Interfaces;
-//	Interfaces getInterfaces();
 	/// ports
 	virtual int getPorts()const;									/// return active control ports
 	virtual bool validCommand(int port,DeviceCmd cmd)const=0;		/// is valid command type for port
@@ -123,11 +122,10 @@ public:
 	virtual int execute_Toggle(int port,DeviceCmd subtype);
 	virtual int execute_Direction(int port,DeviceCmd subtype,float delta);
 	virtual int execute_Target(int port,DeviceCmd subtype,const Pose::pos &target);
-
 	virtual int execute(int port,DeviceCmd action,IOBuffer *buffer = NULL);	/// command execution code for server
 	
 	// invoke actions
-	int onControl(InvokerContainer::Key key,bool down,float x,float y,float wheel);
+	int onControl(InvokerContainer::Key key, int down,float x,float y,float wheel);
 	// use invokers only in manual mode
 	bool useInvokers()const;
 	//// process controls. Called from LUA
@@ -140,27 +138,28 @@ public:
 	virtual Pose getGlobalPose() const;
 protected:
 	virtual bool executeControl(Device * device, float dt);
+
 public:
-	FxHolder effects;
-	FxPointer fxIdle;
-	int lua;	
-	DeviceMode deviceMode;	
+	Fx::EntityPtr effectContainer;
+	Fx::EntityPtr fxIdle;
+	int lua;
+	DeviceMode deviceMode;
 protected:
 	Pointer parent;
-	Pointer controller;		/// controlling device
-	Unit * master;			/// device owner
-	int id;					/// device index in unit's array
-	Pose pose;				/// relative pose
-	DeviceDef * definition;
+	Pointer controller;		///< controlling device
+	Unit * master;				///< device owner
+	int id;								///< device index in unit's array
+	Pose pose;						///< relative pose
 
 	void setMode(DeviceMode mode);
-	//DeviceManager * manager;
 	int xWrongPort();
 	int xWrongCmd();
+private:
+	Device* prototype;
 };
 
 typedef ObjectManager DeviceManager;
-
+#ifdef FUCK_THIS
 class DeviceDef: public LuaObject, public InvokerContainer
 {
 protected:
@@ -169,15 +168,22 @@ public:
 	typedef Device RootObject;
 	typedef DeviceDef RootObjectDef;
 
-	std::string name;			// object name
+	std::string name;					// object name
 
-	FxPointer fxIdle;			// effects for idle state
+	Fx::EntityPtr fxIdle;			// effects for idle state
+
 	DeviceDef(ObjectManager & manager):manager(manager){}
 	DeviceDef(const DeviceDef &def):manager(def.manager){}
 	virtual ~DeviceDef(){}
-	virtual Device * create(IO::StreamIn *context = NULL) = 0;
+
+	virtual Device * create(StreamIn *context = NULL) = 0;
 	int init();	
-	_Scripter * getScripter();
+
+	Scripter * getScripter();
 
 	ObjectManager &manager;	
 };
+
+#endif
+
+}

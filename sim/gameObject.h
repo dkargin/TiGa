@@ -1,18 +1,18 @@
-#ifndef GAME_OBJECT
-#define GAME_OBJECT
-
-//#include "ioTools.h"
-
 #pragma once
-#pragma warning(disable:4250)
 
-class GameWorld;
-class _Scripter;
-class b2Body;
-struct lua_State;
-template<class T> class ObjStore;
+#include <vector>
+#include <memory>
+
+#include <fxobjects.h>
+
+#include "solidobject.h"
+
+
+namespace sim
+{
 
 // Header for network message
+// TODO: Move it to a better place
 struct MsgHeader
 {
 	int frame;		// message frame
@@ -55,7 +55,6 @@ enum CollisionGroup
 	cgMax,
 };
 
-typedef Pose2z Pose;
 
 class PerceptionClient;
 
@@ -83,99 +82,17 @@ public:
 		return bLocal;
 	}	
 	// update routines
+#ifdef FUCK_THIS
 	virtual int writeState(IO::StreamOut &buffer)=0;
-	virtual int readState(IO::StreamIn &buffer)=0;	
+	virtual int readState(IO::StreamIn &buffer)=0;
+#endif
 };
-
-#include <fxobjects.h>
 
 template<class Type> struct TypeInfo{};
 
 class Unit;
 class ObjectManager;
-typedef float Damage;
-
 class GameObject;
-/// Polygon description for box2d body. Only maximum of 8 vertices is permitted
-struct PolyDesc
-{
-	std::vector<vec2f> points;
-
-	void addPoint(float x,float y);
-	void addPoint(const vec2f & point);
-};
-
-typedef Geom::_Sphere<vec2f> Sphere2;
-typedef Geom::_AABB<vec2f> AABB2;
-/// description for box2d body
-class BodyDesc: public Referenced, public b2BodyDef
-{
-public:
-	//struct FixtureDef: public b2FixtureDef {};
-	typedef b2FixtureDef FixtureDef;
-	std::vector<FixtureDef> fixtures;
-	b2BlockAllocator allocator;
-	ObjectManager * manager;
-	bool frozen;
-
-	BodyDesc(ObjectManager * manager);  
-	~BodyDesc();
-	BodyDesc(const BodyDesc & desc);
-
-	b2Body * create();
-	float mass()const;
-	bool isEmpty()const;  /// if result body is empty
-
-	b2FixtureDef & addBox(float width,float height,float density);
-	b2FixtureDef & addSphere(float size,float density);
-	b2FixtureDef & addPolygon(const PolyDesc &desc,float density);
-	const AABB2& getOOBB();
-	const Sphere2& getBoundingSphere();
-	BodyDesc & operator = (const BodyDesc & body);
-protected:  
-	b2FixtureDef & addFixture(float density, b2Shape & shape);	/// create new fixture
-	void updateBounds();	/// update bounds
-
-	bool bounds;			/// if bounds are updated
-	AABB2 boundBox;
-	Sphere2 boundSphere;
-private:
-	//
-	void assign(const BodyDesc & desc);
-};
-
-// Contains Box2D solid body
-class SolidObject
-{
-protected:
-	Pose pose;    /// cached pose	
-	b2Body * solid;
-	void updateSolidPose();  /// update solid body position
-public:
-	SolidObject();
-	virtual ~SolidObject();
-
-	bool isSolid()const;  /// if object has box2d body attached
-	/// box2d handling
-	void detachBody();
-	void attachBody(b2Body * s);
-	const b2Body  * getBody() const;
-	b2Body  * getBody();	
-	void syncPose();	// sync cached pose with solid
-
-	Pose::vec getVelocityLinear() const;
-	Pose::vec3 getVelocityLinear3() const;
-	/// Pose
-	const Pose::pos & getPosition() const;
-	Pose::vec getDirection() const;
-	void setPosition(const Pose::pos &pos);
-	void setDirection(const Pose::vec &dir);
-	void setPose(const Pose &pose);
-	Pose getPose() const;	
-	/// Geometry
-	Sphere2 getBoundingSphere()const;
-	AABB2	getOOBB()const;			// get object oriented bounding box	
-};
 
 #ifdef FUCK_THIS
 // Basic definition for game object. 
@@ -216,40 +133,46 @@ private:
 
 typedef float Health;
 
-class GameObject: public SolidObject, public NetObject,virtual public LuaObject
+class GameObject:
+		public SolidObject,
+		public NetObject,
+		public std::enable_shared_from_this<GameObject>,
+		public LuaBox::LuaObject
 {
 public:
 	typedef GameObject RootObject;
-	typedef GameObjectDef RootObjectDef;
 	friend class ObjectManager;
-	friend class ObjectDef;
-	friend class ObjStore<GameObject>;
+
 	struct IDamageListener
 	{
 		virtual void onDamage(const Damage &dmg)=0;
 	};
 
-	FxEffect::Pointer effects;
-//	FxModel *model;
+	// Moved from Desc
+	std::string name;					/// do we need this name?
+	Fx::EntityPtr fxIdle;
+	Fx::EntityPtr fxDie;
+	BodyDesc body;
+
+	Fx::EntityPtr effects;
 	IDamageListener * onDamage;
 	int player;				///< the player owning this object
 protected:	
 	Health health, maxHealth;				///< current health
-	GameObjectDef * definition;			///< object definition
 	CollisionGroup collisionGroup;	///< current collison group
 	ObjectManager * manager;				///< where is it stored
 
 public:
-	GameObject(ObjectManager *parent, GameObjectDef* def);
+	GameObject(ObjectManager* parent);
 	virtual ~GameObject();
 
-	virtual void save(IO::StreamOut & stream);
-	virtual void load(IO::StreamIn & stream);
+	virtual void save(StreamOut & stream);
+	virtual void load(StreamIn & stream);
 
-	virtual GameObjectDef * getDefinition();
-	virtual ObjectManager * getManager();
+	virtual GameObject* getDefinition() = 0;
+	virtual ObjectManager* getManager();
 	virtual ObjectType getType() const;
-	virtual _Scripter * getScripter();
+	virtual Scripter * getScripter();
 
 	bool isUnique()const;
 
@@ -258,8 +181,8 @@ public:
 		return getBoundingSphere().radius;
 	}
 
-	virtual Sphere2 getBoundingSphere()const;
-	virtual AABB2	getOOBB()const;			// get object oriented bounding box
+	virtual Sphere2 getBoundingSphere() const;
+	virtual AABB2	getOOBB() const;			// get object oriented bounding box
 	
 	virtual void setCollisionGroup(CollisionGroup group);
 	virtual CollisionGroup getCollisionGroup()const;
@@ -279,16 +202,17 @@ public:
 	virtual void setPlayer(int p);
 
 	virtual void update(float dt);  
-
-	virtual int writeState(IO::StreamOut &buffer);
-	virtual int readState(IO::StreamIn &buffer);
-	
+	virtual int writeState(StreamOut &buffer);
+	virtual int readState(StreamIn &buffer);
 	size_t id() const{return localID;}
 protected:
-	size_t localID;			/// object id	
+	size_t localID;			/// object id
+
+private:
+	GameObject* prototype;
 };
 
-typedef SharedPtr<GameObject> GameObjectPtr;
+typedef std::shared_ptr<GameObject> GameObjectPtr;
 
 float GetCollisionSize(GameObject * object);
 
@@ -311,11 +235,10 @@ bool isHostile(const GameObject *a,const GameObject *b);
 	const char * luaName()const { return #Type;} \
 	inline Type##Def& localDef(){return (Type##Def &)*definition;}
 
-b2Body * createSolidBox(ObjectManager *m,float width,float height,float mass);
-b2Body * createSolidSphere(ObjectManager *m,float size,float mass);
+b2Body * createSolidBox(ObjectManager *m, float width, float height, float mass);
+b2Body * createSolidSphere(ObjectManager *m, float size, float mass);
 
 //void createObjectBox(GameObject * object, float width,float height,float mass);
 //void createObjectSphere(GameObject *object, float size,float mass);
 
-//void localPrintf(const char *msg);
-#endif
+} // namespace sim

@@ -1,6 +1,6 @@
 #ifndef MOVER_CHARACTER_INCLUDED
 #define MOVER_CHARACTER_INCLUDED
-#include "../sim/mover.h"
+#include "mover.h"
 
 /////////////////////////////////////////////////////////////
 // ��������� characterController ��� ��� ������

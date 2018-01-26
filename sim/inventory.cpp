@@ -1,9 +1,11 @@
-#include "../sim/inventory.h"
+#include "inventory.h"
+#include "device.h"
+#include "objectManager.h"
+#include "unit.h"
 
-#include "../sim/device.h"
-#include "../sim/objectManager.h"
-#include "../sim/unit.h"
-#include "stdafx.h"
+namespace sim
+{
+#ifdef FUCK_THIS
 //#include "world.h"
 //#include "globals.h"
 ///////////////////////////////////////////////////////////////////////////////
@@ -62,25 +64,48 @@ Item * ItemDef::construct(IO::StreamIn *context)
 	}	
 	return result;
 }
+
+#endif
 ///////////////////////////////////////////////////////////////////////////////
 // Item
 ///////////////////////////////////////////////////////////////////////////////
-Item::Item(ItemDef *def)
-:state(Item::placeLand),GameObject(def->manager,def)
+Item::Item(ItemManager* im, Item* def)
+:state(Item::placeLand), GameObject(im)
 {
-	if(def->fxIdle)
+	prototype = def;
+	// TODO construct using prototype
+	maxStack = 1;
+	maxHealth = 1;
+
+	if(def)
 	{
-		effects = def->fxIdle->clone();
-		//effects.attach(def->fxIdle->clone());
+		maxStack = def->maxStack;
+		maxHealth = def->maxHealth;
+
+		if(def->fxIdle)
+		{
+			effects.reset(def->fxIdle->clone());
+			//effects.attach(def->fxIdle->clone());
+		}
+		stack = def->stack;
+		size = def->size;
+	}
+	else
+	{
+		stack = 1;
+		size = 1.0;
 	}
 }
+
 Item::~Item()
 {}
+
 void Item::update(float dt)
 {
   GameObject::update(dt);
 }
 
+#ifdef FUCK_THIS
 int Item::writeDesc(IOBuffer &context)
 {
 	//ID id=b2Body?b2Body->getID():-1;
@@ -88,6 +113,7 @@ int Item::writeDesc(IOBuffer &context)
 	//xwrite(*context,id);
 	return 0;
 }
+
 int Item::readDesc(IOBuffer &context)
 {
 	//ID id=b2Body?b2Body->getID():-1;
@@ -95,6 +121,7 @@ int Item::readDesc(IOBuffer &context)
 	//xwrite(*context,id);
 	return 0;
 }
+#endif
 ///////////////////////////////////////////////////////////////////////////////
 // Inventory
 ///////////////////////////////////////////////////////////////////////////////
@@ -149,11 +176,11 @@ void Inventory::update(float dt)
 	}
 }
 
-void Inventory::save(IO::StreamOut & stream)
+void Inventory::save(StreamOut & stream)
 {
 }
 
-void Inventory::load(IO::StreamIn & stream)
+void Inventory::load(StreamIn & stream)
 {
 }
 ////////////////////////////////////////////////////////////////////////////////
@@ -176,3 +203,5 @@ void Inventory::load(IO::StreamIn & stream)
 //	for(Objects::iterator it=objects.begin();it!=objects.end();++it)
 //		(*it)->update(dt);
 //}
+
+} // namespace sim

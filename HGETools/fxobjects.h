@@ -43,6 +43,7 @@ typedef std::shared_ptr<FxSound> FxSoundPtr;
 typedef std::shared_ptr<FxSprite> FxSpritePtr;
 typedef std::shared_ptr<FxParticles> FxParticlesPtr;
 typedef std::shared_ptr<FxAnimation2> FxAnimation2Ptr;
+typedef std::shared_ptr<FxManager> FxManagerPtr;
 
 
 // Contains view pose + scale + range limits

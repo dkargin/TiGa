@@ -13,10 +13,18 @@ This is an old sumulation/game platform that I used as a base for my graduation 
 
 1. Make C++ part mostly buildable by cmake
 	- add all projects to cmake
-	- fix FX/GUI library
+	- fix FX/GUI library. 				DONE mostly
 		- strip direct references to HGE
 		- implement proper wrappers for resource access: RenderContext, PolyBatch
-	- add proper HGE version
+	- add proper HGE version. 			HGE is not going to work properly. We will move to SDL
+	- fix sim					In progress
+	- fix game
+	- replace HGE stuff by SDL
+		- TextureManager
+		- Image loading
+		- SoundManager
+		- Font stuff
+	- where's my Scripter stuff?
 1. Make it runnable again. Just in minimal way, without scripts
 1. Deal with SWIG/Lua. I want to get more direct bindings between simulation objects and lua scripts
 1. Blow half of it and refactor. Old idea of ObjectDef<->Object pair is total crap and I should rework it. Any sort of 'ObjectDef' stuff will be merged to appropriate class

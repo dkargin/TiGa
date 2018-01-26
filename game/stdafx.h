@@ -65,20 +65,7 @@
 */
 
 #define LUABOX_BINDER_SWIG
-#include <scripter.hpp>
-
-inline const vec2f & conv(const b2Vec2 &v)
-{
-	return *reinterpret_cast<const vec2f*>(&v);
-}
-inline const b2Vec2 &b2conv(const vec2f &v)
-{
-	return *reinterpret_cast<const b2Vec2*>(&v);	
-}
-inline const b2Vec2 &b2conv(const vec3f &v)
-{
-	return *reinterpret_cast<const b2Vec2*>(&v);	
-}
+#include "../sim/luabox/scripter.hpp"
 
 bool pushObjectPtr(lua_State *l,void *object,const char *name);
 
