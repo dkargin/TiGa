@@ -1,34 +1,38 @@
 #pragma once
-#include "../sim/unit.h"
-#include "../sim/weapon.h"
-class ProjectileDef;
+
+#include "unit.h"
+#include "weapon.h"
+
+namespace sim
+{
+
 class Unit;
-
 class WeaponTurret;
-class WeaponTurretDef;
-//typedef DevicePair<WeaponTurretDef,WeaponTurret,WeaponPair> WeaponTurretPair;
+//class TurretDriver;
 
-class TurretDriver;
 class WeaponTurret: public Weapon//, virtual public ProtoImpl<WeaponTurret,Device>
 {
 	friend class TurretDriver;	
 	float angle;		// angle in degrees
 	float direction;	// -1,0,1
 	
-	WeaponTurretDef * definition;
+	// From definition
+	float velocity;
+	float dimensions;
+
+	//WeaponTurretDef * definition;
 public:	
 	enum {portTurn=1};
 
-	WeaponTurret(WeaponTurretDef * definition);
-	//WeaponTurret(DeviceManager *manager);
+	WeaponTurret(WeaponTurret* proto=nullptr);
 	~WeaponTurret();
 
 	float getDimensions() const ;
 	void stop();
 	//int writeDesc(IOBuffer &context);
 	//int readDesc(IOBuffer &context);
-	int writeState(IO::StreamOut &buffer);
-	int readState(IO::StreamIn &buffer);
+	int writeState(StreamOut &buffer);
+	int readState(StreamIn &buffer);
 
 	virtual void update(float dt);	
 	virtual float getCurrentAngle() const;					// get current muzzle angle
@@ -37,12 +41,13 @@ public:
 	bool canReach(const Pose::pos &v) const;				// if vector is in reachable zone
 	bool fullTurn()const;							// if region [-180,180] is reachable
 	
-	DeviceDef * getDefinition();
+	//DeviceDef * getDefinition();
 
-	bool validCommand(int port,DeviceCmd cmd)const;
-	int execute_Direction(int port,DeviceCmd action,float value);	
+	bool validCommand(int port, DeviceCmd cmd) const;
+	int execute_Direction(int port, DeviceCmd action, float value);
 };
 
+#ifdef FUCK_THIS
 class WeaponTurretDef: public WeaponDef
 {
 public:
@@ -55,17 +60,16 @@ public:
 		dimensions=360.0f;
 		invokerParam(1,HGEK_E,HGEK_Q);
 	}
-	Device * create(IO::StreamIn *context=NULL)
+	Device * create(StreamIn *context=NULL)
 	{
 		return new WeaponTurret(this);
 	}
 };
+
+#endif
+
 // lua helper functions
 WeaponTurret* toTurret(Device * weapon);
-//WeaponTurret::Driver * getTurretDriver(Weapon * weapon);
-//
-class TurretDriverDef;
-//
 
 struct TrackingInfo
 {
@@ -75,44 +79,46 @@ struct TrackingInfo
 	float size;		// target size
 };
 
-class TurretDriver//: public Device
+class TurretDriver
 {
-	float minError;
+
 public:
-	TurretDriver();
-	~TurretDriver();
+	float minError = 0.4;
+
+	virtual ~TurretDriver() {}
 	virtual bool aim(WeaponTurret * weapon,const TrackingInfo& info,float dt);
 };
 
-class TargetingSystemDef;
+
 /// gets cmdTarget
 class TargetingSystem : public Device, public Unit::DeviceListener
 {	
 public:
 	enum { portTarget = 0 };	
 
-	TargetingSystem(TargetingSystemDef * def);
+	TargetingSystem();
 	~TargetingSystem();
 
-	int writeState(IO::StreamOut &buffer);
-	int readState(IO::StreamIn &buffer);
+	int writeState(StreamOut &buffer);
+	int readState(StreamIn &buffer);
 
 	void onInstall(Unit * unit,size_t id, const Pose & pose);
 
-	DeviceDef * getDefinition();
+	//DeviceDef * getDefinition();
 	bool validCommand(int port,DeviceCmd cmd)const;
 	virtual bool canControl(Device * device) const;
 	virtual int execute_Target(int port,DeviceCmd subtype,const Pose::pos &target);
 
-	virtual void onInstallDevice(Device::Pointer device, int id);
+	virtual void onInstallDevice(DevicePtr device, int id);
 
 	virtual void checkDevices();
 protected:
 	virtual bool executeControl(Device * device, float dt);
-	TargetingSystemDef * definition;
+	//TargetingSystemDef * definition;
 	TrackingInfo info;
 };
 
+#ifdef FUCK_THIS
 class TargetingSystemDef : public DeviceDef
 {
 protected:
@@ -128,20 +134,5 @@ public:
 		return new TargetingSystem(this);
 	}
 };
-/*
-class TurretDriverDef: public DeviceDef
-{
-public:
-	bool trackMoving;
-	float error;		// mimimal aiming error, [deg]
-
-	TurretDriverDef(DeviceManager &m):DeviceDef(m),error(1.0f)
-	{
-		invokerTarget(TurretDriver::portTarget,HGEK_LBUTTON,0,0);
-	}
-	Device * create(IO::StreamIn *context=NULL)
-	{
-		return new TurretDriver(this,context);
-	}
-};
-*/
+#endif
+} // namespace sim

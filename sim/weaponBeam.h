@@ -1,5 +1,7 @@
 #pragma once
 
+namespace sim
+{
 class WeaponBeam;
 class WeaponBeamDef;
 typedef DevicePair<WeaponBeamDef,WeaponBeam,WeaponPair> WeaponBeamPair;
@@ -17,6 +19,7 @@ public:
 	int readSync(IOBuffer &buffer);
 };
 
+#ifdef FUCK_THIS
 class WeaponBeamDef: public WeaponBeamPair::Def
 {
 public:
@@ -26,3 +29,5 @@ public:
 	FxBeam * beam;
 	WeaponBeamDef(DeviceManager *manager):Definition(manager),beam(NULL){}	
 };
+#endif
+}

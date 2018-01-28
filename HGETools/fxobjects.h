@@ -69,9 +69,9 @@ struct ObjectTracker
 #define FX_TYPE(TargetType,TypeID) \
 	friend class FxManager; \
 	typedef std::shared_ptr<TargetType> Pointer; \
-	Entity * clone() const \
+	EntityPtr clone() const \
 	{ \
-		return new TargetType(*this); \
+		return EntityPtr(new TargetType(*this)); \
 	} \
 	EffectType type()const \
 	{ \
@@ -162,7 +162,7 @@ public:
 	// misc
 	virtual EffectType type() const;
 	virtual bool valid() const;
-	virtual Entity * clone() const;
+	virtual EntityPtr clone() const;
 
 protected:
 	Entity(const Entity &effect);

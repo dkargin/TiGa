@@ -35,20 +35,24 @@ protected:
 
 #endif
 
+enum class ItemStatus
+{
+	Void,							//< Item is not attached to the physical world
+	InInventory,			//< Item is stored in some inventory
+	OnGround,					//< Item is left on ground
+};
+
 class Item : public GameObject
 {
 public:
-	enum Place
-	{
-		placeInventory,
-		placeLand,
-	}state;	
 	int stack;			// number of items in stack
 
 	// From ItemDesc
 	std::string itemType;
 	int maxStack;
 	int maxHealth;
+
+	ItemStatus state;
 
 	float size;			// all items are square shape
 public:

@@ -2,10 +2,9 @@
 #include "mover.h"
 #include "unit.h"
 
-//using namespace pathProject;
-using namespace std;
-
 namespace sim {
+
+#ifdef FUCK_THIS
 ////////////////////////////////////////////////////////////
 //// Definition
 ////////////////////////////////////////////////////////////
@@ -52,28 +51,37 @@ void MoverVehicle::Definition::build()
 Mover::Driver * createFlockingDriver(MoverVehicle *m);
 Mover::Driver * createRVO2Driver(Mover* m);
 
-Device * MoverVehicle::Definition::create(IO::StreamIn * buffer)
+Device * MoverVehicle::Definition::create(StreamIn * buffer)
 {
 	build();
 	return new MoverVehicle(this,buffer);
 }
 
+#endif
 //////////////////////////////////////////////////////////
 // Object
 //////////////////////////////////////////////////////////
-MoverVehicle::MoverVehicle(MoverVehicleDef *def,IO::StreamIn *data)
-:Mover(def),turning(0),accelerate(0),definition(def)
+MoverVehicle::MoverVehicle(MoverVehicle* def, StreamIn *data)
+:Mover(def),prototype(def)
 {
+	turning = 0;
+	accelerate = 0;
 	currentVelocity[0]=0;
 	currentVelocity[1]=0;
-	//this->setDriver(createVehicleDriver(this));
-	//this->setDriver(createFlockingDriver(this));
-	//this->setDriver(createVO2Driver(this));
-	//this->setDriver(createVODriver(this));
-	this->setDriver(createRVO2Driver(this));
+	moveBack = true;
+	kinematic = true;
+	staticTurn = true;
+
+	//auto driver = createVehicleDriver(this);
+	//auto driver = createFlockingDriver(this);
+	//auto driver = createVO2Driver(this);
+	//auto driver = createVODriver(this);
+	//auto driver = createRVO2Driver(this);
+
+	//setDriver(driver);
 }
 
-int MoverVehicle::writeState(IO::StreamOut &buffer)
+int MoverVehicle::writeState(StreamOut &buffer)
 {
 	Mover::writeState(buffer);
 	buffer.write(accelerate);
@@ -81,7 +89,7 @@ int MoverVehicle::writeState(IO::StreamOut &buffer)
 	return 1;
 }
 
-int MoverVehicle::readState(IO::StreamIn &buffer)
+int MoverVehicle::readState(StreamIn &buffer)
 {
 	Mover::readState(buffer);
 	buffer.read(accelerate);
@@ -89,12 +97,12 @@ int MoverVehicle::readState(IO::StreamIn &buffer)
 	return 1;
 }
 
-bool MoverVehicle::validCommand(int port,DeviceCmd cmd)const
+bool MoverVehicle::validCommand(int port, DeviceCmd cmd)const
 {
 	return (port==portLinear || port==portAngular) && cmdIsDirection(cmd);
 }
 
-int MoverVehicle::execute_Direction(int port,DeviceCmd action,float value)
+int MoverVehicle::execute_Direction(int port, DeviceCmd action,float value)
 {
 	if(port==portLinear)
 	{
@@ -116,8 +124,9 @@ int MoverVehicle::execute_Direction(int port,DeviceCmd action,float value)
 	}
 	else
 		return xWrongPort();
-	accelerate = clamp(accelerate,-1.0f,1.0f); 
-	turning = clamp(turning,-1.0f,1.0f);
+
+	accelerate = math3::clamp<float>(accelerate,-1.0f,1.0f);
+	turning = math3::clamp<float>(turning,-1.0f,1.0f);
 	assert(fabs(accelerate)<=2.f);
 	assert(fabs(turning)<=2.f);
 	return dcmdOk;
@@ -134,26 +143,26 @@ void MoverVehicle::directionControl(const vec2f &dir, float speed)
 	Pose::vec control = dir * t + (1.f - t) * lastControl;
 	lastControl = control;
 	// 2. Calculate drive control for kinematics mode
-	if(definition->kinematic)
+	if(kinematic)
 	{
 		//float errorAngle = dir.length_squared() > 0.f ? vecAngle2d_CW(dir,unitDirection) : 0.f;//,vecAngle2d_CW(sumForce,unit->getDirection())};
 		float error[] = 
 		{
-			(speed - currentVelocity[0]) * fSign(unitDirection & control),
+			(speed - currentVelocity[0]) * math3::fSign(unitDirection & control),
 			dir.length_squared() > 0.f ? vecAngle2d_CW(control,unitDirection) : 0.f,
 		};
 	//	// 4. calculate prefered direction
 		if(error[1] > M_PI)
 			error[1] -= (2 * M_PI);
 		float turnTime = fabs(error[1] / currentVelocity[1]);
-		float brakingTime = sqrt(2 * fabs(error[1]) / definition->acceleration[1]);
+		float brakingTime = sqrt(2 * fabs(error[1]) / acceleration[1]);
 		if( currentVelocity[1] * error[1] >= 0.0)
 		{
 			
 			if(turnTime < brakingTime)
 				angle = -error[1];
 			else
-				angle = fSign(error[1]);
+				angle = math3::fSign(error[1]);
 
 			//if(fabs(turnTime) < 0.1)
 			//	angle = 0;
@@ -165,9 +174,10 @@ void MoverVehicle::directionControl(const vec2f &dir, float speed)
 		//angle = fSign(errorAngle);
 		//angle = errorAngle;
 		//angle = -fSign(currentVelocity[1]);
-		forward = clamp(deadZone(error[0],-0.1f,0.1f),-1.f,1.f);
+		float errorForward = math3::deadZone(error[0], -0.1f, 0.1f);
+		forward = math3::clamp<float>(errorForward,-1.f,1.f);
 		//angle = fSign(deadZone(angle,-0.1f,0.1f));
-		angle = clamp(angle,-1.f,1.f);
+		angle = math3::clamp<float>(angle,-1.f,1.f);
 	}
 	else
 	{
@@ -178,10 +188,13 @@ void MoverVehicle::directionControl(const vec2f &dir, float speed)
 		if(angle > M_PI)
 			angle -= (M_PI+M_PI);
 
-		forward = clamp(deadZone(speed,-0.1f,0.1f),-1.f,1.f);
-		angle = fSign(deadZone(angle,-0.1f,0.1f));
+		float errorForward = math3::deadZone(speed, -0.1f, 0.1f);
+		forward = math3::clamp<float>(errorForward,-1.f,1.f);
+		float errorAngle = math3::deadZone(angle,-0.1f,0.1f);
+		angle = math3::fSign(errorAngle);
 	}
-	// 4. fix values
+
+	// 4. fix values. Why do we reset it to zero?
 	if(fabs(forward)>1.f)
 		forward = 0.f;
 	if(fabs(angle)>1.f)
@@ -189,11 +202,6 @@ void MoverVehicle::directionControl(const vec2f &dir, float speed)
 	// 5. apply control
 	query_Direction(portLinear,dcmdDir_set, forward);	
 	query_Direction(portAngular,dcmdDir_set, angle);
-}
-
-DeviceDef * MoverVehicle::getDefinition()
-{
-	return definition;
 }
 
 void MoverVehicle::update(float dt)
@@ -214,11 +222,14 @@ void MoverVehicle::update(float dt)
 
 	if(driver && deviceMode == dmDriver)
 		driver->update(dt);
+
+#ifdef FUCK_THIS
 	if(definition->pathProcess)
 	{
 		float size = this->getMaster()->getBoundingSphere().radius;
 		definition->pathProcess->setSize(size);
 	}
+#endif
 /*
 	if(state == Idle)
 	{
@@ -227,30 +238,30 @@ void MoverVehicle::update(float dt)
 	}
 */
 	
-	if(definition->kinematic)
+	if(kinematic)
 	{		
 		b2Body * body = getBody();
 		b2MassData massData;
 		body->GetMassData(&massData);
 
-		float linearDamping = definition->acceleration[0]/(definition->maxVelocity[0] );//*definition->maxVelocity[0]);
-		float angularDamping = definition->acceleration[1]/(definition->maxVelocity[1] );//*definition->maxVelocity[1]);
+		float linearDamping = acceleration[0]/maxVelocity[0]; //*definition->maxVelocity[0]);
+		float angularDamping = acceleration[1]/maxVelocity[1]; //*definition->maxVelocity[1]);
 		body->SetLinearDamping(linearDamping);
 		body->SetAngularDamping(angularDamping);
 
 		if(true)
 		{
 			// Using force model
-			body->ApplyForce(b2conv(accelerate*definition->acceleration[0] * massData.mass *pose.getDirection()),b2conv(pose.position));
-			body->ApplyTorque(turning*definition->acceleration[1] * massData.I);
+			body->ApplyForce(b2conv(accelerate*acceleration[0] * massData.mass *pose.getDirection()),b2conv(pose.position));
+			body->ApplyTorque(turning*acceleration[1] * massData.I);
 			// Using impulse model
 			//body->ApplyLinearImpulse(b2conv((accelerate/dt)*definition->acceleration[0] * massData.mass *pose.getDirection()),b2conv(pose.position));
 			//body->ApplyAngularImpulse((turning/dt)*definition->acceleration[1] * massData.I);
 		}
 		else
 		{
-			body->ApplyForce(b2conv(accelerate*definition->acceleration[0] *pose.getDirection()),b2conv(pose.position));
-			body->ApplyTorque(turning*definition->acceleration[1]);
+			body->ApplyForce(b2conv(accelerate*acceleration[0] *pose.getDirection()),b2conv(pose.position));
+			body->ApplyTorque(turning*acceleration[1]);
 		}
 		// Comlensate steering - apply friction analog
 		body->ApplyLinearImpulse(b2conv(-strafe * Y * massData.mass), b2conv(pose.position));
@@ -262,10 +273,16 @@ void MoverVehicle::update(float dt)
 	}
 	else
 	{
-		body->SetLinearVelocity(b2conv(accelerate*definition->maxVelocity[0]*pose.getDirection()));
-		body->SetAngularVelocity(turning*definition->maxVelocity[1]);
+		vec2f limit = accelerate*maxVelocity[0]*pose.getDirection();
+		body->SetLinearVelocity(b2conv(limit));
+		body->SetAngularVelocity(turning*maxVelocity[1]);
 	}
-}	
+}
+
+float MoverVehicle::getMaxVelocity(int dir) const
+{
+	return maxVelocity[dir];
+}
 
 //////////////////////////////////////////////////////////
 // Manager/Factory

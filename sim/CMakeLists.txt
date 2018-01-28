@@ -14,12 +14,15 @@ add_library(sim
 	perceptionAI.cpp
 	projectile.cpp
 	thruster.cpp
-	turret.cpp
+	unit.cpp
 	weapon.cpp
 	weaponBeam.cpp
 	weaponProjectile.cpp
 	weaponTurret.cpp
-	
+	controllers/forceController.cpp
+	controllers/RVO2Controller.cpp
+	controllers/vo2Controller.cpp
+	controllers/voController.cpp
 )
 
 target_link_libraries(sim lua)

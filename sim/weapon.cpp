@@ -1,26 +1,12 @@
-#include "../sim/weapon.h"
+#include "weapon.h"
+#include "device.h"
+#include "projectile.h"
+#include "unit.h"
 
-#include "../sim/device.h"
-#include "../sim/projectile.h"
-#include "../sim/unit.h"
-#include "stdafx.h"
-//#include "world.h"
-
-WeaponData::WeaponData()
+namespace sim
 {
-	timeShootDuration = 1.f;
-	timeShootDelay = 1.f;
-	burstSize = 1;
-	burstDelay = 0;
-	spread = 0.03;
-	maxRange=1000;
-	barrels=1;
-	animations=1;
-}
-///////////////////////////////////////////////////////
-// Basic weapon definition
-///////////////////////////////////////////////////////
 
+#ifdef FUCK_THIS
 WeaponDef::WeaponDef(DeviceManager &m):DeviceDef(m),/*beam(NULL),*/projectile(NULL)/*weaponType(weaponProjectile),*/
 {
 	//beamWidth = 1;	
@@ -43,18 +29,26 @@ float WeaponDef::getEffectiveRange()const
 	return projectile->velocity * projectile->livingTime;
 	//return 0;
 }
+
+#endif
 ///////////////////////////////////////////////////////
 // Basic weapon
 ///////////////////////////////////////////////////////
-Weapon::Weapon(WeaponDef *def,IO::StreamIn * buffer)
-:Device(def),definition(def),time(0),fire(false)/*,beam(NULL)*/,weaponState(stateReady)
-{	
+Weapon::Weapon(Weapon* def,StreamIn * buffer)
+:Device(def)
+{
+	time = 0;
+	fire = false;/*,beam(NULL)*/
+	weaponState = stateReady;
+	ammo = 0;
+
 	memcpy(&weaponData, &def->weaponData,sizeof(weaponData));
 	burstLeft = 0;
+
 	if(def->fxShoot)
 	{
 		fxShoot = def->fxShoot->clone();
-		effects.attach(fxShoot);
+		fx_root.attach(fxShoot);
 	}
 }
 
@@ -102,6 +96,8 @@ void Weapon::shoot()
 void Weapon::doShoot(float dt)
 {
 	Pose spread(0,0,frand(weaponData.spread)*M_PI/180);
+	// TODO: Fix projectile spawning
+	throw std::runtime_error("Not implemented");
 	if(/*definition->weaponType==WeaponDef::weaponProjectile && */definition->projectile)
 	{
 		/// this conversion seems to be bad. Maybe better to use definition->construct ?
@@ -158,8 +154,10 @@ void Weapon::updateBurst(float dt)
 void Weapon::update(float dt)
 {
 	Device::update(dt);
-	effects.setPose(pose);
-	effects.update(dt);
+
+	fx_root->setPose(pose);
+	fx_root->update(dt);
+
 	if(weaponState == stateBurst)
 		updateBurst(dt);
 	else if (weaponState == stateDelay)
@@ -213,7 +211,7 @@ int Weapon::execute_Action(int port)
 	return 1;	
 }
 
-int Weapon::writeState(IO::StreamOut &buffer)
+int Weapon::writeState(StreamOut &buffer)
 {
 	buffer.write(fire);
 	buffer.write(time);
@@ -221,7 +219,7 @@ int Weapon::writeState(IO::StreamOut &buffer)
 	return 1;
 }
 
-int Weapon::readState(IO::StreamIn &buffer)
+int Weapon::readState(StreamIn &buffer)
 {
 	buffer.read(fire);
 	buffer.read(time);
@@ -229,7 +227,4 @@ int Weapon::readState(IO::StreamIn &buffer)
 	return 1;
 }
 
-DeviceDef * Weapon::getDefinition()
-{
-	return definition;
-}
+} // namespace sim

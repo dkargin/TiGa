@@ -145,24 +145,21 @@ Device::Device(Device* def)
 	deviceMode = dmManual;
 	prototype = nullptr;
 
+	fx_root.reset(new Fx::Entity());
+
 	if(def)
 	{
-		effectContainer.reset(def->effectContainer->clone());
 		prototype = def;
 
 		if(def->fxIdle)
 		{
-			fxIdle.reset(def->fxIdle->clone());
+			fxIdle = def->fxIdle->clone();
 		}
 	}
 
 	if(fxIdle)
 	{
-		if(effectContainer)
-		{
-			// TODO: Attache effect to a container
-			effectContainer->attach(fxIdle);
-		}
+		fx_root->attach(fxIdle);
 	}
 }
 
@@ -359,7 +356,7 @@ const Pose& Device::getPose() const
 /////////////////////////////////////////////////////////////////////////////////
 
 /////////////////////////////////////////////////////////////////
-bool Device::takeControl(Device::Pointer device)
+bool Device::takeControl(DevicePtr device)
 {
 	if(!canControl(device.get()))
 		return false;

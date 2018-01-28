@@ -1,18 +1,15 @@
-#include "../sim/objectManager.h"
+#include "objectManager.h"
 
-#include "stdafx.h"
+#include <fxmanager.h>
 #include <functional>
-#include <process.h>
 
-#include "../sim/unit.h"
-#include "../sim/weapon.h"
-/////////////////////////////////////////////////////////////
-// globals
-/////////////////////////////////////////////////////////////
-//extern Log * g_logger;
 
-bool traceDead=false;
-bool traceRemove=false;
+#include "unit.h"
+#include "weapon.h"
+#include "vision.h"
+
+namespace sim
+{
 
 struct NetCmdUseDevice
 {
@@ -32,15 +29,16 @@ ObjectManager::ClientInfo::~ClientInfo()
 
 bool ObjectManager::ClientInfo::haveMessages() const
 {
-	return messages!=NULL && messages->size()!=NULL;
+	return messages != nullptr && messages->size() != 0;
 }
 
-IO::StreamOut & ObjectManager::ClientInfo::getMessages()
+StreamOut & ObjectManager::ClientInfo::getMessages()
 {
 	if(!messages)
-		messages = new IO::StreamOut(false);
+		messages = new StreamOut(nullptr);
 	return *messages;
 }
+
 void ObjectManager::ClientInfo::cleanMessages()
 {
 	if(messages)
@@ -50,28 +48,33 @@ void ObjectManager::ClientInfo::cleanMessages()
 /////////////////////////////////////////////////////////////
 // ObjectManager
 /////////////////////////////////////////////////////////////
-ObjectManager::ObjectManager(_Scripter *scripter, FxManager::SharedPtr fxManager)
-:scripter(scripter)
-,perceptionManager(NULL)
-,pathCore(NULL)
-,scene(NULL)
-,role(Master)
-,updatePeriod(10)
-,clientsInfo(1)
-,headerPos(-1)
-,fxManager(fxManager)
-,visionMode(VisionAll)
-,pathFinder(NULL)
+ObjectManager::ObjectManager(Scripter *scripter, Fx::FxManagerPtr fxManager)
+:scripter(scripter), fxManager(fxManager)
 {
+	perceptionManager = nullptr;
+
+	scene = nullptr;
+	role = Master;
+	updatePeriod = 10;
+
+	clientsInfo.resize(1);	// Ensure we have at least one client. Should we?
+	headerPos = -1;
+	visionMode = VisionAll;
+
+
+
+#ifdef FUCK_THIS
+	pathCore = nullptr;
+	pathFinder = nullptr;
+
 	objectsHead = NULL;
 	objectsTail = NULL;
+#endif
 	//LogFunction(*g_logger);
 }
 
-void ObjectManager::initSimulation( b2World * bs, pathProject::PathCore * pc )
+void ObjectManager::initSimulation(b2World * bs)
 {
-	pathCore = pc;
-	pathFinder.init(pc);
 	scene = bs;
 }
 
@@ -91,14 +94,24 @@ ObjectManager::~ObjectManager()
 
 void ObjectManager::removeAllObjects()
 {
+#ifdef FUCK_THIS
 	while( objectsHead != NULL )
 	{
 		delete objectsHead;
 	}
+#endif
+	std::list<GameObjectPtr> tmp_objects = std::move(objects);
+	for(GameObjectPtr& obj: tmp_objects)
+	{
+		obj->scene_it = std::list<GameObjectPtr>::iterator();
+	}
+	// TODO: inspect reference counter of removed objects
 }
 
-void ObjectManager::removeObject(GameObject * object)
+void ObjectManager::removeObject(GameObjectPtr object)
 {
+#ifdef FUCK_THIS
+	// That was crappy intrusive linked list
 	if( object != objectsHead )
 		object->objectPrev->objectNext = object->objectNext;
 	else
@@ -110,18 +123,37 @@ void ObjectManager::removeObject(GameObject * object)
 		objectsTail = object->objectPrev;
 	object->objectNext = NULL;
 	object->objectPrev = NULL;
+#endif
+
+	assert(object->scene == this);
+	objects.erase(object->scene_it);
+	object->scene_it = std::list<GameObjectPtr>::iterator();
+	// TODO: Do some logging about number of references that remain so far
 }
 
-void ObjectManager::registerObject(GameObject * object)
+void ObjectManager::registerObject(GameObjectPtr object)
 {
+	assert(object != nullptr);
+	// Add object to scene
+	if (object->scene == this)
+		return;
+	if (object->scene != nullptr)
+	{
+		object->scene->removeObject(object);
+	}
+	// TODO: Deal something with physical engine. We should recreate body
+	object->scene = this;
+	object->scene_it = objects.insert(objects.end(), object);
+#ifdef FUCK_THIS
 	if( objectsHead == NULL )
 		objectsHead = object;		
 	else
-		objectsTail->objectNext = object;		
-	object->objectPrev = objectsTail;			
-	object->objectNext = NULL;		
-	object->manager = this;
+		objectsTail->objectNext = object;
+	object->objectPrev = objectsTail;
+	object->objectNext = NULL;
+	object->scene = this;
 	objectsTail = object;
+#endif
 }
 
 void ObjectManager::initManagers()
@@ -136,9 +168,10 @@ struct MsgCreateObject
 	MsgCreateObject(size_t id, size_t defid, unsigned short player):id(id),defid(defid),player(player){}
 };
 
-void ObjectManager::saveState(IO::StreamOut & stream)
+void ObjectManager::saveState(StreamOut & stream)
 {
 	cleanDead();
+	// TODO: Save scene state
 	//size_t objectsCount = objects.size();
 	//stream.write(objectsCount);
 	//auto end = objects.end();
@@ -152,8 +185,9 @@ void ObjectManager::saveState(IO::StreamOut & stream)
 	//}
 }
 
-void ObjectManager::loadState(IO::StreamIn & stream)
+void ObjectManager::loadState(StreamIn & stream)
 {
+	// TODO: Implement loading of scene state
 	cleanDead();
 
 	//size_t objectsCount = 0;
@@ -185,9 +219,9 @@ bool ObjectManager::canSee(const Pose & pose, float range, float fov, GameObject
 
 void ObjectManager::useDevice(Unit *unit, int device, int port, int action, IOBuffer *actionData)
 {
-	//LogFunction(*g_logger);
 	if(!unit)
 		return;
+
 	if(role==Master)	// if server - execute here
 	{
 		Device *d = unit->getDevice(device);
@@ -208,7 +242,7 @@ void ObjectManager::useDevice(Unit *unit, int device, int port, int action, IOBu
 				buffer.write(*actionData);
 			
 			finishHeader(buffer);
-		});		*/
+		});*/
 	}
 }
 
@@ -216,20 +250,24 @@ void ObjectManager::onFrameStart(float dt)
 {
 	if(role==Master)
 		cleanDead();
-	VisionManager::clear();
+
+	if(vision)
+		vision->clear();
+
 	// get paths
-	pathFinder.harvest();
+	//pathFinder.harvest();
 }
 void ObjectManager::onFrameFinish(float dt)
-{	
-	for(GameObject * it = objectsHead; it != NULL; it = it->objectNext)
+{
+	for(GameObjectPtr u: objects)
 	{
-		GameObject *u = (GameObject*)it;
-		u->update(dt);		
-		if(u->isDead())		
-			raiseObjectDead(u);
+		u->update(dt);
+		if(u->isDead())
+			raiseObjectDead(u.get());
 	}
-//	perceptionManager->update(dt);
+	// perceptionManager->update(dt);
+
+	// Update fx objects that are orphaned
 	fxManager->pyro.update(fxManager.get(), dt);
 }
 //////////////////////////////////////////////////////////////////////////
@@ -239,9 +277,14 @@ b2World* ObjectManager::getDynamics()
 	return scene;
 }
 
-FxManager* ObjectManager::getFxManager()
+Fx::FxManager* ObjectManager::getFxManager()
 {
 	return fxManager.get();
+}
+
+VisionManager* ObjectManager::getVisionManager()
+{
+	return vision.get();
 }
 
 lua_State* ObjectManager::getLua()
@@ -249,7 +292,7 @@ lua_State* ObjectManager::getLua()
 	return scripter->getVM();
 }
 
-_Scripter* ObjectManager::getScripter()
+Scripter* ObjectManager::getScripter()
 {
 	return scripter;
 }
@@ -292,12 +335,18 @@ void ObjectManager::raiseObjectDead(GameObject * object)
 //		g_logger->line(0,"onDie...\n");
 }
 
-GameObject * ObjectManager::getObject(ObjID id)
+GameObjectPtr ObjectManager::getObject(ObjID id)
 {
 	// TODO: implement
-	return NULL;
+	return GameObjectPtr();
 }
 
+inline Unit * ObjectManager::getUnit(ObjID id)
+{
+	return dynamic_cast<Unit*>(getObject(id).get());
+}
+
+/*
 void ObjectManager::onAdd(GameObject *object)
 {	
 }
@@ -325,16 +374,12 @@ void ObjectManager::onRemove(GameObject * object)
 //		g_logger->line(0,"onRemove...\n");
 }
 
+*/
 /////////////////////////////////////////////////////////////////
 /// utilities
 long ObjectManager::getFrame() const
 {
 	return frame;
-}
-
-inline Unit * ObjectManager::getUnit(ObjID id)
-{
-	return dynamic_cast<Unit*>(getObject(id));
 }
 
 class Raycaster: public b2RayCastCallback
@@ -374,14 +419,14 @@ void ObjectManager::raycast(const Pose &ray,float range,RayHits & hits)
 GameObjectPtr ObjectManager::objectAtPoint(const Pose::pos & pos)
 {
 	auto objects = objectsAtRange(pos,0);
-	return objects.empty()? NULL : objects.front();	
+	return objects.empty()? GameObjectPtr() : objects.front();
 }
 
 ObjectManager::ObjectList ObjectManager::objectsAtRange(const Pose::pos & pos,float range)
 {
 	ObjectList result;
 
-	for(GameObject * object = objectsHead; object != NULL; object = object->getNext())
+	for(GameObjectPtr object: objects)
 	{
 		float distance = vecDistance(pos,object->getPosition());
 		float size = object->getBoundingSphere().radius;
@@ -395,14 +440,22 @@ ObjectManager::ObjectList ObjectManager::objectsAtRange(const Pose::pos & pos,fl
 ObjectManager::ObjectList ObjectManager::objectsAtSight(const Pose & pose, float range,float fov)
 {
 	ObjectList result;
-	auto sourceDir=pose.getDirection();
+	vec2f sourceDir = pose.getDirection();
 
-	for(GameObject * object = objectsHead; object != NULL; object = object->getNext())
+	for(GameObjectPtr object: objects)
 	{
-		auto delta = object->getPosition()-pose.getPosition();  
+		vec2f delta = object->getPosition()-pose.getPosition();
 		float distance = delta.length();
-		float cangle = (sourceDir & delta)/(distance*sourceDir.length());
-		if(fov < 360.f ? distance < range && cangle >= cos(fov * M_PI/360.f) : distance < range)
+
+		bool atSight = distance < range;
+
+		if (fov < 360.0)
+		{
+			float cangle = (sourceDir & delta) / (distance*sourceDir.length());
+			atSight &= (cangle >= cos(fov * M_PI/360.f));
+		}
+
+		if (atSight)
 			result.push_back(object);
 	}
 
@@ -416,7 +469,7 @@ void ObjectManager::setVisionPlayer(int player)
 	visionMode = VisionPlayer;
 }
 
-void ObjectManager::setVisionObject(GameObject * object)
+void ObjectManager::setVisionObject(GameObjectPtr object)
 {
 	visionObject = object;
 	visionPlayer = -1;
@@ -430,7 +483,7 @@ void ObjectManager::setVisionAll()
 	visionMode = VisionAll;
 }
 
-bool ObjectManager::allowVision(GameObject * object)
+bool ObjectManager::allowVision(GameObjectPtr object)
 {
 	switch(visionMode)
 	{
@@ -444,6 +497,8 @@ bool ObjectManager::allowVision(GameObject * object)
 	return false;
 }
 
+#ifdef FUCK_THIS
+
 static vec3f to3(const vec2f &v)
 {
 	return vec3(v[0],v[1],0);
@@ -454,6 +509,7 @@ const vec2f& to2(const vec3 &v)
 	return *(const vec2f*)&v;
 }
 
+/// Is it object factory or pathfinder? Why the hell is this stuff here?
 void PathFinder::Path::obtain(const pathProject::Waypoint * path, size_t count)
 {
 	decRef();
@@ -655,3 +711,6 @@ unsigned int PathFinder::PathfinderProcess(void * arg)
 	pathfinder->runSearch();
 	return 0;
 }
+
+#endif
+} // namespace sim

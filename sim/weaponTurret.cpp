@@ -2,7 +2,9 @@
 
 #include "../sim/projectile.h"
 #include "../sim/unit.h"
-#include "stdafx.h"
+
+namespace sim
+{
 
 ///////////////////////////////////////////////////////
 // Turret weapon
@@ -121,15 +123,10 @@ DeviceDef * WeaponTurret::getDefinition()
 /////////////////////////////////////////////////////////////////////
 //// Weapon autodriver object
 /////////////////////////////////////////////////////////////////////
-TurretDriver::TurretDriver()
-:minError(0.4)
-{}
-TurretDriver::~TurretDriver()
-{}
 
 vec2f getWeaponTarget2(const TrackingInfo &info, const vec2f &pos,ProjectileDef *def);
 
-bool TurretDriver::aim(WeaponTurret * weapon, const TrackingInfo& info, float dt)
+bool TurretDriver::aim(WeaponTurret* weapon, const TrackingInfo& info, float dt)
 {	
 	const Pose & pose = weapon->getGlobalPose();
 	vec2f aimPos = getWeaponTarget2(info, pose.getPosition(), weapon->definition->projectile); 
@@ -258,3 +255,4 @@ bool TargetingSystem::executeControl( Device * device, float dt)
 		turret->shoot();
 	return true;
 }
+} // namespace sim

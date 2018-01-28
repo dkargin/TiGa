@@ -1,8 +1,13 @@
-#include "../sim/projectile.h"
+#include "projectile.h"
 
-#include "../sim/objectManager.h"
-#include "../sim/perception.h"
-#include "stdafx.h"
+#include <fxmanager.h>
+
+#include "objectManager.h"
+#include "perception.h"
+
+namespace sim
+{
+#ifdef FUCK_THIS
 ///////////////////////////////////////////////////////////////////
 // Projectile - simple moving object
 ///////////////////////////////////////////////////////////////////
@@ -53,21 +58,41 @@ Projectile * ProjectileDef::construct(IO::StreamIn *context)
 	}	
 	return result;
 }
+#endif
 ///////////////////////////////////////////////////////////////////
 // Projectile - simple moving object
 ///////////////////////////////////////////////////////////////////
-Projectile::Projectile(ProjectileDef *def,Unit *Src)
-:GameObject(def->manager,def),Source(Src),finished(false),livingTime(0),perception(NULL)
+Projectile::Projectile(Projectile *def, Unit *Src)
+:GameObject(nullptr), Source(Src)
 {
-	if(def->fxIdle)
+	finished = false;
+	livingTime = 0;
+	perception = nullptr;
+	turning = false;
+	size = 0.1;
+	velocity = 1.0;
+	projectileType = ProjectileType::ptDirect;
+	livingTimeLimit = 1.0;
+	damage = 0.0;
+
+	if(def)
 	{
-		effects = def->fxIdle->clone();
-		effects->start();		
+		if(def->fxIdle)
+		{
+			fxIdle = def->fxIdle->clone();
+		}
+
+		if(def->perception)
+		{
+			perception = new Perception(def->perception);
+			perception->unit = this;
+		}
 	}
-	if(def->perception)
+
+	if(fxIdle)
 	{
-		perception = new Perception(def->perception);
-		perception->unit = this;
+		fx_root.attach(fxIdle);
+		fx_root.start();
 	}
 }
 
@@ -103,36 +128,43 @@ void Projectile::update(float dt)
 		else
 		{
 			vec2f pos = target->getPosition();
-			vec2f dir = (pos - pose.getPosition()).normalise();
+			vec2f dir = (pos - pose.getPosition()).normalize();
 			setDirection(dir);			
-			body->SetLinearVelocity(b2conv(dir*localDef().velocity));
+			body->SetLinearVelocity(b2conv(dir*velocity));
 		}
-	}	
-	effects->update(dt);
+	}
+
+	fx_root.update(dt);
 	
 	//getBody()->ApplyForce(b2Vec2(40000,0),getBody()->GetPosition());
 	if(/*IsDirect() && */!finished)
 	{		
-		body->SetLinearVelocity(b2conv(getDirection()*localDef().velocity));
+		body->SetLinearVelocity(b2conv(getDirection()*velocity));
 		//solid->addForce(getDirection()*definition->velocity,forceModeSmoothVelocityChange);
 		finished = true;
 	}
 
 	// selfdestruct when living time ends
-	livingTime+=dt;	
-	if(livingTime > localDef().livingTime)
+	livingTime+=dt;
+
+	if(livingTime >= livingTimeLimit)
 		this->kill();	
 }
 
 void Projectile::onHit(GameObject *object)
 {
-	object->damage(localDef().damage);
+	object->damage(this->damage);
 	kill();
-	if(localDef().impact)
+
+	// Show impact effect
+	if(impact)
 	{
-		auto obj = localDef().impact->clone();
+		Fx::EntityPtr obj = impact->clone();
 		obj->setPose(getPose());
 		obj->start();
+
+		// TODO: move effects to pyro.
 		getManager()->fxManager->pyro.runEffect(obj);
 	}
 }
+} // namespace sim

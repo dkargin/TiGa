@@ -1,10 +1,10 @@
+#include <fxmanager.h>
 #include <algorithm>
 #include <GL/gl.h>
 
 #include "fxobjects.h"
 #include "fxsound.h"
 
-#include "manager.h"
 
 
 

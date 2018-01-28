@@ -1,10 +1,10 @@
-#include "../sim/moverCharacter.h"
+#include "moverCharacter.h"
+#include "device.h"
+#include "mover.h"
 
-#include "../sim/device.h"
-#include "../sim/mover.h"
-#include "stdafx.h"
-
-
+namespace sim
+{
+#ifdef FUCK_THIS
 ///////////////////////////////////////////////////////////////////////
 // Definition
 ///////////////////////////////////////////////////////////////////////
@@ -39,18 +39,28 @@ Device * MoverCharacterDef::create(IO::StreamIn *context)
 	if(!ready)build();	
 	return new MoverCharacter(this);
 }
-///////////////////////////////////////////////////////////////////////
-// Object
-///////////////////////////////////////////////////////////////////////
 
-MoverCharacter::MoverCharacter(MoverCharacterDef* def)
-:Mover(def),definition(def),velocityAngular(0),velocity(0,0)
+#endif
+
+MoverCharacter::MoverCharacter(MoverCharacter* def)
+:Mover(def)
 {
+	prototype = def;
+	velocityAngular = 0;
+	velocity = vec2f(0,0);
+
+	autorotate = false;
+	speedLinear=700;
+	speedAngular=400;
+	thrust = 1000;
+	torque = 100;
+
 	setDriver(createVODriver(this));
 }
 MoverCharacter::~MoverCharacter()
 {}
 
+// Why not?
 //
 //int MoverCharacter::writeDesc(IOBuffer &context)
 //{
@@ -67,12 +77,14 @@ MoverCharacter::~MoverCharacter()
 //	context.read(speedAngular);
 //	return 0;
 //}
+
+/*
 DeviceDef * MoverCharacter::getDefinition()
 {
 	return definition;
-}
+}*/
 
-int MoverCharacter::writeState(IO::StreamOut &buffer)
+int MoverCharacter::writeState(StreamOut &buffer)
 {
 	Mover::writeState(buffer);
 	buffer.write(velocity);
@@ -80,7 +92,7 @@ int MoverCharacter::writeState(IO::StreamOut &buffer)
 	return 1;
 }
 
-int MoverCharacter::readState(IO::StreamIn &buffer)
+int MoverCharacter::readState(StreamIn &buffer)
 {
 	Mover::readState(buffer);
 	buffer.read(velocity);
@@ -96,8 +108,13 @@ void MoverCharacter::setVelocity(float x,float y,float z,float vel)
 void MoverCharacter::setVelocity(const Pose::pos &dir,float vel)
 {
 	toSync(true);
-	Pose::pos velnew=(vecLength(dir)>0.0f)?normalise(dir)*clampf(vel,0,definition->speedLinear):Pose::pos(0.f);
-	if(velocity==velnew)
+
+	Pose::pos velnew = Pose::pos(0.f);
+
+	if(vecLength(dir)>0.0f)
+		velnew = vec2f::normalize_s(dir) * math3::clamp<float>(vel, 0, speedLinear);
+
+	if(velocity == velnew)
 	{
 		toSync(true);
 		state=Moving;
@@ -107,7 +124,7 @@ void MoverCharacter::setVelocity(const Pose::pos &dir,float vel)
 
 void MoverCharacter::directionControl(const vec2f &dir, float speed)
 {
-	setVelocity(dir, definition->speedLinear);
+	setVelocity(dir, speedLinear);
 	// 4. calculate prefered direction
 	/*
 	float forward=(dir & getDirection());
@@ -131,6 +148,11 @@ bool MoverCharacter::validCommand(int port,DeviceCmd cmd)const
 	return false;
 }
 
+float MoverCharacter::getMaxVelocity(int dir) const
+{
+	return dir? speedLinear : speedAngular;
+}
+
 void MoverCharacter::update(float dt)
 {
 	if(driver)
@@ -148,7 +170,7 @@ void MoverCharacter::update(float dt)
 	}
 	else if(state==Moving)*/
 	{	
-		if(!definition->kinematic)
+		if(!kinematic)
 		{
 			getBody()->ApplyForce(b2conv(velocity),getBody()->GetPosition());
 			getBody()->ApplyTorque(velocityAngular);
@@ -160,5 +182,5 @@ void MoverCharacter::update(float dt)
 		}
 	}
 }
-///////////////////////////////////////////////////////////////////
-// utility
+
+} // namespace sim

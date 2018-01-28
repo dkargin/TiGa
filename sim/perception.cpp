@@ -4,7 +4,7 @@
 #include "inventory.h"
 #include "moverVehicle.h"
 #include "objectManager.h"
-#include "predictor.h"
+#include "vision.h"
 #include "projectile.h"
 #include "unit.h"
 
@@ -18,9 +18,8 @@ PerceptionClient::PerceptionClient(int max)
 	objects.reserve(max);
 	memset(&query,0,sizeof(query));
 }
-////////////////////////////////////////////////////////
-// PerceptionDef
-////////////////////////////////////////////////////////
+
+#ifdef FUCK_THIS
 PerceptionDef::PerceptionDef(ObjectManager & m)
 :DeviceDef(m)
 {}
@@ -28,16 +27,26 @@ PerceptionDef::PerceptionDef(ObjectManager & m)
 PerceptionDef::~PerceptionDef()
 {}
 
-Device * PerceptionDef::create(IO::StreamIn *context)
+Device * PerceptionDef::create(StreamIn *context)
 {
 	return new Perception(this);
 }
+#endif
 ////////////////////////////////////////////////////////
 // Perception
 ////////////////////////////////////////////////////////
-Perception::Perception(PerceptionDef * def)
-:Device(def), definition(def), unit(NULL), client(NULL), active(true)
-{}
+Perception::Perception(Perception* def)
+:Device(def)
+{
+	unit = nullptr;
+	client = nullptr;
+	active = true;
+	if (def != nullptr)
+	{
+		fov = def->fov;
+		distance = def->distance;
+	}
+}
 
 Perception::~Perception()
 {}
@@ -46,8 +55,15 @@ void Perception::update(float dt)
 {
 	if(active)
 	{
-		GameObject * owner = this->master;
-		getManager()->addVision( distance, fov, getGlobalPose(), owner );
+		GameObject* owner = master;
+		if(owner != nullptr)
+		{
+			auto manager = owner->getManager();
+			if(manager)
+			{
+				manager->getVisionManager()->addVision( distance, fov, getGlobalPose(), owner );
+			}
+		}
 		//((PerceptionManager&)definition->manager).updatePerception(this,dt);
 	}
 }
@@ -80,7 +96,7 @@ bool isHostile(const GameObject *a,const GameObject *b)
 	return (a && b)?(pa != pb) : false;
 }
 
-void Perception::getProjectiles(Perception::Objects &objects)
+void Perception::getProjectiles(Perception::Objects& objects)
 {
 	for(Observed::iterator it=observed.begin();it!=observed.end();++it)
 	{
@@ -89,7 +105,7 @@ void Perception::getProjectiles(Perception::Objects &objects)
 			objects.push_back(obj);
 	}
 }
-void Perception::getHostile(Perception::Units &objects)
+void Perception::getHostile(Perception::Units& objects)
 {
 	for(Observed::iterator it=observed.begin();it!=observed.end();++it)
 	{
@@ -104,9 +120,9 @@ void Perception::onInstall(Unit * unit, size_t id, const Pose & pose)
 	this->unit = unit;
 	Device::onInstall(unit,id,pose);
 }
-int Perception::writeState(IO::StreamOut &buf){return 0;}
+int Perception::writeState(StreamOut& buf){return 0;}
 
-int Perception::readState(IO::StreamIn &buf){return 0;}
+int Perception::readState(StreamIn& buf){return 0;}
 
 void Perception::removeDead()
 {
@@ -124,7 +140,7 @@ void Perception::getItems(Perception::Items &items)
 	for(Observed::iterator it=observed.begin();it!=observed.end();++it)
 	{
 		Item *i=dynamic_cast<Item*>(*it);
-		if(i && i->state==Item::placeLand)
+		if(i && i->state==ItemStatus::OnGround)
 			items.push_back(i);
 	}
 }
@@ -186,6 +202,7 @@ bool Perception::validCommand(int port,DeviceCmd cmd)const
 ////////////////////////////////////////////////////
 // ImpactImage - raster image around object, where 
 //(x,y) shows time, when it would be occupied
+// TODO: implement this class
 ////////////////////////////////////////////////////
 class ImpactImage
 {
@@ -194,68 +211,81 @@ public:
 	int size;
 	float cellWidth;
 	float cellHeight;
-	Mt4x4 pose;
+	Pose pose;
+	using pos = Pose::pos;
 
-	ImpactImage(float w,float h,int s)
-		:pose(Mt4x4::identity())
+	/**
+	 * ImactImage constructor
+	 * @param w - cell width
+	 * @param h - cell height
+	 * @param size grade. Real size will be 2^size
+	 */
+	ImpactImage(float w, float h, int size)
 	{
-		size=s;
+		this->size = size;
 		//width=w;
 		//height=h;
 		clear();
 	}
+
 	int width()
 	{
 		return 2<<size;
 	}
+
 	int height()
 	{
 		return 2<<size;
 	}
-	void setPose(const Mt4x4 &p)
+
+	void setPose(const Pose& p)
 	{
 		//pose=Mt4x4::translate(
 	}
+
 	void clear()
 	{
 		map.assign(width()*height(),0);
 	}
-	vec3 project(const vec3 &v)
+
+	pos world2map(const pos &v)
 	{
-		return pose.project(v);
+		return pose.projectPos(v);
 	}
-	void registerObject(const vec3 &pos,const vec3 &vel)
+
+	void registerObject(const pos& position,const pos& velocity)
 	{
-		vec3 start=project(pos);
+		pos start=world2map(position);
+		// TODO: implement it
 	}
 };
 
-///////////////////////////////////////////////////////////////////////
-// Utilities
-///////////////////////////////////////////////////////////////////////
-// get movement traectory from GameObject
-Geom::Traectory2 getTraectory2(GameObject * object)
+
+// get movement trajectory from GameObject
+Trajectory2 getTraectory2(GameObjectPtr object)
 {
-	GameObject * s=dynamic_cast<GameObject *>(object);
 	vec2f position = vec2f::zero();
 	vec2f velocity = vec2f::zero();
-	if(s)
+
+	if(object)
 	{
 		position = object->getPosition();
-		velocity = conv(s->getBody()->GetLinearVelocity());	
+		velocity = conv(object->getBody()->GetLinearVelocity());
 	}
+	/*
+	// What's the heck is that?
 	else
 	{
 		Unit * unit=dynamic_cast<Unit *>(object);
 		if(unit)
 		{
 			position = object->getPosition();
-			velocity = conv(unit->getBody()->GetLinearVelocity());			
+			velocity = conv(unit->getBody()->GetLinearVelocity());
 		}
 		else
 			position = object->getPosition();	
-	}
-	return Geom::Traectory2(position, velocity);
+	}*/
+	return Trajectory2(position, velocity);
 }
 
 }

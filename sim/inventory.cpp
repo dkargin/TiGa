@@ -1,7 +1,7 @@
 #include "inventory.h"
-#include "device.h"
 #include "objectManager.h"
 #include "unit.h"
+#include "device.h"
 
 namespace sim
 {
@@ -70,8 +70,9 @@ Item * ItemDef::construct(IO::StreamIn *context)
 // Item
 ///////////////////////////////////////////////////////////////////////////////
 Item::Item(ItemManager* im, Item* def)
-:state(Item::placeLand), GameObject(im)
+:GameObject(def)
 {
+	state = ItemStatus::Void;
 	prototype = def;
 	// TODO construct using prototype
 	maxStack = 1;
@@ -84,8 +85,7 @@ Item::Item(ItemManager* im, Item* def)
 
 		if(def->fxIdle)
 		{
-			effects.reset(def->fxIdle->clone());
-			//effects.attach(def->fxIdle->clone());
+			fxIdle = def->fxIdle->clone();
 		}
 		stack = def->stack;
 		size = def->size;
@@ -94,6 +94,11 @@ Item::Item(ItemManager* im, Item* def)
 	{
 		stack = 1;
 		size = 1.0;
+	}
+
+	if(fxIdle)
+	{
+		fx_root.attach(fxIdle);
 	}
 }
 

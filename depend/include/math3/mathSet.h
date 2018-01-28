@@ -1,16 +1,12 @@
-/////////////////////////////////////////////////////////////////////////////////
-// ������ � �������� ������������. 
-// ����������� � ����������� ������ ����������� (��������). 
-/////////////////////////////////////////////////////////////////////////////////
-#ifndef _MATH_SET
-#define _MATH_SET
 #pragma once
-using namespace std;
+
+#include <cmath>
+#include <set>
+#include <list>
 
 namespace math3
 {
 
-// ������������ Target ����������� == � != ��� ������� � ��� ����������� ������� equal
 /// Traits for equality checks
 template<class Target> struct EqualTraits
 {
@@ -25,8 +21,7 @@ template<class Target> struct EqualTraits
 		return !Target::equal(a,b);
 	}
 };
-// ���������� ��������������� ���������� ������ ������ ����������.
-// ��������� ������� += -= *= /=
+
 /// Traits for arithmetic operations
 template<class Target,class Scalar> struct ArythmeticTraits
 {
@@ -43,10 +38,10 @@ template<class Target,class Scalar> struct ArythmeticTraits
 		return a-=b;
 	}
 	/// multiplication
-	friend inline Target operator*(const Target &a,const Scalar &scakar)
+	friend inline Target operator*(const Target &a,const Scalar &scalar)
 	{
 		Target res=a;
-		return res*=scalar;
+		return res *= scalar;
 	}
 	/// multiplication
 	friend inline Target operator*(const Scalar &scalar,const Target &a)
@@ -62,14 +57,15 @@ template<class Target,class Scalar> struct ArythmeticTraits
 	}
 };
 
-/// ����������� ��������� ���� � ������� [-pi,pi]
+/// Clamps angle to [-pi,pi] range
 inline float clampAngle(float angle)
 {
-	if(angle>=M_PI)	angle-=M_PI*2;
-	if(angle<-M_PI)	angle+=M_PI*2;
+	if(angle>=M_PI)
+		angle-=M_PI*2;
+	if(angle<-M_PI)
+		angle+=M_PI*2;
 	return angle;
 }
-
 
 /// Range for angles
 struct AngleRange
@@ -91,7 +87,7 @@ struct AngleRange
 	}
 };
 
-///\brief Segment
+///\brief Cyclic Segment
 /// contains angle segment. If max<min - it is splitted on two segments [min,pi]+[-pi,max]
 /// all values are locked in [-pi,pi] segment
 struct Segment: public EqualTraits<Segment>
@@ -332,7 +328,7 @@ struct Segment: public EqualTraits<Segment>
 	}
 
 	/// segment addition
-	inline static int and(const Segment &a,const Segment &b,Segment result[2])
+	inline static int op_and(const Segment &a,const Segment &b,Segment result[2])
 	{	
 		//Relation relation=classify(a,b);
 		switch(classify(a,b))
@@ -361,8 +357,9 @@ struct Segment: public EqualTraits<Segment>
 		}
 		return 0;
 	}
+
 	/// Segment or
-	inline static int or(const Segment &a,const Segment &b,Segment result[2])
+	inline static int op_or(const Segment &a,const Segment &b,Segment result[2])
 	{
 		switch(classify(a,b))
 		{
@@ -389,27 +386,27 @@ struct Segment: public EqualTraits<Segment>
 		}
 		return 0;
 	}
+
 	/// Check if segments are equal
 	static inline bool equal(const Segment &a,const Segment &b)
 	{
 		return a.min==b.min && a.max==b.max && a.smin==b.smin && a.smax==b.smax;
 	}
-	friend Segment operator~(const Segment &seg);
-};	
 
-/// ���������� �� �������
-inline Segment operator~(const Segment & seg)
-{
-	Segment result;
-	result.smax = !seg.smax;
-	result.smin = !seg.smin;
-	result.max = seg.min;
-	result.min = seg.max;
-	return result;
-}
+	//
+	friend Segment operator~(const Segment &seg)
+	{
+		Segment result;
+		result.smax = !seg.smax;
+		result.smin = !seg.smin;
+		result.max = seg.min;
+		result.min = seg.max;
+		return result;
+	}
+};
 
 /// Container for several segments
-struct Segments:public set<Segment,Segment::Compare>
+struct Segments:public std::set<Segment,Segment::Compare>
 {
 	/// Defines base container class
 	typedef set<Segment,Segment::Compare> Parent;
@@ -595,7 +592,7 @@ template<class _Real> struct _Range: public EqualTraits< _Range<_Real> >
 
 	Real min;	///< Lower numeric bound
 	Real max;	///< Upper numeric bound
-	_Range(){}
+	_Range() {}
 
 	/// Constructor
 	_Range(crReal a,crReal b)
@@ -804,15 +801,16 @@ public:
 		if(isZero())return false;
 		return ranges.front().isInf() || ranges.back().isInf();
 	}
-	/// OR operator �����������. �� ������ ����� �� ��������
+
+	/// OR operator
 	my_type & operator|=(crRange range)
 	{
 		Range b = range;
-		Ranges::iterator it = ranges.begin();
+		typename Ranges::iterator it = ranges.begin();
 		while(it != ranges.end() && !b.isZero())
 		{
 			Range &a = *it;
-			Range::Relation rel=Range::relation(a,b);
+			typename Range::Relation rel = Range::relation(a,b);
 			if(rel==Range::Subset)				//
 				it = ranges.erase(it);
 			else if(rel==Range::LowerIntersection)
@@ -863,15 +861,15 @@ public:
 		return ranges.back().max;
 	}
 	
-	/// �����������
+	/// AND operator
 	my_type & operator &=(crRange range)
 	{
 		Range b=range;
-		Ranges::iterator it=ranges.begin();
+		typename Ranges::iterator it=ranges.begin();
 		while(it != ranges.end() && !b.isZero())
 		{
 			Range &a=*it;
-			Range::Relation rel=Range::relation(a,b);
+			typename Range::Relation rel=Range::relation(a,b);
 			if(rel==Range::Subset)				//+
 				it++;
 			else if(rel == Range::LowerIntersection)//+
@@ -918,5 +916,5 @@ public:
 		return *this;
 	}
 };
-}// namespace frosttools
-#endif
+
+}// namespace math3

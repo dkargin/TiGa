@@ -1,17 +1,17 @@
-#include "../sim/weaponProjectile.h"
+#include "weaponProjectile.h"
+#include "device.h"
+#include "projectile.h"
+#include "weapon.h"
 
-#include "../sim/device.h"
-#include "../sim/projectile.h"
-#include "../sim/weapon.h"
-#include "stdafx.h"
-#include "assembly.h"
-
+namespace sim
+{
 WeaponProjectile::WeaponProjectile(WeaponProjectileDef *def,Device::BuildContext *context)
 	:Object(def,context)
 {}
 
 WeaponProjectile::~WeaponProjectile()
 {}
+
 int WeaponProjectile::execute_Action(int port)
 {
 	if(port!=portShoot)return 0;
@@ -22,7 +22,7 @@ int WeaponProjectile::execute_Action(int port)
 		
 		if(definition->projectile)
 		{
-			GameObject *object=definition->projectile->create(NULL);
+			GameObject *object = definition->projectile->create(NULL);
 			if(object)				
 				object->setPose(getMuzzlePose());					
 		}		
@@ -38,4 +38,5 @@ int WeaponProjectile::writeSync(IOBuffer &buffer)
 int WeaponProjectile::readSync(IOBuffer &buffer)
 {
 	return buffer.read(time);
+}
 }

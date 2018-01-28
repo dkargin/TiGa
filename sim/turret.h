@@ -1,12 +1,16 @@
 #pragma once
-#include "../sim/device.h"
-#include "../sim/objectManager.h"
-#include "assembly.h"
+
+#include "device.h"
+#include "objectManager.h"
+
+#error "This file is totally broken"
+
+namespace sim
+{
+
+#ifdef FUCK_THIS
 
 class Turret;
-class TurretDef;
-typedef DevicePair<TurretDef,Turret,BaseDevicePair> TurretPair;
-
 class TurretDef: public TurretPair::Def, public AssemblyDef
 {
 public:
@@ -20,43 +24,32 @@ public:
 	}aiLevel;
 	TurretDef(DeviceManager *m):Definition(m),velocity(0.0f),dimensions(0.0f){}
 };
+#endif
 
 class TurretDriver;
 class Weapon;
 
-class Turret: public Device,public Assembly
+class Turret:
+		public Device
 {
+protected:
 	friend class TurretControl;
 	float velocity;
 	float dimensions;
 	float angle;		// angle in degrees
-	float direction;	// turning direction -1,0,1	
-public:
-	/*class iValue: public InterfaceValue
-	{
-	public:
-		float value;
-		Turret *parent;
-		iValue(Turret *owner,float def):value(def),parent(owner){}
+	float direction;	// turning direction -1,0,1
 
-		float get()
-		{
-			return value;
-		}
-		void onIncrement(float inc)
-		{
-		}
-		void onSet(float v)
-		{
-		}
-		operator float()
-		{
-			return value;
-		}
-	}_direction;*/
+	// From definition
+	enum AILevel
+	{
+		None,
+		Tracking,
+		Prediction,
+	}aiLevel;
+public:
 	enum {portTurn=0};
 	
-	Turret(DeviceManager *manager,Device::BuildContext *context=NULL);
+	Turret(ObjectManager* manager, Device::BuildContext *context=NULL);
 	~Turret();
 	
 	virtual void update(float dt);
@@ -66,9 +59,9 @@ public:
 	virtual float getAngle(const Pose::pos &v) const;	// get angle to a given vector
 	bool canReach(const Pose::pos &v) const;			// if vector is in reachable zone
 	bool fullTurn()const;								// if region [-180,180] is reachable
-	int execute_Direction(int port,DeviceCmd action,float delta);		// executes and action
-	int writeState(IO::StreamOut &buffer);
-	int readState(IO::StreamIn &buffer);
+	int execute_Direction(int port, DeviceCmd action, float delta);		// executes and action
+	int writeState(StreamOut &buffer);
+	int readState(StreamIn &buffer);
 	
 	/// from Assembly
 	virtual void useDevice(int device,int port,int action,IOBuffer *buffer);
@@ -126,3 +119,5 @@ public:
 //	int execute_Target(int port,DeviceCmd action,const Pose::vec &vec);
 //	void update(float dt);
 //};
+
+} // namespace sim

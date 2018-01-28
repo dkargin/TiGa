@@ -34,6 +34,12 @@ inline FxRawColor MakeARGB(int a, int r,int g, int b)
 		static_cast<FxRawColor>((b&0xff));
 }
 
+inline FxRawColor MakeRGB(int r,int g, int b)
+{
+	return MakeARGB(255, r, g, b);
+}
+
+
 typedef int32_t FxTextureId;
 
 /*

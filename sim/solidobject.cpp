@@ -235,6 +235,7 @@ void SolidObject::attachBody(b2Body * s)
 {
 	assert(s!=solid);
 	detachBody();
+
 	solid=s;
 	solid->SetUserData(this);
 }

@@ -1,21 +1,25 @@
 #pragma once
-#include "../sim/gameObject.h"
-#include "../sim/perception.h"
+
+#include "gameObject.h"
+#include "perception.h"
+
+namespace sim
+{
 
 class Projectile;
-class ProjectileDef;
-class PerceptionDef;
 class ObjectManager;
 
+enum class ProjectileType
+{
+	ptDirect,
+	ptBeam,
+	ptHoming,
+};
+
+#ifdef FUCK_THIS
 class ProjectileDef: public GameObjectDef
 {
-public:	
-	enum ProjectileType
-	{
-		ptDirect,
-		ptBeam,
-		ptHoming,
-	};
+public:
 	int projectileType;
 	float velocity;
 	float livingTime;
@@ -30,24 +34,39 @@ public:
 	ProjectileDef(ObjectManager * base);
 	virtual ~ ProjectileDef(){}
 
-	Projectile * construct(IO::StreamIn * buffer);
-	GameObject * create(IO::StreamIn * buffer);
+	Projectile * construct(StreamIn * buffer);
+	GameObject * create(StreamIn * buffer);
 protected:
 	ProjectileDef(const ProjectileDef &def);
 };
+#endif
 	
-class Projectile: public GameObject, public PerceptionClient
+class Projectile:
+		public GameObject,
+		public PerceptionClient
 {
 	bool finished;
 public:
-	OBJECT_IMPL(Projectile,typeProjectile);
+	//OBJECT_IMPL(Projectile,typeProjectile);
 	//float velocity;
 	float livingTime;
+	// Why does projectile has 'perception'.
+	// Because it could be a missile?
 	Perception * perception;
 	GameObjectPtr target;	// tracked target
 	Unit *Source;
+
+	// From definition
+	ProjectileType projectileType;
+	float velocity;					//< Velocity limit
+	float livingTimeLimit;	//< Life time limit
+	float size;							//< Collision size
+	float turning;					//< Angular velocity limit for homing missiles
+	Damage damage;
+	Fx::EntityPtr impact;		// animation played on impact
+	//PerceptionDef * perception;
 public:
-	Projectile(ProjectileDef *def,Unit *Src=NULL);	
+	Projectile(Projectile* def,Unit* Src=nullptr);
 	~Projectile();
 
 	bool IsHoming() const;
@@ -57,8 +76,9 @@ public:
 	{
 		return cgProjectile;
 	}
+
 	// from PerceptionClient
-	virtual bool addObject(GameObjectPtr object)
+	virtual bool addObject(GameObjectPtr object) override
 	{
 		if(target != NULL && object->getType() == typeUnit && isHostile(object.get(),this))
 			target = object;
@@ -69,16 +89,4 @@ public:
 	void update(float dt);
 };
 
-
-//class EffectDef: public GameObjectDef,virtual public LuaHelper<EffectDef>
-//{
-//public:		
-//	Damage damage;
-//	FxAnimation2 * animation;
-//	//FxPointer impact;		// animation played on impact
-//	//FxParticles * particles;
-//	
-//	EffectDef(ObjectManager & base);
-//	//virtual ~ EffectDef(){}
-//	virtual GameObject * create(IO::StreamIn *context);
-//};
+} // namespace sim

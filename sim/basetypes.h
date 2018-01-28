@@ -20,9 +20,15 @@ namespace sim
 typedef math3::Pose2z Pose;
 using vec2f = math3::vec2f;
 using vec3f = math3::vec3f;
-typedef float Damage;
+using Trajectory2 = math3::geometry::Trajectory2;
+
 typedef math3::geometry::_Sphere<vec2f> Sphere2;
+typedef math3::geometry::_Edge<vec2f> Edge2;
 typedef math3::geometry::_AABB<vec2f> AABB2;
+
+// Game-specific stuff
+typedef float Damage;
+typedef float Health;
 
 typedef unsigned int ID;
 const ID invalidID = -1;
@@ -33,6 +39,6 @@ typedef ID ObjID;	// object identifier
 using StreamIn = frosttools::IO::StreamIn;
 using StreamOut = frosttools::IO::StreamOut;
 using IOBuffer = frosttools::IOBuffer;
-
 using Scripter = LuaBox::Scripter;
+
 }

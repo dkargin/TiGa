@@ -14,9 +14,6 @@
 #define HGEGUI_UPDOWN			2
 #define HGEGUI_CYCLED			4
 
-class HGE;
-class RenderContext;
-
 namespace GUI
 {
 	enum AlignType

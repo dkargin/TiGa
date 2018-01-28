@@ -984,7 +984,7 @@ template<class _V> float getMinDistance(const _Trajectory<_V> &tr0,const _Trajec
 	}
 	return res;
 }
-typedef _Trajectory<vec2f> Traectory2;
+typedef _Trajectory<vec2f> Trajectory2;
 } // namespace geom
 /// @}
 } // namespace math3

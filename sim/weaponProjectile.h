@@ -1,8 +1,8 @@
 #pragma once
 
+namespace sim
+{
 class WeaponProjectile;
-class WeaponProjectileDef;
-typedef DevicePair<WeaponProjectileDef,WeaponProjectile,WeaponPair> WeaponProjecdtilePair;
 
 class WeaponProjectile: public WeaponProjecdtilePair::Obj
 {
@@ -14,9 +14,13 @@ public:
 	int readSync(IOBuffer &buffer);
 };
 
+#ifdef FUCK_THIS
 class WeaponProjectileDef: public WeaponProjecdtilePair::Def
 {
 public:
 	ProjectileDef *projectile;
 	WeaponProjectileDef(DeviceManager *manager):Definition(manager),projectile(NULL){}	
 };
+#endif
+
+} // endif

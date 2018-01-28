@@ -1,17 +1,16 @@
-#include "../sim/commandAI.h"
-
-#include "../sim/inventory.h"
-#include "../sim/mover.h"
-#include "../sim/perception.h"
-#include "../sim/unit.h"
-#include "../sim/weapon.h"
-#include "../sim/weaponTurret.h"
-#include "stdafx.h"
-
-//#include "globals.h"
 #include "commandAI.h"
 
+#include "inventory.h"
+#include "mover.h"
+#include "perception.h"
+#include "unit.h"
+#include "weapon.h"
+#include "weaponTurret.h"
 
+#include "commandAI.h"
+
+namespace sim
+{
 ////////////////////////////////////////////////////////////////
 Command::Command(int s)
 :state(s)
@@ -91,7 +90,7 @@ void Controller::clear()
 	}
 }
 
-void addSegment(Segments & segments, const Geom::_Sphere<vec2f> &circle, const FlatCone &vo);
+void addSegment(Segments & segments, const Sphere2 &circle, const FlatCone &vo);
 
 void Controller::initDevices()
 {
@@ -209,7 +208,7 @@ Command * construct(CommandType type)
 	}
 }
 
-void Controller::save(IO::StreamOut & stream)
+void Controller::save(StreamOut & stream)
 {
 	unsigned char size = container.size();
 	auto end = container.end();
@@ -223,7 +222,7 @@ void Controller::save(IO::StreamOut & stream)
 	}
 }
 
-void Controller::load(IO::StreamIn & stream)
+void Controller::load(StreamIn & stream)
 {
 	clear();
 	unsigned char size = 0;
@@ -325,7 +324,11 @@ void CmdAttack::load(IO::StreamIn & stream)
 CmdGuard::CmdGuard(const Pose::pos &targ,float maxDistance)
 	:Command(Ready),position(targ),maxDistance(maxDistance),guardState(cgsApproach)
 {}
-CmdGuard::CmdGuard(){}
+
+CmdGuard::CmdGuard()
+{
+}
+
 void CmdGuard::moverEvent(Mover *mover,int event)
 {	
 //	LogFunction(*g_logger);
@@ -364,11 +367,11 @@ int CmdGuard::process(Unit *unit)
 	return Process;
 }
 
-void CmdGuard::save(IO::StreamOut & stream)
+void CmdGuard::save(StreamOut& stream)
 {
 	stream.write(position);
 }
-void CmdGuard::load(IO::StreamIn & stream)
+void CmdGuard::load(StreamIn& stream)
 {
 	stream.read(position);
 }
@@ -710,4 +713,6 @@ Controller * createPerceptionAI(Unit *u)
 Controller * createCommandAI(Unit * u)
 {
 	return new Controller(u);
+}
+
 }

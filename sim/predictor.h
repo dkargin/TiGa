@@ -1,5 +1,7 @@
 #pragma once
 
+#error "fuck this predictor"
+
 class PredictorBase
 {
 public:

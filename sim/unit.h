@@ -9,14 +9,13 @@ namespace sim
 
 class Unit;
 class Item;
+class Device;
 class Inventory;
 class Weapon;
-class WeaponDef;
 class ObjectManager;
 class Mover;
 class Perception;
 class PerceptionClient;
-class PerceptionDef;
 class PerceptionManager;
 class Controller;
 
@@ -34,6 +33,14 @@ enum UnitState
 {
 	usWait,
 	usMove
+};
+
+/// Description for mounting point
+/// Device can be attached to mount points
+struct MountDef
+{
+	Pose pose;
+	Device* device = nullptr;
 };
 
 //////////////////////////////////////////////////////////////
@@ -78,10 +85,11 @@ public:
 	class DeviceListener
 	{
 	public:
-		virtual void onInstallDevice(Device::Pointer device, int id) {}
-		virtual void onRemoveDevice(Device::Pointer device) {}
+		virtual void onInstallDevice(std::shared_ptr<Device> device, int id) {}
+		virtual void onRemoveDevice(std::shared_ptr<Device> device) {}
 		//virtual void onInitFinished(Assembly * assembly) {}
 	};
+
 	typedef ObjectManager Manager;
 
 	bool local;
@@ -89,7 +97,7 @@ public:
 	unsigned char  stats[StatsMax];
 
 	std::vector<Device*> devices;
-	Controller *controller;			// player or AI
+	std::unique_ptr<Controller> controller;			// player or AI
 	Unit *definition;
 
 	Fx::EntityPtr fxMove;
@@ -103,10 +111,7 @@ public:
 	void setController(Controller * controller);
 	void enableAI(bool flag);
 	
-	inline b2World * getDynamics()
-	{
-		return getManager()->scene;
-	}	
+	b2World * getDynamics();
 
 	bool toSync()const;
 	void toSync(bool flag);
@@ -136,7 +141,7 @@ public:
 	void cmdMoveTo(float x,float y,float distance);
 	void cmdFollow(Unit * target);
 	void cmdPatrol(float x,float y,float distance);
-	void cmdAttack(GameObject* target);	
+	void cmdAttack(GameObjectPtr target);
 	void cmdGuard(float x,float y,float distance);
 };
 

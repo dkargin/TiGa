@@ -1,6 +1,6 @@
+#include <fxmanager.h>
 #include <algorithm>
 #include "fxobjects.h"
-#include "manager.h"
 
 namespace Fx
 {

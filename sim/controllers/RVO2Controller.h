@@ -1,6 +1,9 @@
 #pragma once
-#include "../../sim/commandAI.h"
+
+#include "../commandAI.h"
 #include "Mover.h"
+
+namespace sim {
 
 namespace RVO2
 {
@@ -160,5 +163,6 @@ protected:
 	void updateObstacles(float timeStep);
 };
 
-
 Mover::Driver * createRVO2Driver(Mover* m);
+
+} // namespace sim

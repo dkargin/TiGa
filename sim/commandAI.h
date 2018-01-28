@@ -1,7 +1,10 @@
 #pragma once
-#include "../frostTools/mathSet.h"
+#include "math3/mathSet.h"
 #include "mover.h"
 #include "perception.h"
+
+namespace sim
+{
 
 enum CommandType
 {
@@ -46,16 +49,16 @@ public:
 
 	void wake(int flag);
 	virtual void setWait();
-	virtual int process(Unit *unit)=0;
-	virtual bool check(Unit *unit){return true;}	// is it possible to execute command
+	virtual int process(Unit* unit)=0;
+	virtual bool check(Unit* unit){return true;}	// is it possible to execute command
 
 	virtual int getState() const;
 	virtual int getType() const {return cmdUnknown;}
-	virtual void render(Unit * unit,HGE * hge) {};
+	virtual void render(Unit * unit,Fx::RenderContext* rc) {};
 	/// mover events callback
 	virtual void moverEvent(Mover *mover,int event){};
-	virtual void save(IO::StreamOut & stream) = 0;
-	virtual void load(IO::StreamIn & stream) = 0;
+	virtual void save(StreamOut& stream) = 0;
+	virtual void load(StreamIn& stream) = 0;
 protected:
 	int state;
 };
@@ -64,8 +67,8 @@ class Weapon;
 class Mover;
 
 struct Command2;
-/// ������ �������� ��������� ��� ������� � ���� ���������
 typedef int (*CmdProc)(Command2 &cmd, Controller &controller);
+
 struct Command2
 {
 	int type;
@@ -74,9 +77,10 @@ struct Command2
 	Pose::vec target;
 };
 
-typedef _Range<float> Range;
-typedef _RangeSet<Range> RangeSet;
-typedef std::vector<std::pair<float,RangeSet>> Rays;
+// We use range algebra to calculate safe movement directions
+typedef math3::_Range<float> Range;
+typedef math3::_RangeSet<Range> RangeSet;
+typedef std::vector<std::pair<float, RangeSet>> Rays;
 
 struct FlatCone
 {
@@ -104,15 +108,20 @@ struct FlatCone
 	int intersectionLeft(const vec2f &ray, float res_t[2]) const;
 	int intersectionRight(const vec2f &ray, float res_t[2]) const;
 };
+
+
 /// Executes command queue and handles events from devices
-class Controller: public PerceptionClient, public Mover::Driver::Listener//, public Assembly::Listener
+class Controller:
+		public PerceptionClient,
+		public Mover::Driver::Listener
 {
 protected:
 	typedef std::vector<Command*> Container;
 	Container container;
 public:
 	std::vector<std::pair<Weapon*, FlatCone>> weapons;
-	Segments weaponReach;
+	// Direction ranges that are reachable by weapons
+	math3::Segments weaponReach;
 	Mover * mover;
 	
 	Unit *owner;
@@ -158,8 +167,8 @@ public:
 	/// from Assembly::Listener
 	void initDevices();
 
-	virtual void save(IO::StreamOut & stream);
-	virtual void load(IO::StreamIn & stream);
+	virtual void save(StreamOut & stream);
+	virtual void load(StreamIn & stream);
 };
 
 class CmdAttack: public Command
@@ -170,8 +179,8 @@ public:
 	virtual int process(Unit *unit);
 	virtual void render(Unit * unit,HGE * hge);
 
-	virtual void save(IO::StreamOut & stream);
-	virtual void load(IO::StreamIn & stream);
+	virtual void save(StreamOut & stream) override;
+	virtual void load(StreamIn & stream) override;
 
 	virtual int getType() const {return cmdAttack;}
 	GameObjectPtr target;
@@ -195,8 +204,8 @@ public:
 	/// from Mover::Driver::Listener
 	virtual void moverEvent(Mover *mover,int event);
 
-	virtual void save(IO::StreamOut & stream);
-	virtual void load(IO::StreamIn & stream);
+	virtual void save(StreamOut & stream) override;
+	virtual void load(StreamIn & stream) override;
 
 	virtual int getType() const {return cmdMove;}
 	CmdMove();
@@ -219,8 +228,8 @@ public:
 	virtual int process(Unit *unit);
 	void moverEvent(Mover *mover,int event);
 
-	virtual void save(IO::StreamOut & stream);
-	virtual void load(IO::StreamIn & stream);
+	virtual void save(StreamOut& stream);
+	virtual void load(StreamIn& stream);
 
 	virtual int getType() const {return cmdTakeItem;}
 	CmdTakeItem();
@@ -234,11 +243,11 @@ class CmdDropItem: public Command
 {
 public:
 	CmdDropItem(Item *i,const Pose::pos &targ);
-	virtual bool check(Unit *unit);
-	virtual int process(Unit *unit);
+	virtual bool check(Unit* unit);
+	virtual int process(Unit* unit);
 
-	virtual void save(IO::StreamOut & stream);
-	virtual void load(IO::StreamIn & stream);
+	virtual void save(StreamOut& stream);
+	virtual void load(StreamIn& stream);
 
 	virtual int getType() const {return cmdDropItem;}
 	CmdDropItem();
@@ -250,18 +259,20 @@ public:
 class CmdGuard : public Command
 {
 public:
+	CmdGuard();
 	CmdGuard(const Pose::pos &targ,float maxDistance);
+
 	virtual int process(Unit *unit);
 	void moverEvent(Mover *mover,int event);
 
-	virtual void save(IO::StreamOut & stream);
-	virtual void load(IO::StreamIn & stream);
+	virtual void save(StreamOut& stream);
+	virtual void load(StreamIn& stream);
 
 	virtual int getType() const {return cmdGuard;}
-	CmdGuard();
 public:
 	Pose::vec position;
 	float maxDistance;
+
 	enum CmdGuardState
 	{
 		cgsApproach,	/// moving to destination position. No pursuing
@@ -275,3 +286,5 @@ public:
 //
 Controller * createCommandAI(Unit * u);
 Controller * createPerceptionAI(Unit *u);
+
+}

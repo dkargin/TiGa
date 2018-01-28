@@ -3,79 +3,28 @@
 
 namespace sim
 {
-#ifdef FUCK_THIS
-/////////////////////////////////////////////////////////////////////////
-// GameObject basic definition
-/////////////////////////////////////////////////////////////////////////
-GameObjectDef::GameObjectDef(ObjectManager *store)
-	:manager(store),population(0),localID(invalidID),body(store)
-{
-	attach();
-}
 
-GameObjectDef::GameObjectDef(const GameObjectDef &def)
-	:manager(def.manager),population(0),name(def.name),body(def.body)
-{
-	attach();
-	fxDie = def.fxDie;
-	fxIdle = def.fxIdle;
-}
-
-GameObjectDef::~GameObjectDef()
-{
-//	LogFunction(*g_logger);
-	assert(!population);	
-	//if(body)delete body;
-	detach();
-}
-
-_Scripter * GameObjectDef::getScripter()
-{
-	return manager->getScripter();
-}
-
-void GameObjectDef::addRef()
-{
-	population++;
-}
-
-void GameObjectDef::decRef()
-{
-	population--;
-	assert(population>=0);
-}
-size_t GameObjectDef::getPopulation()const
-{
-	return population;
-}
-
-#endif
-/////////////////////////////////////////////////////////////////////////
-// Game object
-/////////////////////////////////////////////////////////////////////////
-GameObject::GameObject(ObjectManager *parent)
-	:health(1.0f),onDamage(NULL), localID(invalidID), body(parent)
+GameObject::GameObject(GameObject* base)
+	:health(1.0f),onDamage(NULL), localID(invalidID), body(scene)
 {
 	collisionGroup = cgBody;
 	player = 0;
-	prototype = nullptr;
-	manager = nullptr;
+	prototype = base;
+	this->scene = scene;
 	maxHealth = 100;
-
-	parent->registerObject(this);
 
 	attachBody(body.create());
 }
 
 GameObject::~GameObject()
 {
-	if(manager)
-		manager->removeObject(this);
+	if(scene)
+		scene->removeObject(shared_from_this());
 }
 
 ObjectManager * GameObject::getManager() 
 {	
-	return manager; 
+	return scene; 
 }
 
 ObjectType GameObject::getType() const 
@@ -85,7 +34,7 @@ ObjectType GameObject::getType() const
 
 Scripter * GameObject::getScripter()
 { 
-	return manager ? manager->getScripter() : NULL; 
+	return scene ? scene->getScripter() : NULL; 
 }
 
 bool GameObject::isUnique()const
@@ -113,8 +62,7 @@ void GameObject::setPlayer(int p)
 void GameObject::update(float dt)
 {
 	syncPose();
-	if( effects )
-		effects->update(dt);
+	fx_root.update(dt);
 }
 
 void GameObject::setCollisionGroup(CollisionGroup group)

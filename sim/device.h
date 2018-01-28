@@ -2,15 +2,66 @@
 
 #include "basetypes.h"
 #include "objectManager.h"
+#include "rendercontext.h"
 
 namespace sim
 {
 
-class Assembly;
+//class Assembly;
+
 class Device;
+typedef std::shared_ptr<Device> DevicePtr;
+
+class Unit;
 
 typedef int DCmd;
 const int DeviceMaxPorts = 4;
+
+// Command types for a device
+enum DeviceCmd
+{
+	dcmdAction,					//< A single action
+	dcmdToggle_on,			//< Make togglable action ON
+	dcmdToggle_off,			//< Make togglable action OFF
+	dcmdDir_inc,				//< Increment value
+	dcmdDir_set,				//< Sets some value
+	dcmdTarget_set,			//< Sets target
+	dcmdTarget_reset,		//< Clears target
+	dcmdTarget_update,	//< Asks for target update
+/////////////////////////
+	dcmdTotal
+};
+
+inline bool cmdIsAction(DeviceCmd cmd)
+{
+	return cmd == dcmdAction;
+}
+
+inline bool cmdIsToggle(DeviceCmd cmd)
+{
+	return cmd == dcmdToggle_on || cmd == dcmdToggle_off;
+}
+
+inline bool cmdIsDirection(DeviceCmd cmd)
+{
+	return cmd == dcmdDir_set || cmd == dcmdDir_inc;
+}
+
+inline bool cmdIsTarget(DeviceCmd cmd)
+{
+	return cmd == dcmdTarget_set || cmd == dcmdTarget_reset || cmd == dcmdTarget_update;
+}
+
+enum DeviceResult
+{
+	dcmdOk=1,
+	dcmdSent,
+	dcmdNoImpl,
+	dcmdWrongType,
+	dcmdWrongPort,
+	dcmdNoMaster,
+};
+
 
 template<class Type,int N> inline std::vector<Type> makeVec(Type source[N])
 {
@@ -67,13 +118,6 @@ enum DeviceMode
 	dmManual,			/// device is controlled by player manually (keyboard + mouse?)
 };
 
-/// Description for mounting point
-/// Device can be attached to mount points
-struct MountDef
-{	
-	Pose pose;
-	Device* device = nullptr;
-};
 /////////////////////////////////////////////////////////////////////////
 // Base class for any device that can be mounted on unit
 /////////////////////////////////////////////////////////////////////////
@@ -85,19 +129,17 @@ class Device:
 	friend bool connectDevices(Device * controller, Device *controlled);
 public:
 	typedef Device RootObject;
-	typedef std::shared_ptr<Device> Pointer;
 	typedef ObjectManager Manager;
 
 	Device(Device* prototype=nullptr);
 	virtual ~Device();
 
+	virtual Device* clone() const;
+
 	virtual void onInstall(Unit * unit, size_t id, const Pose & pose);	// called when device installed into an assembly
 	
 	virtual void update(float dt);
-
-#ifdef DEVICE_RENDER
-	virtual void render(HGE * hge){}
-#endif
+	virtual void render(Fx::RenderContext*) {}
 	//virtual ObjectManager * getManager();
 	virtual Device * getDefinition();
 	virtual b2Body * getBody();
@@ -106,7 +148,7 @@ public:
 
 	/// control interfaces
 	virtual bool canControl(const Device * device) const;
-	virtual bool takeControl(Device::Pointer device);
+	virtual bool takeControl(DevicePtr device);
 	/// ports
 	virtual int getPorts()const;									/// return active control ports
 	virtual bool validCommand(int port,DeviceCmd cmd)const=0;		/// is valid command type for port
@@ -140,16 +182,17 @@ protected:
 	virtual bool executeControl(Device * device, float dt);
 
 public:
-	Fx::EntityPtr effectContainer;
-	Fx::EntityPtr fxIdle;
+	Fx::EntityPtr fx_root;	//< Root fx object to contain all dynamic effects
+
+	Fx::EntityPtr fxIdle;		//< Fx object for idle state
 	int lua;
 	DeviceMode deviceMode;
 protected:
-	Pointer parent;
-	Pointer controller;		///< controlling device
-	Unit * master;				///< device owner
-	int id;								///< device index in unit's array
-	Pose pose;						///< relative pose
+	DevicePtr parent;				//< What is 'parent' device?
+	DevicePtr controller;		//< controlling device. Why do we keep direct link?
+	Unit* master;						//< device owner
+	int id;									//< device index in unit's array
+	Pose pose;							//< relative pose
 
 	void setMode(DeviceMode mode);
 	int xWrongPort();
@@ -158,7 +201,6 @@ private:
 	Device* prototype;
 };
 
-typedef ObjectManager DeviceManager;
 #ifdef FUCK_THIS
 class DeviceDef: public LuaObject, public InvokerContainer
 {

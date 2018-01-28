@@ -1,13 +1,16 @@
 #include "unit.h"
 #include "commandAI.h"
 #include "device.h"
+#include "objectManager.h"
 #include "mover.h"
 #include "inventory.h"
-#include "objectManager.h"
+
 #include "perception.h"
 #include "projectile.h"
 #include "weapon.h"
 
+namespace sim
+{
 #ifdef FUCK_THIS
 UnitDef::UnitDef(ObjectManager *m)
 :GameObjectDef(m),fxMove(NULL)//,perception(NULL)
@@ -90,29 +93,40 @@ void UnitDef::clearMounts()
 // Unit
 ////////////////////////////////////////////////////////
 Unit::Unit(Unit* def)
-:GameObject(def->manager)
-,controller(new Controller(this))
+:GameObject(def)
 {
 	useAI = false;
+	local = true;
+
 	if(def != nullptr)
 	{
 		if(def->fxIdle)
 		{
-			effects->attach(def->fxIdle->clone());
-			effects->start();
+			fxIdle = def->fxIdle->clone();
 		}
 
 		// install all the devices from the definition
 		for(const MountDef& mount: def->mounts)
 		{
-			Device* device = mount.device->create();
-			devices.push_back(device);
-			device->onInstall(this, devices.size()-1, mount.pose);
+			if(mount.device)
+			{
+				Device* device = mount.device->clone();
+				devices.push_back(device);
+				device->onInstall(this, devices.size()-1, mount.pose);
+			}
 		};
 
 		health = def->health;
 		definition = def;
 	}
+
+	if(fxIdle)
+	{
+		fx_root.attach(fxIdle);
+		fx_root.start();
+	}
+
+	controller.reset(new Controller(this));
 
 	setCollisionGroup(cgUnit);
 
@@ -121,12 +135,6 @@ Unit::Unit(Unit* def)
 
 Unit::~Unit()
 {
-//	LogFunction(*g_logger);
-	if(controller)
-	{
-		delete controller;
-		controller=NULL;
-	}
 	for(auto it = devices.begin(); it != devices.end(); ++it)
 	{
 		Device * device = *it;
@@ -153,7 +161,7 @@ Device * Unit::getDevice(size_t id)
 PerceptionClient * Unit::getPerceptionClient()
 {
 //	LogFunction(*g_logger);
-	return controller;
+	return controller.get();
 }
 /*
 int Unit::readDesc(IOBuffer &buffer)
@@ -172,19 +180,13 @@ int Unit::writeDesc(IOBuffer &context)
 */
 Controller * Unit::getController()
 {
-	return controller;
+	return controller.get();
 }
 
 void Unit::setController(Controller * cai)
 {
-//	LogFunction(*g_logger);
-	if(controller && controller != cai)
-	{
-		delete controller;
-		controller=NULL;
-	}
-	controller = cai;
 	useAI = true;
+	controller.reset(cai);
 	controller->initDevices();
 }
 
@@ -234,7 +236,12 @@ void Unit::toSync(bool val)
 		(*it)->toSync(val);
 }
 
-int Unit::writeState(IO::StreamOut &buffer)
+b2World * Unit::getDynamics()
+{
+	return getManager()->scene;
+}
+
+int Unit::writeState(StreamOut &buffer)
 {
 //	LogFunction(*g_logger);
 	GameObject::writeState(buffer);
@@ -243,7 +250,7 @@ int Unit::writeState(IO::StreamOut &buffer)
 	return 1;
 }
 
-int Unit::readState(IO::StreamIn &buffer)
+int Unit::readState(StreamIn &buffer)
 {
 //	LogFunction(*g_logger);
 	GameObject::readState(buffer);
@@ -252,13 +259,13 @@ int Unit::readState(IO::StreamIn &buffer)
 	return 1;
 }
 
-void Unit::save(IO::StreamOut & stream)
+void Unit::save(StreamOut & stream)
 {
 	writeState(stream);
 	controller->save(stream);
 }
 
-void Unit::load(IO::StreamIn & stream)
+void Unit::load(StreamIn & stream)
 {
 	readState(stream);
 	controller->load(stream);
@@ -294,7 +301,7 @@ void Unit::cmdPatrol(float x,float y,float distance)
 		controller->cmdPatrol(x,y,distance);
 }
 
-void Unit::cmdAttack(GameObject* target)
+void Unit::cmdAttack(GameObjectPtr target)
 {
 	if(controller)
 		controller->cmdAttack(target);
@@ -316,4 +323,6 @@ bool equal(const GameObject * a,const GameObject * b)
 Unit *toUnit(GameObject *object)
 {
 	return dynamic_cast<Unit*>(object);
+}
+
 }

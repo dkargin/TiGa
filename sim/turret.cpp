@@ -1,13 +1,12 @@
-#include "../sim/turret.h"
+#include "turret.h"
+#include "device.h"
+#include "projectile.h"
+#include "unit.h"
+#include "weapon.h"
+#include "weaponTurret.h"
 
-#include "../sim/device.h"
-#include "../sim/projectile.h"
-#include "../sim/unit.h"
-#include "../sim/weapon.h"
-#include "../sim/weaponTurret.h"
-#include "stdafx.h"
-//#include "world.h"
-#include "assembly.h"
+namespace sim
+{
 
 bool flagTest(unsigned int value,unsigned int f);
 void flagSet(unsigned int &value,unsigned int f,bool v);
@@ -69,22 +68,26 @@ bool Turret::fullTurn() const
 {
 	return dimensions>=180;
 }
-int Turret::writeState(IO::StreamOut &buffer)
+
+int Turret::writeState(StreamOut &buffer)
 {
 	buffer.write(angle);
 	buffer.write(_direction.value);
 	return 8;
 }
-int Turret::readState(IO::StreamIn &buffer)
+
+int Turret::readState(StreamIn &buffer)
 {
 	buffer.read(angle);
 	buffer.read(_direction.value);
 	return 8;
 }
+
 void Turret::useDevice(int device,int port,int action,IOBuffer *buffer)
 {
 	//manager()->useDevice(this,device,port,action,buffer);
 }
+
 Device::Interfaces Turret::getInterfaces()
 {
 	Device::Interfaces result,tmp;
@@ -140,10 +143,12 @@ bool TurretControl::canControl(Device *device)
 //		return 0;
 //	return 1;
 //}
-bool TurretControl::validCommand(int port,DeviceCmd cmd)const
+
+bool TurretControl::validCommand(int port, DeviceCmd cmd)const
 {
 	return port==portTarget && cmd==dcmdTarget;//(cmd==dcmdTarget_set || cmd==dcmdTarget_update || cmd==dcmdTarget_reset);
 }
+
 int TurretControl::execute_Target(int port,DeviceCmd cmd,const Pose::vec &vec)
 {
 	if(port==portTarget)
@@ -161,6 +166,7 @@ int TurretControl::execute_Target(int port,DeviceCmd cmd,const Pose::vec &vec)
 	}
 	return 0;
 }
+
 void TurretControl::stop()
 {
 	lstate=0;
@@ -170,8 +176,10 @@ void TurretControl::stop()
 		weapon->query_Direction(weapon->portTurn,dcmdDir_set,0);
 	}
 }
+
 void TurretControl::update(float dt)
 {
+
 	for(auto it=this->cmdOut.begin();it!=cmdOut.end();++it)
 	{
 		WeaponTurret *weapon=dynamic_cast<WeaponTurret*>(*it);
@@ -202,3 +210,4 @@ void TurretControl::update(float dt)
 	}
 }
 
+} // namespace sim

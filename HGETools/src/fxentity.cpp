@@ -197,9 +197,9 @@ EffectType Entity::type() const
 	return EffectType::EffectGroup;
 }
 
-Entity* Entity::clone() const
+EntityPtr Entity::clone() const
 {
-	return new Entity(*this);
+	return EntityPtr(new Entity(*this));
 }
 
 void Entity::detach_me()

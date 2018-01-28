@@ -1,12 +1,12 @@
-#include "../sim/weaponBeam.h"
-
-#include "../sim/device.h"
-#include "../sim/projectile.h"
-#include "../sim/unit.h"
-#include "../sim/weapon.h"
-#include "stdafx.h"
+#include "weaponBeam.h"
+#include "device.h"
+#include "projectile.h"
+#include "unit.h"
+#include "weapon.h"
 //#include "world.h"
-#include "assembly.h"
+
+namespace sim
+{
 
 WeaponBeam::WeaponBeam(WeaponBeamDef *def,Device::BuildContext *context)
 	:Object(def,context),fire(false)
@@ -36,6 +36,7 @@ struct RayHitInfo
 		return a.distance<b.distance;
 	}
 };
+
 class Raycaster: public b2RayCastCallback
 {
 	b2World *world;
@@ -130,4 +131,6 @@ int WeaponBeam::writeSync(IOBuffer &buffer)
 int WeaponBeam::readSync(IOBuffer &buffer)
 {
 	return buffer.read(time);
+}
+
 }

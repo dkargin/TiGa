@@ -1,6 +1,7 @@
 #pragma once
 
 #include "basetypes.h"
+
 namespace Fx
 {
 

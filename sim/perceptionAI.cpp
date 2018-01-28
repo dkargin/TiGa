@@ -1,29 +1,31 @@
-#include "../sim/commandAI.h"
-#include "../sim/inventory.h"
-#include "../sim/moverVehicle.h"
-#include "../sim/perception.h"
-#include "../sim/projectile.h"
-#include "../sim/unit.h"
-#include "../sim/weapon.h"
-#include "../sim/weaponTurret.h"
-#include "stdafx.h"
-
-//#include "globals.h"
+#include <list>
+#include "commandAI.h"
 #include "inventory.h"
-//////////////////////////////////////////////////////////////////////////
-//
-//////////////////////////////////////////////////////////////////////////
+#include "moverVehicle.h"
+#include "perception.h"
+#include "projectile.h"
+#include "unit.h"
+#include "weapon.h"
+#include "weaponTurret.h"
+#include "inventory.h"
 
-typedef pathProject::TraectoryLinear Traectory;
-typedef std::list<Geom::Traectory2 *> Traectories;
+namespace sim
+{
+
+// Why did I used raw pointers here? Why not direct values?
+typedef std::list<Trajectory2*> Traectories;
+
+// Emptying a container of raw pointers
 template<class Container> void clear(Container &container)
 {
-	for(Container::iterator it=container.begin();it!=container.end();it++)
+	for(typename Container::iterator it=container.begin();it!=container.end();it++)
 		delete *it;
 	container.clear();	
 }
+
 // solve square equation a*x^2+b*x+c=0
-template<class Real> int solve(const Real &a,const Real &b,const Real &c,Real result[2])
+// @returns number of solved roots
+template<class Real> int solve(const Real& a,const Real& b,const Real& c,Real result[2])
 {	
 	if(a!=Real(0))
 	{
@@ -60,44 +62,43 @@ template<class Real> int solve(const Real &a,const Real &b,const Real &c,Real re
 	}
 }
 
-// calc aiming target
-// ������������, � ����� ����������� (� ����� �����) ���� ���������� ��������, �������������� � ���������� ���������,
-// ����� ������� � ����, �������������� ��� �� � ���������� ���������
-vec3 getWeaponTarget(const Traectory &target, const vec3 &pos, ProjectileDef *def)
+// Calculate aiming direction to hit moving object
+vec2f getWeaponTarget(const Trajectory2& target, const vec2f &pos, Projectile* def)
 {
-	vec3 result = target(0);
-	if(def->projectileType == projectileDirect)
+	vec2f result = target(0);
+	if(def->projectileType == ProjectileType::ptDirect)
 	{		
 		// �������� ��������� ��������� �� ����������
-		Geom::Edge edge(target(0),target(1));
-		vec3 O = edge.project(pos);
+		Edge2 edge(target(0),target(1));
+		vec2f O = edge.project(pos);
 		// ������, ���������������� ����������
-		vec3 H = O-pos;
+		vec2f H = O-pos;
 		float h = H.length();
 		float l = edge.projectLen(pos);
 		float impactTime[2] = {0,0};
+
 		float v0 = target.velocity.length();	// �������� ������� ������� ���� �����
-		float v1 = def->velocity;				// �������� ������� ������� �������
+		float v1 = def->velocity;							// �������� ������� ������� �������
 		int res = solve(v0*v0-v1*v1,-2*l*v0,h*h+l*l,impactTime);
+
 		if(res>0)
 		{
 			float time=impactTime[res-1];		// ���� 2 �����, ���� impactTime[1], ���� ���� ������ - impactTime[0]
 			float vx = h;						                                            // �������� � �����������, ���������������� ����������
 			float vy = v0*time-l;				// �������� � �����������, ������������ ����������
-			result = pos + (normalise(H)*vx + edge.direction()*vy);
+			result = pos + (vec2f::normalize_s(H)*vx + edge.direction()*vy);
 		}
 	}
-	else if(def->projectileType==projectileBallistic)
+	else
 	{}
 	return result;
 }
 
 // calculate aiming position to hit moving object
-vec2f getWeaponTarget2(const Geom::Traectory2 &target,const vec2f &pos,ProjectileDef *def)
+vec2f getWeaponTarget2(const Trajectory2 &target,const vec2f& pos,Projectile* def)
 {
-	typedef Geom::_Edge<vec2f> Edge2;
 	vec2f result=target(0);
-	if(def->projectileType==projectileDirect)
+	if(def->projectileType == ProjectileType::ptDirect)
 	{		
 		// �������� ��������� ��������� �� ����������
 		Edge2 edge(target(0),target(1));
@@ -115,21 +116,22 @@ vec2f getWeaponTarget2(const Geom::Traectory2 &target,const vec2f &pos,Projectil
 			float time = impactTime[res-1];	// ���� 2 �����, ���� impactTime[1], ���� ���� ������ - impactTime[0]
 			float vx = h;						// �������� � �����������, ���������������� ����������
 			float vy = v0*time-l;				// �������� � �����������, ������������ ����������
-			result = pos + (normalise(H)*vx + edge.direction()*vy);
+			result = pos + (vec2f::normalize_s(H)*vx + edge.direction()*vy);
 		}
 	}
-	else if(def->projectileType==projectileBallistic)
+	else
 	{}
 	return result;
 }
 
 // calculate aiming position to hit moving object
-vec2f getWeaponTarget2(const TrackingInfo &info,const vec2f &pos,ProjectileDef *def)
+vec2f getWeaponTarget2(const TrackingInfo& info,const vec2f& pos,Projectile* def)
 {
-	typedef Geom::_Edge<vec2f> Edge2;
 	vec2f result = info.pos;
-	if(def->projectileType==projectileDirect)
-	{		
+	if(def->projectileType == ProjectileType::ptDirect)
+	{
+		// As far as I remember I used here minimization
+		// of a square function to find target point
 		// �������� ��������� ��������� �� ����������
 		Edge2 edge(info.pos,info.pos + info.vel);
 		vec2f O = edge.project(pos);
@@ -138,19 +140,18 @@ vec2f getWeaponTarget2(const TrackingInfo &info,const vec2f &pos,ProjectileDef *
 		float h = H.length();
 		float l = edge.projectLen(pos);
 		float impactTime[2] = {0,0};
-		float v0 = info.vel.length();	// �������� ������� ������� ���� �����
+		float v0 = info.vel.length();		// �������� ������� ������� ���� �����
 		float v1 = def->velocity;				// �������� ������� ������� �������
 		int res = solve(v0*v0 - v1*v1,-2*l*v0, h*h + l*l,impactTime);
 		if(res>0)
 		{
 			float time = impactTime[res-1];	// ���� 2 �����, ���� impactTime[1], ���� ���� ������ - impactTime[0]
-			float vx = h;						// �������� � �����������, ���������������� ����������
-			float vy = v0*time-l;				// �������� � �����������, ������������ ����������
-			result = pos + (normalise(H)*vx + edge.direction()*vy);
+			float vx = h;										// �������� � �����������, ���������������� ����������
+			float vy = v0*time-l;						// �������� � �����������, ������������ ����������
+			result = pos + (vec2f::normalize_s(H)*vx + edge.direction()*vy);
 		}
 	}
-	else if(def->projectileType==projectileBallistic)
-	{}
+	else {}
 	return result;
 }
 //
@@ -281,3 +282,5 @@ vec2f getWeaponTarget2(const TrackingInfo &info,const vec2f &pos,ProjectileDef *
 //{
 //	return new PerceptionAI(u,PerceptionAI::Weights(1.0f));
 //}
+
+} // namespace sim

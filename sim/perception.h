@@ -1,8 +1,11 @@
-#pragma once;
+#pragma once
 
 #include "objectManager.h"
 #include "device.h"
 #include "gameObject.h"
+
+// Here are classes, that imitate some perception sensors from robots,
+// like lidars or cameras
 
 namespace sim
 {
@@ -13,9 +16,7 @@ class Item;
 class Perception;
 class PerceptionLaser;
 
-// Here are classes, that imitate some perception sensors from robots,
-// like lidars or cameras
-
+// WTF is this?
 class Sensor
 {
 public:
@@ -23,6 +24,7 @@ public:
 
 	Sensor(float size);
 	~Sensor();
+
 	void setSize();
 	float getSize();
 };
@@ -44,8 +46,8 @@ class PerceptionClient
 {
 public:
 	typedef std::vector<GameObjectPtr> Objects;
-	typedef std::list<Unit*> Units;
-	typedef std::list<Item *> Items;
+	//typedef std::list<Unit*> Units;
+	//typedef std::list<Item *> Items;
 	typedef std::set<GameObjectPtr> Observed;
 	
 	struct				/// do we notice ...	
@@ -64,7 +66,7 @@ public:
 	}
 	virtual bool addObject(GameObjectPtr object)
 	{
-		if(object != NULL || !onNotice(object))
+		if(object != nullptr || !onNotice(object))
 			return false;
 		objects.push_back(object);
 		return true;
@@ -86,9 +88,8 @@ public:
 	typedef std::set<GameObject*> Observed;
 
 	Observed observed;
-	GameObject * unit;
-	PerceptionClient * client;
-	Perception* definition;
+	GameObject* unit;
+	PerceptionClient* client;
 
 	float distance;		//< view distance
 	float fov;				//< field of view in degrees
@@ -97,10 +98,6 @@ public:
 	Perception(Perception *def=nullptr);
 	virtual ~Perception();
 
-	virtual Device* getDefinition() override
-	{
-		return definition;
-	}
 	virtual void onInstall(Unit * unit, size_t id, const Pose & pose);
 	virtual void getFriendly(Perception::Units &units);
 	virtual void getHostile(Perception::Units &units);
@@ -121,9 +118,7 @@ public:
 	bool validCommand(int port,DeviceCmd cmd)const;
 };
 
+// Fill in linear trajectory for game object
+Trajectory2 getTraectory2(GameObjectPtr object);
 
-//typedef std::map<float,std::pair<vec3,GameObject *> > CollisionMap;
-Geom::Traectory2 getTraectory2(GameObject * object);
-//int processCollisions(Perception *perception,CollisionMap & collisionMap);
-
-}
+} // namespace sim

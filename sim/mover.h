@@ -14,6 +14,7 @@ class Mover: public Device
 {
 	friend class ObjectManager;	
 public:
+	class Driver;
 	friend class Driver;
 
 	enum State
@@ -71,10 +72,11 @@ protected:
 	//pathProject::PathProcess * pathProcess;	// for grid pathfinding
 };
 
+
 // Driver class
 // The one, that drivers 'mover' object
 // Contains a part of AI that deals with movement control
-class Mover::Driver : public PathFinder::Client
+class Mover::Driver
 {
 public:
 	enum PathEvent
@@ -90,10 +92,10 @@ public:
 	virtual void update(float dt);
 	virtual void updatePath(float dt);		/// update current waypoint
 	virtual void updateTask();				/// update current path
-#ifdef DEVICE_RENDER
-	virtual void render(HGE * hge);
-#endif
-	virtual int obstaclesAdd(const Geom::Traectory2 &tr,float size);	// adds object to evade
+
+	virtual void render(Fx::RenderContext* hge);
+
+	virtual int obstaclesAdd(const Trajectory2& tr, float size);	// adds object to evade
 	virtual void obstaclesClear();
 
 	virtual void walk(const Pose& pose);
@@ -110,8 +112,8 @@ public:
 
 	float rayCast(const Pose::vec& offset,const Pose::vec& dir)const;
 
-	int waypointsCount() const;
-	int waypoints(vec2f * points, int max = -1) const;				// copy local waypoints to "points" array
+	int getWaypointsCount() const;
+	int getWaypoints(vec2f * points, int max = -1) const;				// copy local waypoints to "points" array
 
 	virtual float pathLength();		// current path length
 	virtual float timeToImpact();	// time to impact in described obstacle
@@ -119,9 +121,10 @@ public:
 	Pose::vec pathError();
 	
 protected:
-	typedef PathFinder::Path Path;
+	typedef std::vector<Pose> Path;
 	Path path;
 	bool waiting;
+
 	virtual void getPath(Path & ptr, bool success);
 	/*
 	struct Waypoint2
@@ -130,7 +133,7 @@ protected:
 		int action;
 	};
 	std::vector<Waypoint2> path;*/
-	typedef std::pair<Geom::Traectory2,float> Obstacle;
+	typedef std::pair<Trajectory2, float> Obstacle;
 	typedef std::vector< Obstacle > Obstacles;	
 	Obstacles obstacles;
 
@@ -150,17 +153,18 @@ protected:
 protected:
 	//int buildPath();
 	bool tryNextWaypoint();					// try to get next waypoint
-	const Path::Waypoint2 * current();
+	const Pose& getCurrentWaypoint();
 	void clearTask();
-	pathProject::PathProcess * pathProcess();
+//	pathProject::PathProcess * pathProcess();
 };
 
 Mover::Driver * createFlockingDriver(Mover* m);
 Mover::Driver * createVODriver(Mover* m);
 Mover::Driver * createVO2Driver(Mover* m);
 
-void drawArrow(HGE * hge,const vec2f &from,const vec2f &to,DWORD color,float width=0.01,float length=0.02);
-void drawPoint(HGE * hge,const vec2f &pos,DWORD color,float size,int style=0);
-void drawLine(HGE * hge,const vec2f &from,const vec2f &to,DWORD color);
+void drawArrow(Fx::RenderContext* rc,const vec2f &from,const vec2f &to,Fx::FxRawColor color,float width=0.01,float length=0.02);
+void drawPoint(Fx::RenderContext* rc,const vec2f &pos, Fx::FxRawColor color, float size, int style=0);
+void drawLine(Fx::RenderContext* rc,const vec2f &from,const vec2f &to,Fx::FxRawColor color);
 
-}
+
+} // namesoace sim

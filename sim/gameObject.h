@@ -66,6 +66,7 @@ class NetObject
 	bool bLocal;		/// if object is local
 public:
 	NetObject():bSync(false),bLocal(false){}
+	virtual ~NetObject() {}
 	// should this object be synchronised right now?
 	virtual bool toSync()const
 	{
@@ -82,57 +83,25 @@ public:
 		return bLocal;
 	}	
 	// update routines
-#ifdef FUCK_THIS
-	virtual int writeState(IO::StreamOut &buffer)=0;
-	virtual int readState(IO::StreamIn &buffer)=0;
-#endif
+	virtual int writeState(StreamOut& buffer)=0;
+	virtual int readState(StreamIn& buffer)=0;
 };
 
 template<class Type> struct TypeInfo{};
 
-class Unit;
 class ObjectManager;
+
 class GameObject;
+typedef std::shared_ptr<GameObject> GameObjectPtr;
+typedef std::weak_ptr<GameObject> GameObjectWPtr;
 
-#ifdef FUCK_THIS
-// Basic definition for game object. 
-class GameObjectDef: virtual public LuaObject, virtual public Referenced
-{
-public:
-	typedef GameObject RootObject;
-	typedef GameObjectDef RootObjectDef;
-	typedef std::map<size_t, GameObjectDef * > Container;	
-	friend class GameObject;
-	friend class ObjectManager;
-
-	size_t localID;						/// object id
-	Container::iterator back;	/// back link for fast remove
-	std::string name;					/// do we need this name?
-	Fx::EntityPtr fxIdle;
-	Fx::EntityPtr fxDie;
-	BodyDesc body;
-
-	GameObjectDef(ObjectManager *store);
-	ObjectManager * manager;
-
-	virtual ~GameObjectDef();
-	virtual GameObject * create(IO::StreamIn *context)=0;
-	virtual int init(){return 0;};
-	_Scripter * getScripter();
-	virtual GameObjectDef * clone()const =0;
-	size_t getPopulation()const;	/// get current population
-	size_t id() const {return localID;}	
-protected:
-	GameObjectDef(const GameObjectDef &def);
-	void addRef();				/// increase population
-	void decRef();				/// decrease population
-private:
-	size_t population;		/// current population	
-};
-#endif
-
-typedef float Health;
-
+/**
+ * Basic game object, that can be attached to simulation scene
+ * Mixes functionality of
+ *  - scripted object
+ *  - wraps network state sync
+ *  - interacts with scene
+ */
 class GameObject:
 		public SolidObject,
 		public NetObject,
@@ -154,16 +123,21 @@ public:
 	Fx::EntityPtr fxDie;
 	BodyDesc body;
 
-	Fx::EntityPtr effects;
-	IDamageListener * onDamage;
-	int player;				///< the player owning this object
-protected:	
-	Health health, maxHealth;				///< current health
-	CollisionGroup collisionGroup;	///< current collison group
-	ObjectManager * manager;				///< where is it stored
+	// Container for attached effects. We do not clone this generally
+	// Should we use pointer, or can keep it on stack?
+	Fx::Entity fx_root;
+	IDamageListener* onDamage;
+	int player;											//< the player owning this object
+
+protected:
+	// TODO: Move it to appropriate descendant
+	Health health, maxHealth;				//< current health
+
+	CollisionGroup collisionGroup;	//< current collison group
+	ObjectManager * scene;					//< where is it stored
 
 public:
-	GameObject(ObjectManager* parent);
+	GameObject(GameObject* base);
 	virtual ~GameObject();
 
 	virtual void save(StreamOut & stream);
@@ -210,15 +184,16 @@ protected:
 
 private:
 	GameObject* prototype;
-};
 
-typedef std::shared_ptr<GameObject> GameObjectPtr;
+	// Iterator in scene container.
+	// Keep it for fast removal from the scene
+	std::list<GameObjectPtr>::iterator scene_it;
+};
 
 float GetCollisionSize(GameObject * object);
 
-// completely remove object
-void DestroyObject(GameObject * object);
 // is object a hostile to object b
+// This function is exposed to LUA
 bool isHostile(const GameObject *a,const GameObject *b);
 
 #define TO_STRING(value) (#value)
@@ -237,8 +212,5 @@ bool isHostile(const GameObject *a,const GameObject *b);
 
 b2Body * createSolidBox(ObjectManager *m, float width, float height, float mass);
 b2Body * createSolidSphere(ObjectManager *m, float size, float mass);
-
-//void createObjectBox(GameObject * object, float width,float height,float mass);
-//void createObjectSphere(GameObject *object, float size,float mass);
 
 } // namespace sim

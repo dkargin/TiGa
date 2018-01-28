@@ -1,11 +1,13 @@
 #pragma once
-#include "../sim/device.h"
-#include "../sim/objectManager.h"
-class ProjectileDef;
-class Unit;
+#include "device.h"
+#include "objectManager.h"
 
+namespace sim
+{
+
+class Unit;
 class Weapon;
-class WeaponDef;
+//class WeaponDef;
 
 struct WeaponClient
 {
@@ -15,53 +17,59 @@ public:
 
 struct WeaponData
 {
-	float timeShootDelay;	// �������� ����� ����������
-	float timeShootDuration;// ������������ ��������, ��� ������� ������
-	float timeReload;		// ����� ����������� ������
-	float muzzleOffset;		// ������ �������� ������
-	int maxAmmo;			
-	float maxRange;			// max range
-	float spread;			// projectile spread, degrees
-	int barrels;			
-	float barrelDistance;	// distance between barrels
-	int animations;			// number of animations	
-	int burstSize;			// ���������� �������� � ����� �����
-	float burstDelay;		// �������� ����� ���������� � �����
-	WeaponData();
+	float timeShootDelay = 1.0;			//< Delay between shoots
+	float timeShootDuration = 1.0f;	//< Duration of 'shoot' phase
+	float timeReload;								//< Reload time
+	//< Offset from the muzzle. Used as spawning point for projectiles
+	float muzzleOffset;
+	int maxAmmo = 1;
+	float maxRange = 1000;			// max range
+	float spread = 0.03;			// projectile spread, degrees
+	int barrels = 1;
+	float barrelDistance;	//< distance between barrels
+	int animations = 1;		//< number of animations
+	int burstSize = 1;			//< Number of shots done
+	float burstDelay = 0;		//< Delay between the bursts
 };
 
 class Weapon: public Device
 {
-	WeaponDef * definition;
-public:	
+public:
 	WeaponData weaponData;
-	float time;				// ������� �������	
+	float time;
 	int ammo;
-	bool fire;				
-	int burstLeft;			// ���������� ���������� ��������� � �������
+	bool fire;					//< Are we firing now?
+	int burstLeft;			//< Number of bursts left before reload
 
-	FxEffect *fxShoot;
+	Fx::EntityPtr fxShoot;
 
 	enum {portShoot=0};
-	enum WeaponState {stateReady,stateBurst,stateDelay,stateReload}weaponState;
-	Weapon(WeaponDef * def,IO::StreamIn *context = NULL);
+	enum WeaponState
+	{
+		stateReady,
+		stateBurst,
+		stateDelay,
+		stateReload
+	}weaponState;
+
+	Weapon(Weapon* def, StreamIn *context = NULL);
 	~Weapon();
 
-	float getEffectiveRange()const;
-	int writeState(IO::StreamOut &buffer);
-	int readState(IO::StreamIn &buffer);	
+	float getEffectiveRange() const;
+	int writeState(StreamOut& buffer);
+	int readState(StreamIn& buffer);
 	virtual void updateBurst(float dt);
 	virtual void shoot();
 	
 	virtual void update(float dt);
-	bool validCommand(int port,DeviceCmd cmd)const;	
+	bool validCommand(int port, DeviceCmd cmd)const;
 	int execute_Action(int port);
 	virtual Pose getMuzzlePose();	// get world pose	
-	virtual DeviceDef * getDefinition();
 private:
 	virtual void doShoot(float dt);
 };
 
+#ifdef FUCK_THIS
 class WeaponDef: public DeviceDef
 {
 public:
@@ -77,3 +85,6 @@ public:
 	~WeaponDef();
 	virtual Device * create(IO::StreamIn *context = NULL);
 };
+#endif
+
+} // namespace sim

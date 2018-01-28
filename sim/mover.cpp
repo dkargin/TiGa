@@ -18,14 +18,19 @@ void Mover::Driver::MoveTask::clear()
 // Driver
 ////////////////////////////////////////////////////////////////////
 Mover::Driver::Driver(Mover* mover)
-:listener(NULL),pathCurrent(-1),minDistance(10),mover(mover), PathFinder::Client(&mover->getManager()->pathFinder)
-{}
+//:PathFinder::Client(&mover->getManager()->pathFinder)
+{
+	listener = nullptr;
+	pathCurrent = -1;
+	minDistance = 10;
+	this->mover = mover;
+	waiting = false;
+}
 
-int Mover::Driver::obstaclesAdd(const Geom::Traectory2 &tr,float size)
+int Mover::Driver::obstaclesAdd(const Trajectory2& tr,float size)
 {
 	obstacles.push_back(std::make_pair(tr,size));
-	return obstacles.size()-1;
-	//obstacles[tr]=size;
+	return obstacles.size() - 1;
 }
 
 void Mover::Driver::obstaclesClear()
@@ -64,8 +69,8 @@ void Mover::Driver::updatePath(float dt)
 	if(pathCurrent != -1)
 	{
 		//_RPT0(0,"Vehicle::Driver::update()");
-		if(tryNextWaypoint() && logDriver)	{};	
-//			g_logger->line(1,"(next waypoint)");
+		//if(tryNextWaypoint() && logDriver)	{};
+		//	g_logger->line(1,"(next waypoint)");
 		if(pathCurrent >= path.size())
 		{
 //			if(logDriver)
@@ -86,7 +91,7 @@ bool Mover::Driver::tryNextWaypoint()
 {
 	if(pathCurrent!=-1)
 	{
-		vec2f pos = current()->v;
+		vec2f pos = getCurrentWaypoint().getPosition();
 		float dist=vecDistance(pos,mover->getGlobalPose().getPosition());
 		minDistance = mover->getMaster()->getSphereSize();
 		if(dist < minDistance)
@@ -98,10 +103,12 @@ bool Mover::Driver::tryNextWaypoint()
 	return false;
 }
 
-const PathFinder::Path::Waypoint2 * Mover::Driver::current()	
+
+const Pose& Mover::Driver::getCurrentWaypoint()
 {
-	return &path[pathCurrent];
+	return path[pathCurrent];
 }
+
 
 void Mover::Driver::clearTask()
 {
@@ -110,18 +117,20 @@ void Mover::Driver::clearTask()
 	pathCurrent =- 1;
 }
 
-int Mover::Driver::waypointsCount() const
+int Mover::Driver::getWaypointsCount() const
 {
 	return path.size();
 }
 
-int Mover::Driver::waypoints(vec2f *points,int max) const
+int Mover::Driver::getWaypoints(vec2f *points,int max) const
 {
-	if(max<0 || max>waypointsCount())max=waypointsCount();
+	if(max<0 || max>getWaypointsCount())
+		max = getWaypointsCount();
 	for(int i = 0; i < max; i++)
-		points[i] = path[i].v;
+		points[i] = path[i].getPosition();
 	return max;
 }
+
 float Mover::Driver::timeToImpact()
 {
 	auto vel = conv(mover->getBody()->GetLinearVelocity());//mover->getDirection() * fSign(mover->velocity[0]);
@@ -153,28 +162,33 @@ float Mover::Driver::timeToImpact()
 float Mover::Driver::rayCast(const Pose::vec& pos,const Pose::vec& dir)const
 {	
 	float minDistance=std::numeric_limits<float>::max();
-	Geom::_Edge<Pose::vec> ray(pos,pos+dir);
+	Edge2 ray(pos,pos+dir);
+
 	for(int i=0;i<obstacles.size();i++)
 	{
-		Geom::_Sphere<Pose::vec> sphere(obstacles[i].first.getPosition(0),obstacles[i].second);
-		float tmp[2];
+		Sphere2 sphere(obstacles[i].first.getPosition(0), obstacles[i].second);
+
+		float hitPositions[2];
 		Pose::vec res[2];
-		for(int result=intersection(ray,sphere,res,tmp);result>0;result--)
+		int numHits = math3::geometry::intersection(ray,sphere,res,hitPositions);
+
+		for(int result = numHits; result>0; result--)
 		{
-			float d=tmp[result-1];
+			float d=hitPositions[result-1];
 			if(d<minDistance && d>0.f)
 				minDistance=d;
 		}
 	}
 	return minDistance;
 }
+
 Pose::vec Mover::Driver::pathDirection()
 {
 	Pose::vec result(0.f);
-	if(this->waypointsCount() && pathCurrent != -1 && pathCurrent!=waypointsCount())
+	if(this->getWaypointsCount() && pathCurrent != -1 && pathCurrent!=getWaypointsCount())
 	{
 		//tryNextWaypoint();
-		result = current()->v - getMover()->getMaster()->getPosition();
+		result = getCurrentWaypoint().getPosition() - getMover()->getMaster()->getPosition();
 	}
 	return result;
 }
@@ -183,13 +197,17 @@ Pose::vec Mover::Driver::pathError()
 {
 	return vec2f(0,0);
 }
+
+/*
 pathProject::PathProcess * Mover::Driver::pathProcess()
 {
 	return getMover()->pathProcess();
-}
+}*/
+
+
 vec3f to3(const vec2f &v)
 {
-	return vec3(v[0],v[1],0);
+	return vec3f(v[0],v[1],0);
 }
 
 void Mover::Driver::updateTask()
@@ -203,6 +221,7 @@ void Mover::Driver::updateTask()
 		if(listener)
 			listener->moverEvent(getMover(),taskNew);
 
+#ifdef FUCK_THIS
 		pathProject::PathProcess * process = pathProcess();
 		if(process && process->getCore()->getMapManager()->getMapCount())
 		{
@@ -219,6 +238,7 @@ void Mover::Driver::updateTask()
 			pathCurrent = 0;
 			//listener->moverEvent(getMover(),taskSuccess);
 		}
+#endif
 		/*
 		int res = canReach(target, 0);
 		if(!res)
@@ -282,8 +302,12 @@ void Mover::Driver::getPath(Path & path, bool success)
 float Mover::Driver::pathLength()
 {
 	float result=0.0f;
-	for(int i=0;i<path.size()-1;i++)
-		result+=vecDistance(path[i].v,path[i+1].v);
+	for(int i=0; i<path.size()-1; i++)
+	{
+		vec2f start = path[i].getPosition();
+		vec2f end = path[i+1].getPosition();
+		result += math3::vecDistance(start, end);
+	}
 	return result;
 }
 
@@ -347,25 +371,29 @@ void Mover::Driver::update(float dt)
 	updatePath(dt);
 	if(pathCurrent!=-1)
 	{
-		vec2f dir = path[pathCurrent].v - mover->getGlobalPose().getPosition();		
+		vec2f pathPos = path[pathCurrent].getPosition();
+		vec2f dir = pathPos - mover->getGlobalPose().getPosition();
 		// cos of angle between direction to target and mover direction
 		// if this angle is more than M_PI_2, then we need to move backward
-		mover->directionControl(normalise_s(dir), 1.0);
+		dir.normalize();
+		mover->directionControl(dir, 1.0);
 	}
 }
 
-void Mover::Driver::render(HGE * hge)
+
+void Mover::Driver::render(Fx::RenderContext* hge)
 {
 	if(pathCurrent!=-1)
 	{
 		vec2f lastPos = mover->getMaster()->getPosition();
 		for(int i = pathCurrent; i < path.size(); i++)
 		{
-			drawLine(hge, lastPos, path[i].v,RGB(100,0,1));
-			lastPos = path[i].v;
+			drawLine(hge, lastPos, path[i].getPosition(), Fx::MakeRGB(100,0,1));
+			lastPos = path[i].getPosition();
 		}
 	}
 }
+
 /*void Mover::Driver::setTarget(const vec3 &t, const vec3 &dir)
 {
 	target=t;
@@ -378,9 +406,19 @@ void Mover::Driver::render(HGE * hge)
 // Mover
 ////////////////////////////////////////////////////////////////////
 
-Mover::Mover(MoverDef *def)
-:Device(def),state(Idle),driver(NULL),listener(NULL),lastControl(0.f)
-{}
+Mover::Mover(Mover* def)
+:Device(def)
+{
+	state = Idle;
+	driver = NULL;
+	listener = NULL;
+	lastControl = vec2f(0.f);
+	adjacency = 16;
+	bounds = false;
+	smooth = false;
+	heuristic = true;
+}
+
 Mover::~Mover()
 {
 	if(driver)
@@ -422,7 +460,7 @@ void Mover::clearDriver()
 	}
 }
 
-void Mover::setDriver(Mover::Driver *d)
+void Mover::setDriver(Mover::Driver* d)
 {
 	
 	clearDriver();
@@ -437,20 +475,23 @@ void Mover::updateTask()
 		driver->updateTask();
 }
 
-int Mover::writeState(IO::StreamOut &buffer)
+
+int Mover::writeState(StreamOut &buffer)
 {
 	return 0;
 }
 
-int Mover::readState(IO::StreamIn &buffer)
+int Mover::readState(StreamIn &buffer)
 {
 	return 0;
 }
 
+#ifdef FUCK_THIS
 pathProject::PathProcess * Mover::pathProcess()
 {
 	return dynamic_cast<MoverDef*>(getDefinition())->pathProcess;
 }
+#endif
 
 #ifdef DEVICE_RENDER
 void Mover::render(HGE * hge)
@@ -481,6 +522,8 @@ void Mover::render(HGE * hge)
 //////////////////////////////////////////////////////////////////////
 //// Mover
 //////////////////////////////////////////////////////////////////////
+
+#ifdef FUCK_THIS
 Mover::Definition::Definition(DeviceManager &manager)
 :DeviceDef(manager),pathProcess(NULL)
 {
@@ -497,4 +540,6 @@ Mover::Definition::~Definition()
 		pathProcess->release();
 }
 
-}
+#endif
+
+}	// namespace sim

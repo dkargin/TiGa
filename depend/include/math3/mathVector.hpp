@@ -117,9 +117,18 @@ public:
 	}
 
 	/// normalize vector
-	Vector<Real,_D>&	normalize ()
+	vector_type&	normalize ()
 	{
 		return (*this) /= length ();
+	}
+
+	static vector_type normalize_s(const vector_type &vec_src)
+	{
+		vector_type vec = vec_src;
+		auto length = vec.length();
+		if (length > 0)
+			return vec / length;
+		return vec;
 	}
 
 	/// addition
@@ -330,13 +339,13 @@ public:
 	{
 		lua_pushinteger(L,1);
 		lua_gettable(L,idx);
-		c[0] = (value_type)lua_tonumber(L,-1);
+		this->c[0] = (value_type)lua_tonumber(L,-1);
 		lua_pushinteger(L,2);
 		lua_gettable(L,idx);
-		c[1] = (value_type)lua_tonumber(L,-1);
+		this->c[1] = (value_type)lua_tonumber(L,-1);
 		lua_pushinteger(L,3);
 		lua_gettable(L,idx);
-		c[2] = (value_type)lua_tonumber(L,-1);
+		this->c[2] = (value_type)lua_tonumber(L,-1);
 		lua_pop(L,3);
 	}
 #endif

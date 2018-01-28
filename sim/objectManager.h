@@ -1,60 +1,16 @@
 #pragma once
 
-#include "gameObject.h"
 #include "luabox/scripter.hpp"
+#include "gameObject.h"
+#include "unit.h"
 
-#include "basetypes.h"
-#include "fxobjects.h"
 
 namespace sim
 {
 
+class Unit;
+class VisionManager;
 class PerceptionManager;
-
-enum DeviceCmd
-{	
-	dcmdAction,
-	dcmdToggle_on,
-	dcmdToggle_off,
-	dcmdDir_inc,
-	dcmdDir_set,
-	dcmdTarget_set,
-	dcmdTarget_reset,
-	dcmdTarget_update,
-/////////////////////////
-	dcmdTotal
-};
-
-inline bool cmdIsAction(DeviceCmd cmd)
-{
-	return cmd == dcmdAction;
-}
-
-inline bool cmdIsToggle(DeviceCmd cmd)
-{
-	return cmd == dcmdToggle_on || cmd == dcmdToggle_off;
-}
-
-inline bool cmdIsDirection(DeviceCmd cmd)
-{
-	return cmd == dcmdDir_set || cmd == dcmdDir_inc;
-}
-
-inline bool cmdIsTarget(DeviceCmd cmd)
-{
-	return cmd == dcmdTarget_set || cmd == dcmdTarget_reset || cmd == dcmdTarget_update;
-}
-
-
-enum DeviceResult
-{
-	dcmdOk=1,
-	dcmdSent,
-	dcmdNoImpl,
-	dcmdWrongType,
-	dcmdWrongPort,
-	dcmdNoMaster,
-};
 
 // Old networked bullshit
 namespace NetCmd
@@ -106,6 +62,7 @@ namespace NetCmd
 		virtual bool write(StreamOut &stream);
 	};	
 	TakeControl *toTakeControl(Base *base);
+
 	Hello *toHello(Base *base);
 };
 
@@ -316,15 +273,15 @@ public:
 	friend class PerceptionManager;
 	friend class WeponManager;
 
-	//typedef ObjStore<GameObject> Definitions;
-
-	typedef std::list<GameObject*> ObjectList;
+	typedef std::list<GameObjectPtr> ObjectList;
 
 	std::list<Device * > deviceDefinitions;
+
 	std::list<GameObject* > objectDefinitions;
 
-	GameObject * objectsHead, * objectsTail;
-	// theese are for unit parts
+	// List of scene objects
+	std::list<GameObjectPtr> objects;
+	// these are for unit parts
 	PerceptionManager* perceptionManager;	// replace it by DeviceManager in future
 	Fx::FxManagerPtr fxManager;
 	//b2BlockAllocator allocator;
@@ -352,8 +309,8 @@ public:
 	virtual void saveState(StreamOut & stream);
 	virtual void loadState(StreamIn & stream);
 
-	void registerObject(GameObject * object);
-	void removeObject(GameObject * object);
+	void registerObject(GameObjectPtr object);
+	void removeObject(GameObjectPtr object);
 	void removeAllObjects();/// remove all objects from the map
 
 	virtual void initManagers();
@@ -365,7 +322,7 @@ public:
 	void addListener(ObjectManager::Listener * listener);
 	void removeListener(ObjectManager::Listener * listener);
 
-	GameObject * getObject(ObjID id);
+	GameObjectPtr getObject(ObjID id);
 	Unit * getUnit(ObjID id);
 	/// spatial queries
 	// raycasting, returns sorted hit list
@@ -405,9 +362,8 @@ public:
 	//virtual void updatePerception(Perception * p,float dt);
 	virtual bool canSee(const Pose & pose, float distance, float fov, GameObject * object);
 	/// networks
-
-	void useDevice(Unit *unit,int device,int port,int action, IOBuffer *buffer);
-
+	// Only units can use devices. But why do we keep this here? Can unit directly use it
+	void useDevice(Unit *unit, int device, int port, int action, IOBuffer *buffer);
 	// vision control
 	enum VisionMode
 	{
@@ -421,14 +377,16 @@ public:
 
 	void setVisionAll();
 	void setVisionPlayer(int player);
-	void setVisionObject(GameObject * object);
+	// Set object that shows vision zone
+	void setVisionObject(GameObjectPtr object);
 
-	virtual bool allowVision(GameObject * object);
+	virtual bool allowVision(GameObjectPtr object);
 	
 	/// access methods
 	b2World* getDynamics();
 	Fx::FxManager* getFxManager();
 	lua_State* getLua();
+	VisionManager* getVisionManager();
 	Scripter* getScripter();
 protected:
 
@@ -440,7 +398,7 @@ protected:
 		long lastSync;
 		std::set<ID> objects;
 		std::list<ID> destroyed;
-		StreamOut *messages;		// additional data to send
+		StreamOut* messages;		// additional data to send
 		ClientInfo();
 		~ClientInfo();
 		bool haveMessages()const;
@@ -461,8 +419,8 @@ protected:
 	void cleanDead(); // destroy all objects on the graveyard
 	void raiseObjectDead(GameObject * unit);	// send unit to the graveyard and raise "onDie" event
 
-	void onAdd(GameObject *object);
-	void onRemove(GameObject *object);
+	//void onAdd(GameObject *object);
+	//void onRemove(GameObject *object);
 	
 	// here all dead units are stored to the end of frame. All contained objects are removed on the next frame
 	typedef std::list<GameObject*> DeadList;
@@ -470,6 +428,7 @@ protected:
 	typedef std::set<Listener*> Listeners;
 	Listeners listeners;
 
+	std::unique_ptr<VisionManager> vision;
 	// Get this shit out of here
 	void startHeader(StreamOut &buffer,int type);
 	int finishHeader(StreamOut &buffer);

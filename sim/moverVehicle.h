@@ -1,20 +1,17 @@
 #pragma once
 
 #include "mover.h"
-/////////////////////////////////////////////////////////////
-// ��������� ������ ����������, ������ �� ���������� � �����������
-// ����������� ������� �������� � ���������� ������� ���������,
-// ����������� �������� �������� ��������� � ������������ ��������
-// ��� ���������� �������� �� ����� �������� ����
-// ��� ���������� �������� �� ����� �������� 2� ������
-/////////////////////////////////////////////////////////////
 
 namespace sim
 {
 
+/**
+ * Kinematics class for car-like objects
+ */
 class MoverVehicle: public Mover
-{	
-public:	
+{
+public:
+#ifdef FUCK_THIS
 	class Definition: public Mover::Definition
 	{
 		bool ready;
@@ -34,64 +31,76 @@ public:
 		{
 			return "MoverVehicle";
 		}
-		Device * create(IO::StreamIn * buffer);
+
+		Device * create(StreamIn * buffer);
 	};
 	typedef Definition MoverVehicleDef;
-	Definition *definition;
+#endif
+
 	enum 
 	{
 		portLinear=0,
 		portAngular=1
 	};	
 public:
-	MoverVehicle(Definition *def,IO::StreamIn * data);
-	//MoverVehicle(DeviceManager *manager);
+	MoverVehicle(MoverVehicle* def,StreamIn* data);
 	bool validCommand(int port,DeviceCmd cmd)const;
 	// sync control
 	
-	int readDesc(IOBuffer &context);
-	int writeDesc(IOBuffer &context);	
-	int readState(IO::StreamIn &buffer);
-	int writeState(IO::StreamOut &buffer);
+	int readDesc(IOBuffer& context);
+	int writeDesc(IOBuffer& context);
+	int readState(StreamIn& buffer);
+	int writeState(StreamOut& buffer);
 
 	int execute_Direction(int port,DeviceCmd cmd,float val);
 	virtual void directionControl(const Pose::vec& direction, float speed);
 	virtual void update(float dt);
 
-	DeviceDef * getDefinition();
-	MoverVehicleDef * localDefinition()const
-	{
-		return definition;
-	}
-	virtual float getMaxVelocity(int dir) const { return definition->maxVelocity[dir]; }
-	//float velocity[2];
+	virtual float getMaxVelocity(int dir) const;
 
 	float currentVelocity[2];
 protected:	
 	
 	float turning;		// {-1,0,1}
-	float accelerate;	// {-1,0,1}		
+	float accelerate;	// {-1,0,1}
+
+	// Moved from definition
+	vec2f maxVelocity;	// max linear\angular velocity
+	bool kinematic;			// use force or velocity control
+	bool moveBack;			// can move back - for 2d models of plane or other simular flying
+	bool staticTurn;		// ����� �� �������������� �� �����
+	vec2f acceleration;	// max linear\angular acseleration
+	vec2f brakeForce;	// brakes force\torque
 	
 	friend class Driver;
+private:
+	MoverVehicle* prototype;
 };
-typedef MoverVehicle::Definition MoverVehicleDef;
-/////////////////////////////////////////////////////////////////////////
-class DriverFlocking: public Mover::Driver
+
+/**
+ * Implements flocking-based algorithm for movement control
+ */
+class MoverFlockingAI: public Mover::Driver
 {
 public:
-	DriverFlocking(Mover * mover);
-	virtual void update(float dt);
-#ifdef DEVICE_RENDER
-	virtual void render(HGE * hge);
-#endif
-	std::list<std::pair<Pose::pos,Pose::pos> > pairs;	/// just for debug rendering
+	MoverFlockingAI(Mover * mover);
+
+	virtual void update(float dt) override;
+	virtual void render(Fx::RenderContext* rc) override;
+	/// just for debug rendering
+	std::list<std::pair<Pose::pos,Pose::pos> > pairs;
 protected:
-	virtual vec2f forceObstacles();	// calculate force to evade obstacles
-	virtual vec2f forcePath();		// calculate force to follow the path
-	virtual vec2f forceLeader();		// calculate force to follow the leader
+
+	// Calculates a virtual force to evade obstacles
+	virtual vec2f forceObstacles();
+	// Calculates a virtual force to follow the path
+	virtual vec2f forcePath();
+	// Calculates a virtual force to follow the leader
+	virtual vec2f forceLeader();
+
 	vec2f fObstacles,fPath,fLeader;
 };
 
 MoverVehicle * toVehicle(Mover * mover);
 
-}
+} // namespace sim
