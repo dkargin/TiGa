@@ -1,7 +1,9 @@
-#ifndef MOVER_CHARACTER_INCLUDED
-#define MOVER_CHARACTER_INCLUDED
+#pragma once
+
 #include "mover.h"
 
+namespace sim
+{
 /////////////////////////////////////////////////////////////
 // ��������� characterController ��� ��� ������
 // Re: ��� �� ���������.
@@ -56,4 +58,4 @@ inline MoverCharacter * toCharacter(Device * mover)
 	return dynamic_cast<MoverCharacter*>(mover);
 }
 
-#endif
+}

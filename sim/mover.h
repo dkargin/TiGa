@@ -1,10 +1,15 @@
-#ifndef MOVER_INCLUDED
-#define MOVER_INCLUDED
+#pragma once
 
 #include "device.h"
 #include "gameObject.h"
 #include "objectManager.h"
 
+namespace sim
+{
+
+// Mover is a type of device, that allows game object to move
+// Mover uses 'Driver' class to recieve movement commands and
+// deal with kinematics
 class Mover: public Device
 {
 	friend class ObjectManager;	
@@ -26,8 +31,8 @@ public:
 	Mover(Mover* def);
 	//int readDesc(IOBuffer &context);
 	//int writeDesc(IOBuffer &context);	
-	int readState(IO::StreamIn &buffer);
-	int writeState(IO::StreamOut &buffer);
+	int readState(StreamIn &buffer);
+	int writeState(StreamOut &buffer);
 	
 	virtual ~Mover();
 	virtual void stop();
@@ -43,11 +48,14 @@ public:
 	virtual void directionControl(const Pose::vec& direction, float speed) = 0;
 	virtual float getMaxVelocity(int dir) const { return 0.f;}
 
+#ifdef FUCK_THIS
+
 #ifdef DEVICE_RENDER
 	virtual void render(HGE * hge);
 #endif
 
 	pathProject::PathProcess * pathProcess();
+#endif
 	Pose::vec getLastControl() const;
 
 protected:	
@@ -63,6 +71,9 @@ protected:
 	//pathProject::PathProcess * pathProcess;	// for grid pathfinding
 };
 
+// Driver class
+// The one, that drivers 'mover' object
+// Contains a part of AI that deals with movement control
 class Mover::Driver : public PathFinder::Client
 {
 public:
@@ -85,8 +96,7 @@ public:
 	virtual int obstaclesAdd(const Geom::Traectory2 &tr,float size);	// adds object to evade
 	virtual void obstaclesClear();
 
-//	virtual int getNearest(Pose::pos * targets,int count)=0;	// find nearest target, returns index
-	virtual void walk(const Pose & pose);
+	virtual void walk(const Pose& pose);
 	virtual void walk(const Pose::pos & target);				// set moving target
 	virtual void face(const Pose::vec &t);
 
@@ -102,7 +112,7 @@ public:
 
 	int waypointsCount() const;
 	int waypoints(vec2f * points, int max = -1) const;				// copy local waypoints to "points" array
-	//virtual int canReach(const vec2f &target, float maxDistance=0.0f); // 
+
 	virtual float pathLength();		// current path length
 	virtual float timeToImpact();	// time to impact in described obstacle
 	Pose::vec pathDirection();
@@ -152,4 +162,5 @@ Mover::Driver * createVO2Driver(Mover* m);
 void drawArrow(HGE * hge,const vec2f &from,const vec2f &to,DWORD color,float width=0.01,float length=0.02);
 void drawPoint(HGE * hge,const vec2f &pos,DWORD color,float size,int style=0);
 void drawLine(HGE * hge,const vec2f &from,const vec2f &to,DWORD color);
-#endif
+
+}

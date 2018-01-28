@@ -1,12 +1,11 @@
-#include "../sim/moverVehicle.h"
-
-#include "../sim/mover.h"
-#include "../sim/unit.h"
-#include "stdafx.h"
+#include "moverVehicle.h"
+#include "mover.h"
+#include "unit.h"
 
 //using namespace pathProject;
 using namespace std;
 
+namespace sim {
 ////////////////////////////////////////////////////////////
 //// Definition
 ////////////////////////////////////////////////////////////
@@ -274,4 +273,6 @@ void MoverVehicle::update(float dt)
 MoverVehicle * toVehicle(Mover * mover)
 {
 	return dynamic_cast<MoverVehicle*>(mover);
+}
+
 }

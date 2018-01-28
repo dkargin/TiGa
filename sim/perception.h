@@ -1,59 +1,44 @@
-
 #pragma once;
-#include "../sim/objectManager.h"
-#include "../sim/device.h"
-#include "../sim/gameObject.h"
+
+#include "objectManager.h"
+#include "device.h"
+#include "gameObject.h"
+
+namespace sim
+{
 
 class Unit;
 class ObjectManager;
 class Item;
 class Perception;
-class PerceptionDef;
-
 class PerceptionLaser;
-class PerceptionLaserDef;
+
+// Here are classes, that imitate some perception sensors from robots,
+// like lidars or cameras
 
 class Sensor
 {
 public:
-	b2Body * body;
+	b2Body* body;
+
 	Sensor(float size);
 	~Sensor();
 	void setSize();
 	float getSize();
 };
 
-
-//////////////////////////////////////////////////////////////////
-// to be replaced in DeviceManager
-//class PerceptionManager: public DeviceManager
-//{
-//public:
-//	PerceptionManager(ObjectManager *um);
-//	virtual ~PerceptionManager();	
-//	virtual void release();
-//	virtual void update(float dt);	
-//	virtual void updatePerception(Perception * p,float dt);
-//	virtual bool canSee(Perception *p,GameObject * object);
-//	//Perception *perception(const Objects::iterator &it);
-////protected:
-//};
-
-
-/////////////////////////////////////////////////////////////////
-//// to reimplement using PhysX sensors
+#ifdef FUCK_THIS
 class PerceptionDef: public DeviceDef
 {
 	friend class Perception;
 	friend class PerceptionManager;
 public:	
-	float distance;		// view distance
-	float fov;			// field of view in degrees
 
 	PerceptionDef(ObjectManager & manager);
 	virtual ~PerceptionDef();
-	Device *create(IO::StreamIn *context=NULL);
+	Device *create(StreamIn* context=NULL);
 };
+#endif
 
 class PerceptionClient
 {
@@ -98,19 +83,21 @@ public:
 	typedef std::list<Unit*> Units;
 	typedef std::list<Item *> Items;
 	typedef std::list<GameObject * > Objects;
-	typedef std::set<GameObject *> Observed;
+	typedef std::set<GameObject*> Observed;
+
 	Observed observed;
 	GameObject * unit;
 	PerceptionClient * client;
-	PerceptionDef * definition;
+	Perception* definition;
 
-	bool active;	// if device recieves any updates
+	float distance;		//< view distance
+	float fov;				//< field of view in degrees
+	bool active;			//< if device recieves any updates
 
-	Perception(PerceptionDef *def);
-
+	Perception(Perception *def=nullptr);
 	virtual ~Perception();
 
-	virtual DeviceDef * getDefinition()
+	virtual Device* getDefinition() override
 	{
 		return definition;
 	}
@@ -124,11 +111,10 @@ public:
 	virtual void getItems(Items &items);
 	virtual void removeDead();
 
-	//virtual int init(Unit *owner,int id,int parent=-1);
 	virtual void update(float dt);
 	// sync
-	int writeState(IO::StreamOut &buffer);
-	int readState(IO::StreamIn &buffer);
+	int writeState(StreamOut &buffer);
+	int readState(StreamIn &buffer);
 	int writeDesc(IOBuffer &buffer);
 	int readDesc(IOBuffer &buffer);
 
@@ -139,3 +125,5 @@ public:
 //typedef std::map<float,std::pair<vec3,GameObject *> > CollisionMap;
 Geom::Traectory2 getTraectory2(GameObject * object);
 //int processCollisions(Perception *perception,CollisionMap & collisionMap);
+
+}

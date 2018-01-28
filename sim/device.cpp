@@ -1,20 +1,9 @@
 #include "device.h"
-
 #include "objectManager.h"
 #include "unit.h"
 
 namespace sim {
 
-//////////////////////////////////////////////////////////////////////
-//
-//DeviceManager::DeviceManager(ObjectManager *manager)
-//	:objectManager(manager),luaState(manager->getLua())
-//{}
-//DeviceManager::~DeviceManager()
-//{
-//	clear();
-//}
-//////////////////////////////////////////////////////////////////////////
 class CmdActionInvoker: public CmdInvoker
 {
 public:
@@ -171,14 +160,14 @@ Device::Device(Device* def)
 	{
 		if(effectContainer)
 		{
-			effectContainer.attach(fxIdle);
+			// TODO: Attache effect to a container
+			effectContainer->attach(fxIdle);
 		}
 	}
 }
 
 Device::~Device()
 {
-	g_logger->line(0,"Device::~Device");
 }
 
 Device * Device::getDefinition()
@@ -331,11 +320,6 @@ int Device::xWrongPort()
 {
 	throw(std::runtime_error("Device::xWrongPort\n"));
 	return 0;
-}
-
-DeviceManager * Device::getManager()
-{
-	return &getDefinition()->manager;
 }
 
 b2Body * Device::getBody()

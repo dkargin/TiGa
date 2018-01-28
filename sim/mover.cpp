@@ -1,9 +1,8 @@
-#include "../sim/mover.h"
+#include "mover.h"
+#include "unit.h"
 
-#include "../sim/unit.h"
-#include "stdafx.h"
-using namespace std;
-static bool logDriver=true;
+namespace sim {
+
 ////////////////////////////////////////////////////////////////////
 // Mover Tasks
 ////////////////////////////////////////////////////////////////////
@@ -496,4 +495,6 @@ Mover::Definition::~Definition()
 {
 	if(pathProcess)
 		pathProcess->release();
+}
+
 }

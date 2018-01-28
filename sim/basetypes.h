@@ -1,9 +1,11 @@
 #pragma once
 
-#include <ioTools.h>
+#include <ioTools.h>			//< from frosttools
+#include <iobuffer.h>			//< from frosttools
 #include <math3/math.h>
 #include <math3/mathExtensions.hpp>
 #include "luabox/scripter.hpp"
+
 
 /*
  * Header contains primitive type definitions
@@ -30,6 +32,7 @@ typedef ID ObjID;	// object identifier
 // Let's summon some byte streams
 using StreamIn = frosttools::IO::StreamIn;
 using StreamOut = frosttools::IO::StreamOut;
+using IOBuffer = frosttools::IOBuffer;
 
 using Scripter = LuaBox::Scripter;
 }

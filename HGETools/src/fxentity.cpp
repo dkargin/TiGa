@@ -15,9 +15,9 @@ Entity::Entity(const Entity &effect)
 	scale = effect.scale;
 	pose = effect.pose;
 
-	for(const_iterator it = effect.begin(); it != effect.end();++it)
+	for(EntityPtr ptr: children)
 	{
-		Entity* clone = it->clone();
+		EntityPtr clone(ptr->clone());
 		attach(clone);
 	}
 }
@@ -71,7 +71,8 @@ const Pose & Entity::getPose() const
 
 Pose Entity::getGlobalPose()const
 {
-	return parent ? parent->getGlobalPose() * pose : pose;
+	EntityPtr parent_ptr = parent.lock();
+	return parent_ptr ? parent_ptr->getGlobalPose() * pose : pose;
 }
 
 Rect Entity::getLocalRect() const
@@ -98,9 +99,9 @@ bool Entity::isVisible() const
 float Entity::duration()const
 {
 	float result = 0;
-	for(const_iterator it = begin(); it != end(); ++it)
+	for(EntityPtr ptr: children)
 	{
-		result = std::max(result, it->duration());
+		result = std::max(result, ptr->duration());
 	}
 	return result;
 }
@@ -117,20 +118,20 @@ float Entity::getHeight() const
 
 void Entity::start(AnimationMode mode)
 {
-	for(iterator it = begin();it != end();++it)
-		it->start(mode);
+	for(EntityPtr ptr: children)
+			ptr->start(mode);
 }
 
 void Entity::stop(bool immediate)
 {
-	for(iterator it = begin(); it!=end();++it)
-		it->stop(immediate);
+	for(EntityPtr ptr: children)
+		ptr->stop(immediate);
 }
 
 void Entity::rewind()
 {
-	for(iterator it=begin();it!=end();++it)
-		it->rewind();
+	for(EntityPtr ptr: children)
+		ptr->rewind();
 }
 
 // empty
@@ -138,8 +139,8 @@ void Entity::update(float dt) {}
 
 void Entity::updateAll(float dt)
 {
-	for(iterator it=begin();it!=end();++it)
-		it->update(dt);
+	for(EntityPtr ptr: children)
+		ptr->update(dt);
 }
 
 void Entity::render(RenderContext* manager, const Pose& base)
@@ -149,8 +150,8 @@ void Entity::render(RenderContext* manager, const Pose& base)
 
 void Entity::renderAll(RenderContext* manager, const Pose& base)
 {
-	for(iterator it=begin();it!=end();++it)
-		it->render(manager, base*pose);
+	for(EntityPtr ptr: children)
+		ptr->render(manager, base*pose);
 }
 
 #ifdef FUCK_THIS_LESS
@@ -173,9 +174,10 @@ Rect Entity::getClipRect() const
 {
 	Rect result = getLocalRect();
 	bool first = true;
-	for(const_iterator it = begin();it != end();++it)
+
+	for(EntityPtr ptr: children)
 	{
-		Rect childRect = it->getClipRect();
+		Rect childRect = ptr->getClipRect();
 		if( first )
 			result = childRect;
 		else
@@ -195,9 +197,30 @@ EffectType Entity::type() const
 	return EffectType::EffectGroup;
 }
 
-Entity * Entity::clone() const
+Entity* Entity::clone() const
 {
 	return new Entity(*this);
+}
+
+void Entity::detach_me()
+{
+	EntityPtr parent_ptr = parent.lock();
+	if(!parent_ptr)
+		return;
+
+	parent_ptr->children.erase(this->parent_it);
+	parent.reset();
+}
+
+void Entity::attach(EntityPtr obj)
+{
+	EntityPtr thisptr = shared_from_this();
+	if (thisptr == obj->parent.lock())
+		return;
+
+	obj->detach_me();
+	obj->parent_it = children.insert(children.end(), obj);
+	obj->parent = thisptr;
 }
 
 }

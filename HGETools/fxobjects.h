@@ -1,6 +1,5 @@
 #pragma once
 
-#include <treenode.h>
 #include <set>
 #include <memory> 		//for shared_ptr
 
@@ -67,18 +66,6 @@ struct ObjectTracker
 	void check();
 };
 
-#ifdef FUCK_THIS
-// Get rid if this shit
-class ObjectTracked
-{
-public:
-	ObjectTracker::ID id;
-	ObjectTracked();
-	virtual ~ObjectTracked();
-	static ObjectTracker effectTracker;
-};
-#endif
-
 #define FX_TYPE(TargetType,TypeID) \
 	friend class FxManager; \
 	typedef std::shared_ptr<TargetType> Pointer; \
@@ -111,15 +98,13 @@ enum class EffectType
 	fxLight,
 	fxBeam,
 	fxSound,
-	fxModel,HTEXTURE
+	fxModel,
 };
 
 /**
  * Base class for any effect in scene graph
  */
-class Entity :
-		public std::enable_shared_from_this<Entity>,
-		public TreeNode<Entity>
+class Entity: public std::enable_shared_from_this<Entity>
 {
 public:
 	Entity();
@@ -131,10 +116,17 @@ public:
 		return this;
 	}
 
-	virtual void start(AnimationMode mode = AnimationNoChange);					// starts animation (if there is any)
-	virtual void stop(bool immediate);		// stops animation (if there is any)
-	virtual void rewind();								// rewind track
-	virtual Time_t duration() const;			// get animation duration
+	// Animation stuff
+
+	// Start animation (if there is any)
+	virtual void start(AnimationMode mode = AnimationNoChange);
+	// Stop animation (if there is any)
+	virtual void stop(bool immediate);
+	// Rewind track
+	virtual void rewind();
+	// Get animation duration
+	virtual Time_t duration() const;
+
 	// geometry interface
 	void setZ(float z);
 	float getZ() const;
@@ -145,32 +137,33 @@ public:
 	virtual void setPose(const Pose &p);
 	virtual const Pose & getPose() const;			// get pose relative to parent object
 	Pose & poseRef() { return pose;}
+
+	// Get pose relative to hierarchy root
 	virtual Pose getGlobalPose()const;
 
 	float getWidth() const;							//< Get screen width
 	float getHeight() const;						//< Get screen width
 
 	Rect getClipRect() const;						//< return rect to determine, should we clip
+	virtual bool shouldClip(const FxView2& view) const;
 	virtual Rect getLocalRect() const;	//< get bound only for root, excluding children
 	// scene graph interface
 	void setVisible(bool flag);
 	bool isVisible() const;
 
-#ifdef FUCK_THIS_LESS
-	virtual void query(FxManager * manager, const Pose& base);
-	void queryAll(FxManager * manager, const Pose& base);			// query all hierarchy
-#endif
 	virtual void render(RenderContext* context, const Pose& base);
-	void renderAll(RenderContext* manager, const Pose& base);					// render all hierarchy
+	// Render all the hierarchy
+	void renderAll(RenderContext* manager, const Pose& base);
 
 	virtual void update(float dt);
-	void updateAll( float dt );								//< update all hierarchy
-	
-	virtual bool shouldClip(const FxView2 & view) const;	
+	// Updates self and all the hierarchy
+	void updateAll( float dt );
+
 	// misc
 	virtual EffectType type() const;
 	virtual bool valid() const;
 	virtual Entity * clone() const;
+
 protected:
 	Entity(const Entity &effect);
 
@@ -180,6 +173,48 @@ protected:
 	Pose pose;
 	float scale;
 	bool visible;
+
+	// Container structure stuff
+public:
+	typedef std::list<EntityPtr> Container;
+	typedef typename Container::iterator iterator;
+	typedef typename Container::const_iterator const_iterator;
+	typedef EntityPtr value_type;
+
+	iterator begin()
+	{
+		return children.begin();
+	}
+
+	iterator end()
+	{
+		return children.end();
+	}
+
+	const_iterator begin() const
+	{
+		return children.begin();
+	}
+
+	const_iterator end() const
+	{
+		return children.end();
+	}
+
+	// Attach entity to this root
+	// Adds argument to children list and breaks
+	// connection from previous parent
+	void attach(EntityPtr obj);
+
+	// Detach from the parent
+	void detach_me();
+private:
+	Container children;
+	// Pointer to parent node
+	std::weak_ptr<Entity> parent;
+	// An iterator to location in parent's list
+	// Used to make deletion faster
+	Container::iterator parent_it;
 };
 
 /*
@@ -306,45 +341,4 @@ protected:
 //	virtual void update(float dt);
 //	virtual void render(const Pose &base);
 //};
-
-//class ResourceManager
-//{
-//public:
-//	struct ResFile
-//	{
-//		std::string file;
-//		int ref;
-//		virtual void free(ResourceManager * manager) = 0;
-//	};
-//	struct ResTexture : public ResFile
-//	{
-//		DWORD handle;
-//		virtual void free(ResourceManager * manager);
-//	};
-//	struct ResSound : public ResFile
-//	{
-//		DWORD handle;
-//		virtual void free(ResourceManager * manager);
-//	};
-//};
-
-// WTF Is this shit???
-#ifdef FUCK_THIS
-#pragma push_macro("new")
-#undef new
-void FAR* operator new(size_t cb);
-template<class FxType> inline FxType * CopyFactoryObject( std::weak_ptr<FxManager> manager, const FxType *source)
-{
-	FxType * result = NULL; 
-	if(!source->valid())
-		throw(std::exception("FxHelper::clone() error: invalid object"));
-	else {
-		//FxType * place = NULL;		
-		//manager.lock()->allocateRaw(place);	
-		result = new FxType(*source);
-	}
-	return result;
-}
-#pragma pop_macro("new")
-#endif //FUCK_THIS
 

@@ -1,6 +1,6 @@
-#ifndef MOVER_VEHICLE_INCLUDED
-#define MOVER_VEHICLE_INCLUDED
-#include "../sim/mover.h"
+#pragma once
+
+#include "mover.h"
 /////////////////////////////////////////////////////////////
 // ��������� ������ ����������, ������ �� ���������� � �����������
 // ����������� ������� �������� � ���������� ������� ���������,
@@ -9,7 +9,8 @@
 // ��� ���������� �������� �� ����� �������� 2� ������
 /////////////////////////////////////////////////////////////
 
-
+namespace sim
+{
 
 class MoverVehicle: public Mover
 {	
@@ -93,4 +94,4 @@ protected:
 
 MoverVehicle * toVehicle(Mover * mover);
 
-#endif
+}

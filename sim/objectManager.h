@@ -10,7 +10,6 @@ namespace sim
 {
 
 class PerceptionManager;
-class IOBuffer;
 
 enum DeviceCmd
 {	

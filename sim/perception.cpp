@@ -1,14 +1,15 @@
-#include "../sim/perception.h"
+#include "perception.h"
 
-#include "../sim/device.h"
-#include "../sim/inventory.h"
-#include "../sim/moverVehicle.h"
-#include "../sim/objectManager.h"
-#include "../sim/predictor.h"
-#include "../sim/projectile.h"
-#include "../sim/unit.h"
-#include "stdafx.h"
+#include "device.h"
+#include "inventory.h"
+#include "moverVehicle.h"
+#include "objectManager.h"
+#include "predictor.h"
+#include "projectile.h"
+#include "unit.h"
 
+namespace sim
+{
 ////////////////////////////////////////////////////////
 // PerceptionClient
 ////////////////////////////////////////////////////////
@@ -46,7 +47,7 @@ void Perception::update(float dt)
 	if(active)
 	{
 		GameObject * owner = this->master;
-		getManager()->addVision( definition->distance, definition->fov, getGlobalPose(), owner );
+		getManager()->addVision( distance, fov, getGlobalPose(), owner );
 		//((PerceptionManager&)definition->manager).updatePerception(this,dt);
 	}
 }
@@ -186,7 +187,6 @@ bool Perception::validCommand(int port,DeviceCmd cmd)const
 // ImpactImage - raster image around object, where 
 //(x,y) shows time, when it would be occupied
 ////////////////////////////////////////////////////
-
 class ImpactImage
 {
 public:
@@ -256,4 +256,6 @@ Geom::Traectory2 getTraectory2(GameObject * object)
 			position = object->getPosition();	
 	}
 	return Geom::Traectory2(position, velocity);
+}
+
 }

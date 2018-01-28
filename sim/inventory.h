@@ -27,8 +27,8 @@ public:
 	ItemDef(ObjectManager *owner);	
 	~ItemDef();
 	void release();
-	Item * construct(IO::StreamIn *context);
-	GameObject * create(IO::StreamIn * buffer);
+	Item * construct(StreamIn *context);
+	GameObject * create(StreamIn * buffer);
 protected:
 	ItemDef(const ItemDef &def);
 };
@@ -55,10 +55,8 @@ public:
 	Item(ItemManager* im, Item* proto);
 	~Item();
 
-#ifdef FUCK_THIS
 	int writeDesc(IOBuffer &context);
 	int readDesc(IOBuffer &context);
-#endif
 	
 	virtual void update(float dt);
 

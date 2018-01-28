@@ -98,7 +98,7 @@ public:
 #ifdef DEVICE_RENDER
 	virtual void render(HGE * hge){}
 #endif
-	virtual ObjectManager * getManager();
+	//virtual ObjectManager * getManager();
 	virtual Device * getDefinition();
 	virtual b2Body * getBody();
 	virtual Unit * getMaster(){return master;}
