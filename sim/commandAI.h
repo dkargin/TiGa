@@ -122,9 +122,9 @@ public:
 	std::vector<std::pair<Weapon*, FlatCone>> weapons;
 	// Direction ranges that are reachable by weapons
 	math3::Segments weaponReach;
-	Mover * mover;
+	Mover* mover;
 	
-	Unit *owner;
+	Unit*owner;
 
 	struct
 	{
@@ -136,20 +136,9 @@ public:
 	Controller(Unit * target);
 	virtual ~Controller();
 
-	static int invoke(Device * device,InvokerContainer::Key key,bool down,float x,float y,float wheel)
-	{
-		if(!device)
-			return 0;
-		return device->onControl(key,down,x,y,wheel);
-	}
+	static int invoke(Device * device,InvokerContainer::Key key,bool down,float x,float y,float wheel);
 
-	int onControl(InvokerContainer::Key key,bool down,float x,float y,float wheel)
-	{
-		int result=0;
-		for(auto it=owner->devices.begin();it!=owner->devices.end();++it)
-			result|=invoke(*it,key,down,x,y,wheel);	
-		return result;
-	}
+	int onControl(InvokerContainer::Key key,bool down,float x,float y,float wheel);
 	virtual void onEnable(bool flag){};
 	virtual void render(HGE * hge);
 	virtual void update(float dt);

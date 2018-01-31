@@ -2,16 +2,16 @@
 
 namespace sim
 {
-class WeaponBeam;
-class WeaponBeamDef;
-typedef DevicePair<WeaponBeamDef,WeaponBeam,WeaponPair> WeaponBeamPair;
 
-class WeaponBeam: public WeaponBeamPair::Obj
+class WeaponBeam;
+
+class WeaponBeam: public Weapon
 {
 public:
 	bool fire;
-	WeaponBeam(WeaponBeamDef *def,Device::BuildContext *context);
+	WeaponBeam(WeaponBeam* def, Device::BuildContext *context);
 	~WeaponBeam();
+
 	FxBeam * beam;
 	void update(float dt);
 	int execute_Action(int port);
@@ -30,4 +30,5 @@ public:
 	WeaponBeamDef(DeviceManager *manager):Definition(manager),beam(NULL){}	
 };
 #endif
+
 }

@@ -7,11 +7,11 @@ namespace sim
 
 class Unit;
 class Weapon;
-//class WeaponDef;
 
 struct WeaponClient
 {
 public:
+	virtual ~WeaponClient() {}
 	virtual void onInstallWeapon(Weapon * object,int mount)=0;
 };
 

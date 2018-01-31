@@ -41,14 +41,17 @@ Weapon::Weapon(Weapon* def,StreamIn * buffer)
 	fire = false;/*,beam(NULL)*/
 	weaponState = stateReady;
 	ammo = 0;
-
-	memcpy(&weaponData, &def->weaponData,sizeof(weaponData));
 	burstLeft = 0;
 
-	if(def->fxShoot)
+	if(def)
 	{
-		fxShoot = def->fxShoot->clone();
-		fx_root.attach(fxShoot);
+		memcpy(&weaponData, &def->weaponData,sizeof(weaponData));
+		ammo = def->ammo;
+		if(def->fxShoot)
+		{
+			fxShoot = def->fxShoot->clone();
+			fx_root->attach(fxShoot);
+		}
 	}
 }
 
@@ -57,7 +60,8 @@ Weapon::~Weapon()
 
 float Weapon::getEffectiveRange()const
 {
-	return definition->getEffectiveRange();
+	//return weaponData.velocity * weaponData.maxRange;
+	return weaponData.maxRange;
 }
 /*
 int Weapon::writeDesc(IOBuffer &context)
@@ -98,17 +102,18 @@ void Weapon::doShoot(float dt)
 	Pose spread(0,0,frand(weaponData.spread)*M_PI/180);
 	// TODO: Fix projectile spawning
 	throw std::runtime_error("Not implemented");
-	if(/*definition->weaponType==WeaponDef::weaponProjectile && */definition->projectile)
+	/*
+	if( weaponType==weaponProjectile)
 	{
 		/// this conversion seems to be bad. Maybe better to use definition->construct ?
-		Projectile *object = dynamic_cast<Projectile*>(definition->projectile->create(NULL));
+		Projectile *object = dynamic_cast<Projectile*>(projectile->create(NULL));
 		assert(object);
 
 		object->Source = getMaster();	/// let ignore out unit for collisions
 		object->player = getMaster()->getPlayer();
 
 		if(object)object->setPose(getMuzzlePose()*spread);			
-	}
+	}*/
 }
 
 void Weapon::updateBurst(float dt)

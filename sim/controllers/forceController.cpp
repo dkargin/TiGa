@@ -1,12 +1,12 @@
-#include "../../sim/controllers/forceController.h"
+#include "../unit.h"
+#include "../solidobject.h"
+#include "../commandAI.h"
 
-#include "stdafx.h"
-//#include "common.h"
-//#include "traffic.h"
-#include "Unit.h"
-#include "CommandAI.h"
-using namespace std;
-typedef Unit Unit;
+#include "forceController.h"
+
+namespace sim
+{
+
 bool debugDrawForces=true;
 bool debugDrawPath=true;
 bool debugDrawObjects=true;
@@ -17,57 +17,63 @@ bool usePrediction=true;
 float privateRadius=2.0;			// greatly increase steering force from objects below this distance
 float collisionRadius=1.5;			
 
-float fPathScale[]={0.0,0.01,0.0,0},fPathK=1.0,pathSensivity=3.0;
-float fEvasionScale[]={0.5,1.0,0,0},fEvasionK=3.0,fEvasionRange=5;
+float fPathScale[]={0.0,0.01,0.0,0}, fPathK=1.0, pathSensivity=3.0;
+float fEvasionScale[]={0.5,1.0,0,0}, fEvasionK=3.0, fEvasionRange=5;
 
 
 //float getMinDistance(const Unit &tr0,const Unit &tr1,float maxTime,float &time);
-float getMinDistance(const Traectory2 &tr0,const Traectory2 &tr1,float maxTime,float &time);
+float getMinDistance(const Trajectory2 &tr0,const Trajectory2 &tr1, float maxTime, float &time);
 
 // ranged random [low,high)
 inline int rand(int low,int high)
 {
-	return std::min(low,high)+rand()%abs(high-low);
+	return std::min(low,high)+::rand() % abs(high-low);
 }
 // random in [0,max)
 inline int rand(int max)
 {
-	return rand()%max;
+	return ::rand()%max;
 }
+
 inline Pose::vec randVec2()
 {
-	return normalise(Pose::vec((float)rand(255)/255.f,
-							(float)rand(255)/255.f));
+	return Pose::vec(rand(255), rand(255)).normalize();
 }
+
 
 Pose::vec calcForcePull(const Pose::vec &dir,float dist,float coeffs[4])
 {
-	if(dir.length()>0.f)
-		return normalise(dir)*(coeffs[0]+coeffs[1]*dist+coeffs[2]*dist*dist);
+	if(dir.length() > 0.f)
+		return vec2f::normalize_s(dir)*(coeffs[0]+coeffs[1]*dist+coeffs[2]*dist*dist);
 	return randVec2()*coeffs[3];
 }
+
 Pose::vec calcForcePush(const Pose::vec &dir,float dist,float coeffs[4])
 {
-	if(dir.length()>0.f)
-		return normalise(dir)/(coeffs[0]+coeffs[1]*dist+coeffs[2]*dist*dist);
+	if(dir.length() > 0.f)
+		return vec2f::normalize_s(dir)/(coeffs[0]+coeffs[1]*dist+coeffs[2]*dist*dist);
 	return randVec2()*coeffs[3];
 }
+
 inline float fsign(float val)
 {
 	return val>=0.f?1.0f:-1.f;
 }
-Pose::vec getLinearVelocity(GameObject * object)
+
+Pose::vec getLinearVelocity(GameObjectPtr object)
 {
-	GameSolidObject * so=dynamic_cast<GameSolidObject * >(object);
+	SolidObject* so=dynamic_cast<SolidObject*>(object.get());
 	if(so)
 		return conv(so->getBody()->GetLinearVelocity());
 	return Pose::vec::zero();
 	
 }
+
 bool onRoute(Unit *unit)
 {
 	return false;
 }
+
 Pose::vec getPathError(Unit *unit)
 {
 	return vec2f(0.f);
@@ -76,10 +82,16 @@ Pose::vec getPathTarget(Unit *unit)
 {
 	return vec2f(0.f);
 }
-float getSize(GameObject * object)
+
+float getSize(const GameObjectPtr& object)
 {
 	return 20.f;
 }
+
+ForceController::ForceController(Unit*parent)
+:Controller(parent)
+{}
+
 void ForceController::update(float dt)
 {
 	bool steering=false;
@@ -88,17 +100,17 @@ void ForceController::update(float dt)
 	fObjects=Pose::vec::zero();
 	fPath=Pose::vec(0.f);
 	float forceFactor=1.;
-	Pose::vec ownerPos=owner->getPosition();
-	Pose::vec ownerVel=getLinearVelocity(owner);
-	Traectory2 ownerTr(ownerPos,ownerVel);
-	float ownerSize=getSize(owner);//owner->size;
+	Pose::vec ownerPos = owner->getPosition();
+	Pose::vec ownerVel = getLinearVelocity(owner->shared_from_this());
+	Trajectory2 ownerTr(ownerPos,ownerVel);
+	float ownerSize=getSize(owner->shared_from_this());//owner->size;
 	float proximityRadius=ownerSize*2;
-	for(auto it=objects.begin();it!=objects.end();++it)
+
+	for(GameObjectPtr& target: objects)
 	{
-		GameObject *target=(*it);
 		Pose::vec obstaclePos=target->getPosition();
 		Pose::vec obstacleVel=getLinearVelocity(target);
-		Traectory2 obstacleTr(obstaclePos,obstacleVel);
+		Trajectory2 obstacleTr(obstaclePos,obstacleVel);
 		float obstacleSize=getSize(target);//target->size
 		
 		float objDistance=vecDistance(ownerPos,target->getPosition());
@@ -159,7 +171,7 @@ void ForceController::update(float dt)
 			float cd=vecLength(ownerPos-target->getPosition());
 			if(cd>0)
 			{
-				fObjects=fObjects+normalise(ownerPos-target->getPosition())*force;
+				fObjects=fObjects+vec2f::normalize_s(ownerPos-target->getPosition())*force;
 			}
 		}	
 		
@@ -173,7 +185,7 @@ void ForceController::update(float dt)
 			fPath+=calcForcePull(pathError,pathError.length(),fPathScale)*fPathK;
 		Pose::vec targetError=getPathTarget(owner)-owner->getPosition();
 		if(targetError.length()>pathSensivity)
-			fPath+=normalise(targetError)*fPathK;
+			fPath+=vec2f::normalize_s(targetError)*fPathK;
 	}
 	// Final velocity
 	/*
@@ -275,3 +287,5 @@ void ForceController::render()
 //
 //	return res;
 //}
+
+} // namespace sim

@@ -5,6 +5,7 @@
 
 #include <fxobjects.h>
 
+#include "forwards.h"
 #include "solidobject.h"
 
 
@@ -90,10 +91,8 @@ public:
 template<class Type> struct TypeInfo{};
 
 class ObjectManager;
-
 class GameObject;
-typedef std::shared_ptr<GameObject> GameObjectPtr;
-typedef std::weak_ptr<GameObject> GameObjectWPtr;
+
 
 /**
  * Basic game object, that can be attached to simulation scene

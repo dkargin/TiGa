@@ -1,10 +1,12 @@
-#include "../../sim/controllers/vo2Controller.h"
+#include "vo2Controller.h"
 
-#include "../../sim/device.h"
-#include "../../sim/mover.h"
-#include "../../sim/moverVehicle.h"
-#include "../../sim/unit.h"
-#include "stdafx.h"
+#include "../device.h"
+#include "../mover.h"
+#include "../moverVehicle.h"
+#include "../unit.h"
+
+namespace sim
+{
 
 const int steps = 128;
 const float delta=(2*M_PI)/steps;
@@ -46,7 +48,7 @@ void VO2Controller::updateObstacles(int safetyLevel)
 }
 
 // ���������� ����������� ����� �� ����� VO
-void rayCast(const std::vector<VO2> &vo,float startAngle,int steps,Rays &rays)
+void rayCastFan(const std::vector<VO2> &vo,float startAngle,int steps,Rays &rays)
 {
 	rays.resize(steps);
 	float delta=2*M_PI/steps;
@@ -209,11 +211,11 @@ void VO2Controller::update(float dt)
 			turnOnly = ( x*x  + y*y < turningRadius*turningRadius );
 		}
 
-		preferedDirection = normalise(path + targ);
+		preferedDirection = (path + targ).normalize();
 		preferedAngle = atan2(preferedDirection[1], preferedDirection[0]);	// � �� ����� �� ��� ��� ����
 		preferedSpeed = maxVelocity;										// � ���������
 		MoverVehicle * mv = (MoverVehicle*)mover;
-		if(mv->definition->kinematic)
+		if(mv->kinematic)
 		{
 			Pose::vec bodyVelocityLinear = conv(mover->getBody()->GetLinearVelocity());
 			float bodyVelocityAngular = mover->getBody()->GetAngularVelocity();
@@ -244,7 +246,7 @@ void VO2Controller::update(float dt)
 	Pose::vec bestVelocity = Pose::vec::zero();		// ������ ��������
 	// choose best segment
 	
-	::rayCast(velocitySpace,preferedAngle,steps,rays);
+	rayCastFan(velocitySpace,preferedAngle,steps,rays);
 
 	/*
 	������� ������ �� ����������� [0,maxVelocity],
@@ -292,7 +294,7 @@ Mover::Driver * createVO2Driver(Mover* m)
 	return new VO2Controller(m);
 }
 // ������ ������ ���. ������ ����� ��������- ����������� � VO
-void drawRangeSet(HGE * hge, const vec2f & pos, const RangeSet &rs,float angle)
+void drawRangeSet(Fx::RenderContext* rc, const vec2f & pos, const RangeSet &rs,float angle)
 {
 	float cs=cosf(angle),sn=sinf(angle);
 	//glBegin(GL_LINES);
@@ -301,23 +303,23 @@ void drawRangeSet(HGE * hge, const vec2f & pos, const RangeSet &rs,float angle)
 		const Range &r=*it;
 		if(!r.isInf())		
 		{
-			hge->Gfx_RenderLine(pos[0] + r.min * cs, pos[1] + r.min * sn, pos[0] + r.max * cs, pos[1] + r.max * sn);
+			rc->Gfx_RenderLine(pos[0] + r.min * cs, pos[1] + r.min * sn, pos[0] + r.max * cs, pos[1] + r.max * sn);
 		}
 		else if(r.tmax==Range::Inf)
 		{
 			const float veryFar = 60.f;
-			hge->Gfx_RenderLine(pos[0] + r.min * cs, pos[1] + r.min * sn, pos[0] + veryFar * cs, pos[1] + veryFar * sn);
+			rc->Gfx_RenderLine(pos[0] + r.min * cs, pos[1] + r.min * sn, pos[0] + veryFar * cs, pos[1] + veryFar * sn);
 		}
 	}
 }
 
 // ������ ��������� �����
-void drawRays(HGE * hge, const vec2f &pos,const Rays &rays)
+void drawRays(Fx::RenderContext* rc, const vec2f &pos,const Rays &rays)
 {
 	for(unsigned int i=0;i<rays.size();i++)
 	{		
 		float angle=rays[i].first;
-		drawRangeSet(hge, pos, rays[i].second, angle);
+		drawRangeSet(rc, pos, rays[i].second, angle);
 	}
 }
 
@@ -327,19 +329,20 @@ void drawRays(HGE * hge, const vec2f &pos,const Rays &rays)
 //	return NULL;
 //}
 
-void VO2Controller::render(HGE * hge)
+void VO2Controller::render(Fx::RenderContext* rc)
 {		
-	Mover::Driver::render(hge);
+	Mover::Driver::render(rc);
 	float size = 5 * mover->getMaster()->getSphereSize();
 	Pose pose = mover->getGlobalPose();
 	for(auto it=obstacles.begin();it!=obstacles.end();++it)
 	{
 		VelocityObstacle vo(pose.getPosition(),size,it->first.getPosition(0),it->second,it->first.velocity);		
-		drawVO(hge,vo, size, 10);
+		drawVO(rc, vo, size, 10);
 	}
 
-	drawRays(hge, pose.getPosition(), rays);
+	drawRays(rc, pose.getPosition(), rays);
 //	
 //	//for(auto it=segments.begin();it!=segments.end();++it)
 //	//	drawArc(object->position,object->maxVelocity*1.1,*it);	
+}
 }

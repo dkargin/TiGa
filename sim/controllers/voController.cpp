@@ -1,15 +1,13 @@
-#include "../../sim/controllers/voController.h"
+#include "voController.h"
 
-#include "../../sim/device.h"
-#include "../../sim/mover.h"
-#include "../../sim/moverVehicle.h"
-#include "../../sim/unit.h"
-#include "stdafx.h"
+#include "../device.h"
+#include "../mover.h"
+#include "../moverVehicle.h"
+#include "../unit.h"
 
-const vec2f &to2d(const vec3 &v)
+namespace sim
 {
-	return *reinterpret_cast<const vec2f*>(&v);
-}
+
 const vec2f &to2d(const vec2f &v)
 {
 	return v;
@@ -50,9 +48,10 @@ FlatCone::FlatCone(const Pose::vec& posA,float sizeA,const Pose::vec& posB,float
 		//assert(dir.length_squared()-size*size);						// ��� �� ������ ���� �� ��� ������ ������� �������. ���� ����� ��� ����� ������
 		float touchDistance=sqrt(dir.length_squared()-size*size);	// ���������� �� ������ A �� ����� �������. �� ������� ��������. 
 		angle=acos(touchDistance/dir.length());				// ��� ���� ��� ��� ��� ������. ��� �������� ���		
-	}	
-	dirLeft = normalise(dir).rotate(angle);						// �������� ����������� ����� �����������
-	dirRight = normalise(dir).rotate(-angle);					// �������� ����������� ������ �����������
+	}
+
+	dirLeft = vec2f::normalize_s(dir).rotate(angle);						// �������� ����������� ����� �����������
+	dirRight = vec2f::normalize_s(dir).rotate(-angle);					// �������� ����������� ������ �����������
 	flags = 0;
 	if(apex.isZero())
 		flags |= zeroApex;
@@ -64,10 +63,9 @@ FlatCone::FlatCone(const Pose::vec& posA,float sizeA,const Pose::vec& posB,float
 }
 
 // ������������ ������� ��������� , ���������� VelocityObstacle
-void addSegment(Segments & segments, const Geom::_Sphere<vec2f> &circle, const VelocityObstacle &vo)
+void addSegment(math3::Segments & segments, const Sphere2& circle, const VelocityObstacle &vo)
 {
-	typedef Geom::_Sphere<vec2f> Circle;
-	typedef Geom::_Edge<vec2f> Edge2;
+	typedef Sphere2 Circle;
 	//Circle circle((const float*)mover->getGlobalPose().position,maxVelocity);	
 	Edge2 left(to2d(vo.apex),to2d(vo.apex+vo.dirLeft));
 	Edge2 right(to2d(vo.apex),to2d(vo.apex+vo.dirRight));
@@ -83,7 +81,7 @@ void addSegment(Segments & segments, const Geom::_Sphere<vec2f> &circle, const V
 	}	
 	if(vecDistance(circle.center,to2d(vo.apex)) < circle.radius)	// VO slices only 1 segment
 	{
-		Segment result;		
+		math3::Segment result;
 		vec2f dirLeft=res_v[1]-circle.center;		
 		vec2f dirRight=res_v[resLeft + 1]-circle.center;
 		result.max=atan2(dirLeft[1],dirLeft[0]);
@@ -98,20 +96,20 @@ void addSegment(Segments & segments, const Geom::_Sphere<vec2f> &circle, const V
 			
 		if(resLeft + resRight == 4)
 		{
-			segments|=Segment(angles[0],angles[2]);			
-			segments|=Segment(angles[3],angles[1]);
+			segments|=math3::Segment(angles[0],angles[2]);
+			segments|=math3::Segment(angles[3],angles[1]);
 		}
 		else if (resLeft == 1 && resRight == 2)
 		{
-			segments|=Segment(angles[0],angles[1]);			
+			segments|=math3::Segment(angles[0],angles[1]);
 		}
 		else if (resLeft == 2 && resRight == 1)
 		{
-			segments|=Segment(angles[1],angles[0]);
+			segments|=math3::Segment(angles[1],angles[0]);
 		}
 		else if (resLeft == 1 && resRight == 1)
 		{
-			segments|=Segment::makeFull();
+			segments|=math3::Segment::makeFull();
 		}
 	}
 	//return result;	
@@ -146,10 +144,11 @@ Range VelocityObstacle::rayCast(const vec2f & ray)const
 {	
 	if(flags & Flags::zeroApex) 
 	{
-		typedef Geom::_Edge<vec2f> Line;
+		typedef Edge2 Line;
 		Line left(apex,apex + dirLeft);
 		Line right(apex,apex + dirRight);
-		if(classify(left,ray) == Geom::cRIGHT && classify(right,ray) == Geom::cLEFT)
+		if(classify(left,ray) == math3::geometry::cRIGHT &&
+				classify(right,ray) == math3::geometry::cLEFT)
 			return Range(0,Range::Basic,0,Range::Inf);
 		return Range::makeZero();
 	}
@@ -203,8 +202,6 @@ Pose::vec getPathError(Unit *unit);
 Pose::vec getPathTarget(Unit *unit);
 float getSize(GameObject * object);
 
-
-
 const float targetScale=1.0f;
 const float pathErrorScale=0.f;
 
@@ -225,7 +222,7 @@ void VOController::update(float dt)
 	float maxVelocity = mover->getMaxVelocity(0);
 
 	segments.clear();		
-	typedef Geom::_Sphere<vec2f> Circle;
+	typedef Sphere2 Circle;
 	Circle velocityLimits((const float*)mover->getGlobalPose().position, maxVelocity);
 	for(auto it=obstacles.begin();it!=obstacles.end();++it)
 	{		
@@ -237,15 +234,15 @@ void VOController::update(float dt)
 	
 	// choose best segment	
 	
-	float currentAngle = Segment::clamp(currentPose.orientation);
+	float currentAngle = math3::Segment::clamp(currentPose.orientation);
 	float pathAngle = currentAngle;	/// path direction
 	
 	float velScale = 1.f;
 	// calculate segments
-	if(waypointsCount())
+	if(getWaypointsCount())
 	{	
 		// choose best segment
-		vec targ = targetScale*normalise_s(pathDirection());
+		vec targ = targetScale*vec2f::normalize_s(pathDirection());
 		vec path = pathErrorScale*pathError();
 		vec total = path + targ;
 		pathAngle=atan2(total[1],total[0]);
@@ -268,7 +265,7 @@ void VOController::update(float dt)
 	/// if path direction is in the restricted area	
 	if(segments.contains(pathAngle))
 	{		
-		Segment seg(currentAngle,pathAngle);
+		math3::Segment seg(currentAngle,pathAngle);
 		bestAngle = currentAngle - M_PI;
 		//float bestRate = rate(prefAngle , bestAngle);
 		for(auto it=segments.begin();it!=segments.end();++it)
@@ -305,7 +302,8 @@ void VOController::update(float dt)
 	if(r < 1 + cosf(M_PI/2))
 		int w = 0;
 	//float bestAngle = 0.5 * ()
-	vec vel=normalise(vec(cosf(bestAngle),sinf(bestAngle)) + 0.5 * vec(cosf(currentAngle), sinf(currentAngle))) * velScale;
+	vec vel = vec(cosf(bestAngle),sinf(bestAngle)) + 0.5 * vec(cosf(currentAngle), sinf(currentAngle));
+	vel = vel.normalize() * velScale;
 	float approachTime=2.0;
 	float time=timeToImpact();
 	if(time<approachTime && time>0)
@@ -321,30 +319,31 @@ Mover::Driver * createVODriver(Mover* m)
 }
 
 //
-void drawArc(HGE* hge,const float center[2],float r,const Segment &seg)
+void drawArc(Fx::RenderContext* rc,const float center[2],float r,const math3::Segment &seg)
 {
 	vec2f v(center[0],center[1]);
 	const int points=18;
-	drawLine(hge,v,v+r*vec2f(cosf(seg.min),sinf(seg.min)),RGB(0,255,0));
-	drawLine(hge,v,v+r*vec2f(cosf(seg.max),sinf(seg.max)),RGB(0,255,0));
+	drawLine(rc, v,v+r*vec2f(cosf(seg.min),sinf(seg.min)),Fx::MakeRGB(0,255,0));
+	drawLine(rc, v,v+r*vec2f(cosf(seg.max),sinf(seg.max)),Fx::MakeRGB(0,255,0));
 	float angle=seg.min;
 	float delta=seg.length()/points;
 	for(int i=0;i<points;i++)
 	{
-		drawLine(hge,v+r*vec2f(cosf(angle),sinf(angle)),v+r*vec2f(cosf(angle+delta),sinf(angle+delta)),RGB(0,255,0));
+		drawLine(rc,v+r*vec2f(cosf(angle),sinf(angle)),v+r*vec2f(cosf(angle+delta),sinf(angle+delta)),Fx::MakeRGB(0,255,0));
 		angle+=delta;
 	}
 }
 //
-void drawVO(HGE * hge,const VelocityObstacle &vo, float range, int steps)
+void drawVO(Fx::RenderContext* rc,const VelocityObstacle &vo, float range, int steps)
 {
-	drawLine(hge,vo.apex,vo.apex+vo.dirLeft*range,RGB(0,255,0));
-	drawLine(hge,vo.apex,vo.apex+vo.dirRight*range,RGB(0,255,0));
+	drawLine(rc, vo.apex,vo.apex+vo.dirLeft*range, Fx::MakeRGB(0,255,0));
+	drawLine(rc, vo.apex,vo.apex+vo.dirRight*range,Fx::MakeRGB(0,255,0));
 	float delta = range / steps;
 	for(float t = delta; t < range; t+=delta)
-		drawLine(hge,vo.apex+vo.dirLeft*t,vo.apex+vo.dirRight*t,RGB(0,255,0));
+		drawLine(rc, vo.apex+vo.dirLeft*t,vo.apex+vo.dirRight*t,Fx::MakeRGB(0,255,0));
 }
-void VOController::render(HGE * hge)
+
+void VOController::render(Fx::RenderContext* rc)
 {		
 	Mover::Driver::render(hge);
 //	// 1. draw velocity circle
@@ -353,15 +352,17 @@ void VOController::render(HGE * hge)
 	Pose pose = mover->getGlobalPose();
 	for(int i = 1; i < path.size(); i++)
 	{
-		drawLine(hge,path[i-1].v,path[i].v,RGB(255,0,0));
+		drawLine(rc,path[i-1].v,path[i].v,RGB(255,0,0));
 	}
 	for(auto it=obstacles.begin();it!=obstacles.end();++it)
 	{
 		VelocityObstacle vo(pose.getPosition(), size, it->first.getPosition(0), it->second, it->first.velocity);		
-		drawVO(hge,vo,mover->getMaster()->getSphereSize() * 5, 10);
+		drawVO(rc,vo,mover->getMaster()->getSphereSize() * 5, 10);
 	}
 //	// 3. draw segments
 	for(auto it=segments.begin();it!=segments.end();++it)
-		drawArc(hge,pose.position,150*1.1,*it);	
+		drawArc(rc,pose.position,150*1.1,*it);
 		
 }
+
+} // namespace sim

@@ -59,7 +59,7 @@ public:
 	virtual float getMaxVelocity(int dir) const;
 
 	float currentVelocity[2];
-protected:	
+public:
 	
 	float turning;		// {-1,0,1}
 	float accelerate;	// {-1,0,1}

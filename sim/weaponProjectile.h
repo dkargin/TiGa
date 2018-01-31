@@ -1,10 +1,14 @@
 #pragma once
 
+#include "basetypes.h"
+#include "weapon.h"
+
 namespace sim
 {
+
 class WeaponProjectile;
 
-class WeaponProjectile: public WeaponProjecdtilePair::Obj
+class WeaponProjectile: public Weapon
 {
 public:
 	WeaponProjectile(WeaponProjectileDef *def,Device::BuildContext *context);

@@ -91,7 +91,7 @@ public:
 
 
 /// gets cmdTarget
-class TargetingSystem : public Device, public Unit::DeviceListener
+class TargetingSystem : public Device, virtual public Unit::DeviceListener
 {	
 public:
 	enum { portTarget = 0 };	
@@ -116,6 +116,7 @@ protected:
 	virtual bool executeControl(Device * device, float dt);
 	//TargetingSystemDef * definition;
 	TrackingInfo info;
+	TurretDriver driver;
 };
 
 #ifdef FUCK_THIS

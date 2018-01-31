@@ -3,6 +3,7 @@
 #include "device.h"
 #include "gameObject.h"
 #include "objectManager.h"
+#include "forwards.h"
 
 namespace sim
 {
@@ -96,7 +97,7 @@ public:
 	bool useAI;
 	unsigned char  stats[StatsMax];
 
-	std::vector<Device*> devices;
+	std::vector<DevicePtr> devices;
 	std::unique_ptr<Controller> controller;			// player or AI
 	Unit *definition;
 
@@ -128,7 +129,7 @@ public:
 	// NetObject implementation
 	//int writeDesc(IOBuffer &buffer);
 	//int readDesc(IOBuffer &buffer);
-	Device * getDevice(size_t id);
+	DevicePtr getDevice(size_t id);
 
 	int writeState(StreamOut &buffer);
 	int readState(StreamIn &buffer);

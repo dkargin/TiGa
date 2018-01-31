@@ -110,7 +110,7 @@ Unit::Unit(Unit* def)
 		{
 			if(mount.device)
 			{
-				Device* device = mount.device->clone();
+				DevicePtr device(mount.device->clone());
 				devices.push_back(device);
 				device->onInstall(this, devices.size()-1, mount.pose);
 			}
@@ -135,10 +135,9 @@ Unit::Unit(Unit* def)
 
 Unit::~Unit()
 {
-	for(auto it = devices.begin(); it != devices.end(); ++it)
+	for(DevicePtr device: devices)
 	{
-		Device * device = *it;
-		delete device;
+
 	}
 	//if(mover)
 	//	delete mover;
@@ -152,7 +151,7 @@ void Unit::useDevice(int device,int port,int action,IOBuffer *buffer)
 	getManager()->useDevice(this,device,port,action,buffer);
 }
 
-Device * Unit::getDevice(size_t id)
+DevicePtr Unit::getDevice(size_t id)
 {
 //	LogFunction(*g_logger);
 	return devices[id];

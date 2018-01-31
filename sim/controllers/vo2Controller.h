@@ -1,5 +1,9 @@
 #pragma once
-#include "../../sim/controllers/voController.h"
+
+#include "voController.h"
+
+namespace sim
+{
 
 typedef VelocityObstacle VO2;
 void rayCast(const std::vector<VO2> &vo,float angle,int steps,Rays &rays);
@@ -11,11 +15,13 @@ struct VO2Controller: public Mover::Driver
 public:		
 	VO2Controller(Mover *parent): Mover::Driver(parent){}	
 	void update(float dt);
-	void render(HGE * hge);
+	void render(Fx::RenderContext* rc);
 	// 2� ������� Velocity Obstacle. ������� ������ ������ � ����������� 3�-2�	
 protected:	
 	Rays rays;	// {[angle,distance],...}
 	std::vector<VO2> velocitySpace;
 	void updateObstacles(int safetyLevel = 0);
-	Segment calcSegment(const VelocityObstacle &vo)const ;
+	math3::Segment calcSegment(const VelocityObstacle &vo)const ;
 };
+
+} // namespace sim

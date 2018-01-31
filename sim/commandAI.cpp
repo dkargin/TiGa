@@ -64,6 +64,22 @@ void Controller::update(float dt)
 	}
 }
 
+int Controller::invoke(Device * device,InvokerContainer::Key key,bool down,float x,float y,float wheel)
+{
+	if(!device)
+		return 0;
+	return device->onControl(key,down,x,y,wheel);
+}
+
+
+int Controller::onControl(InvokerContainer::Key key,bool down,float x,float y,float wheel)
+{
+	int result=0;
+	for(auto it=owner->devices.begin();it!=owner->devices.end();++it)
+		result|=invoke(*it,key,down,x,y,wheel);
+	return result;
+}
+
 void Controller::render(HGE * hge)
 {
 	for(Container::iterator it=container.begin();it!=container.end();++it)

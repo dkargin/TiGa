@@ -3,16 +3,11 @@
 #include "basetypes.h"
 #include "objectManager.h"
 #include "rendercontext.h"
+#include "forwards.h"
 
 namespace sim
 {
 
-//class Assembly;
-
-class Device;
-typedef std::shared_ptr<Device> DevicePtr;
-
-class Unit;
 
 typedef int DCmd;
 const int DeviceMaxPorts = 4;

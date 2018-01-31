@@ -1,7 +1,7 @@
 #pragma once
 
 #include "../commandAI.h"
-#include "Mover.h"
+#include "../mover.h"
 
 namespace sim {
 
@@ -103,7 +103,7 @@ namespace RVO2
 		void computeORCA_Obstacles(float localTimeHorizon);
 		void computeORCA_Agents(float localTimeHorizon);
 
-		void render(HGE * hge);
+		void render(Fx::RenderContext* rc);
 	protected:
 		std::vector<std::pair<float, const Agent*> > agentNeighbors;
 		
@@ -156,7 +156,7 @@ struct RVO2Controller: public Mover::Driver
 public:		
 	RVO2Controller(Mover *parent);
 	void update(float dt);
-	void render(HGE * hge);	
+	void render(Fx::RenderContext* rc);
 protected:	
 	std::list<RVO2::Agent> activeObstacles;
 	RVO2::Pilot pilot;	

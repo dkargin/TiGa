@@ -1,15 +1,15 @@
-#include "../../sim/controllers/RVO2Controller.h"
+#include "RVO2Controller.h"
 
-#include "../../sim/device.h"
-#include "../../sim/mover.h"
-#include "../../sim/moverVehicle.h"
-#include "../../sim/unit.h"
-#include "stdafx.h"
+#include "../device.h"
+#include "../mover.h"
+#include "../moverVehicle.h"
+#include "../sim/unit.h"
 
+namespace sim
+{
 
 void rotate90(vec2f & vec);
 void rotate90n(vec2f & vec);
-const vec2f &to2d(const vec3 &v);
 
 const float targetScale=2.0f;
 const float pathErrorScale=0.1f;
@@ -720,11 +720,11 @@ void RVO2Controller::update(float dt)
 			turnOnly = ( x*x  + y*y < turningRadius*turningRadius );
 		}
 
-		preferedDirection = normalise(path + targ);
+		preferedDirection = (path + targ).normalize();
 		preferedAngle = atan2(preferedDirection[1], preferedDirection[0]);	// � �� ����� �� ��� ��� ����
 		preferedSpeed = maxVelocity;										// � ���������
 		MoverVehicle * mv = (MoverVehicle*)mover;
-		if(mv->definition->kinematic)
+		if(mv->kinematic)
 		{
 			Pose::vec bodyVelocityLinear = conv(mover->getBody()->GetLinearVelocity());
 			float bodyVelocityAngular = mover->getBody()->GetAngularVelocity();
@@ -768,22 +768,24 @@ RVO2Controller::RVO2Controller(Mover *parent)
 	pilot.neighborDist = 100;
 }
 
-void RVO2::Pilot::render(HGE * hge)
+void RVO2::Pilot::render(Fx::RenderContext* rc)
 {
 	for(auto it = orcaLines.begin(); it != orcaLines.end(); ++it)
 	{
 		Line & line = *it;
-		drawLine(hge, position + line.point, position + line.point + line.direction * radius * 10, RGB(255,0,127));
+		drawLine(rc, position + line.point, position + line.point + line.direction * radius * 10, Fx::MakeRGB(255,0,127));
 	}
 }
 
-void RVO2Controller::render(HGE * hge)
+void RVO2Controller::render(Fx::RenderContext* rc)
 {
-	Mover::Driver::render(hge);
-	pilot.render(hge);
+	Mover::Driver::render(rc);
+	pilot.render(rc);
 }
 
 Mover::Driver * createRVO2Driver(Mover* m)
 {
 	return new RVO2Controller(m);
+}
+
 }

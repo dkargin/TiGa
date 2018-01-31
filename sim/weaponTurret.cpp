@@ -10,9 +10,12 @@ namespace sim
 // Turret weapon
 ///////////////////////////////////////////////////////
 
-WeaponTurret::WeaponTurret(WeaponTurretDef *def)
-:Weapon(def),direction(0),angle(0),definition(def)
-{}
+WeaponTurret::WeaponTurret(WeaponTurret* def)
+:Weapon(def),direction(0),angle(0)
+{
+	dimensions = 1.0;
+	velocity = 1.0;
+}
 
 WeaponTurret::~WeaponTurret()
 {}
@@ -34,13 +37,14 @@ int WeaponTurret::writeDesc(IOBuffer &buffer)
 
 float WeaponTurret::getDimensions() const 
 { 
-	return definition->dimensions; 
+	return dimensions;
 }
 
 bool WeaponTurret::validCommand(int port,DeviceCmd cmd)const
 {
 	return (port==portTurn && cmdIsDirection(cmd)) ? true:Weapon::validCommand(port,cmd);
 }
+
 int WeaponTurret::execute_Direction(int port,DeviceCmd action,float value)
 {
 	if(port==portTurn && action==dcmdDir_inc)
@@ -49,7 +53,8 @@ int WeaponTurret::execute_Direction(int port,DeviceCmd action,float value)
 		direction=value;
 	else
 		return xWrongPort();
-	direction=clampf(direction,-1.0,1.0);
+
+	direction = math3::clamp<float>(direction,-1.0,1.0);
 	return dcmdOk;
 }
 
@@ -61,17 +66,20 @@ Pose WeaponTurret::getMuzzlePose()
 void WeaponTurret::update(float dt)
 {
 	Weapon::update(dt);
-	effects.setPose(pose * Pose(vec2f(0,0),getCurrentAngle()*3.1415/180.0));
+
+	fx_root->setPose(pose * Pose(vec2f(0,0),getCurrentAngle()*3.1415/180.0));
 	
-	angle+=(direction * definition->velocity*dt);
+	angle += (direction * velocity*dt);
 	if(angle<-180)
 		angle+=360;
 	if(angle> 180)
 		angle-=360;
-	if(angle>definition->dimensions)
-		angle=definition->dimensions;
-	if(angle<-definition->dimensions)
-		angle=-definition->dimensions;	
+
+	if(angle > dimensions)
+		angle = dimensions;
+
+	if(angle < -dimensions)
+		angle = -dimensions;
 }
 
 float WeaponTurret::getCurrentAngle() const
@@ -88,14 +96,15 @@ float WeaponTurret::getAngleTo(const Pose::pos &vec) const
 bool WeaponTurret::canReach(const Pose::pos &v) const
 {
 	float angle = getAngleTo(v);
-	return fabs(angle) < definition->dimensions;
+	return fabs(angle) < dimensions;
 }
 
 bool WeaponTurret::fullTurn() const
 {
-	return definition->dimensions>=180;
+	return dimensions>=180;
 }
-int WeaponTurret::writeState(IO::StreamOut &buffer)
+
+int WeaponTurret::writeState(StreamOut &buffer)
 {
 	Weapon::writeState(buffer);
 	//buffer.write(time);
@@ -104,7 +113,7 @@ int WeaponTurret::writeState(IO::StreamOut &buffer)
 	return 1;
 }
 
-int WeaponTurret::readState(IO::StreamIn &buffer)
+int WeaponTurret::readState(StreamIn &buffer)
 {
 	Weapon::readState(buffer);
 	//buffer.read(time);
@@ -112,35 +121,34 @@ int WeaponTurret::readState(IO::StreamIn &buffer)
 	buffer.read(direction);
 	return 1;
 }
+
 void WeaponTurret::stop()
 {
 	query_Direction(portTurn,dcmdDir_set,0);
 }
-DeviceDef * WeaponTurret::getDefinition()
-{
-	return definition;
-}
+
 /////////////////////////////////////////////////////////////////////
 //// Weapon autodriver object
 /////////////////////////////////////////////////////////////////////
 
-vec2f getWeaponTarget2(const TrackingInfo &info, const vec2f &pos,ProjectileDef *def);
+vec2f getWeaponTarget2(const TrackingInfo &info, const vec2f &pos, Projectile* def);
 
 bool TurretDriver::aim(WeaponTurret* weapon, const TrackingInfo& info, float dt)
 {	
 	const Pose & pose = weapon->getGlobalPose();
-	vec2f aimPos = getWeaponTarget2(info, pose.getPosition(), weapon->definition->projectile); 
+	Projectile* proj = nullptr; //weapon->projectile
+	vec2f aimPos = getWeaponTarget2(info, pose.getPosition(), proj);
 	float targ = weapon->getAngleTo(aimPos);
 	float curr = weapon->getCurrentAngle();
 	float deltaAngle = targ-curr;
-	float deltaVel = dt*weapon->definition->velocity;
+	float deltaVel = dt*weapon->velocity;
 	if(weapon->fullTurn())
 	{
 		if(deltaAngle>= 180)deltaAngle-=360;
 		if(deltaAngle<=-180)deltaAngle+=360;
 	}	
 	
-	float angle = fSign(deltaAngle);
+	float angle = math3::fSign(deltaAngle);
 	if(deltaAngle < deltaVel)
 		angle = deltaAngle/deltaVel;
 
@@ -172,8 +180,8 @@ WeaponTurret *toTurret(Device * weapon)
 ///////////////////////////////////////////////////////////////////////
 
 
-TargetingSystem::TargetingSystem(TargetingSystemDef * def)
-	:definition(def),Device(def)
+TargetingSystem::TargetingSystem()
+	:Device(nullptr)
 {
 	deviceMode = dmOffline;
 }
@@ -181,17 +189,12 @@ TargetingSystem::TargetingSystem(TargetingSystemDef * def)
 TargetingSystem::~TargetingSystem()
 {}
 
-DeviceDef * TargetingSystem::getDefinition()
-{
-	return definition;
-}
-
-int TargetingSystem::writeState(IO::StreamOut &buffer)
+int TargetingSystem::writeState(StreamOut &buffer)
 {
 	return 1;
 }
 
-int TargetingSystem::readState(IO::StreamIn &buffer)
+int TargetingSystem::readState(StreamIn &buffer)
 {
 	return 1;
 }
@@ -232,14 +235,14 @@ int TargetingSystem::execute_Target(int port,DeviceCmd subtype,const Pose::pos &
 void TargetingSystem::onInstall(Unit * master, size_t id, const Pose &pose)
 {
 	Device::onInstall(master,id,pose);
-	std::for_each(master->devices.begin(),master->devices.end(),[&](Device * device)
+	for(DevicePtr device: master->devices)
 	{
-		if(device != this && canControl(device))
+		if(device != shared_from_this() && canControl(device.get()))
 			takeControl(device);
-	});
+	}
 }
 
-void TargetingSystem::onInstallDevice( Device::Pointer device, int mount)
+void TargetingSystem::onInstallDevice( DevicePtr device, int mount)
 {
 	takeControl(device);
 }
@@ -251,7 +254,7 @@ bool TargetingSystem::executeControl( Device * device, float dt)
 		return false;
 	if(deviceMode == dmOffline)
 		turret->stop();
-	else if(definition->driver.aim(turret,info,dt))
+	else if(driver.aim(turret,info,dt))
 		turret->shoot();
 	return true;
 }

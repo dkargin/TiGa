@@ -16,8 +16,8 @@ add_library(sim
 	thruster.cpp
 	unit.cpp
 	weapon.cpp
-	weaponBeam.cpp
-	weaponProjectile.cpp
+#	weaponBeam.cpp
+#	weaponProjectile.cpp
 	weaponTurret.cpp
 	controllers/forceController.cpp
 	controllers/RVO2Controller.cpp

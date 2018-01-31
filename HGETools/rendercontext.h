@@ -22,6 +22,7 @@ public:
 	void drawRectSolid(const Fx::Rect& rect, Fx::FxRawColor color);
 	virtual void setClipping(const Rect& rect);
 	virtual void disableClipping();
+	void Gfx_RenderLine(float x0, float y0, float x1, float y1);
 
 	/// Should be moved to batch->render
 	void		Render(const SpriteData* spr, float x, float y);

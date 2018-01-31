@@ -125,7 +125,7 @@ vec2f getWeaponTarget2(const Trajectory2 &target,const vec2f& pos,Projectile* de
 }
 
 // calculate aiming position to hit moving object
-vec2f getWeaponTarget2(const TrackingInfo& info,const vec2f& pos,Projectile* def)
+vec2f getWeaponTarget2(const TrackingInfo& info,const vec2f& pos, Projectile* def)
 {
 	vec2f result = info.pos;
 	if(def->projectileType == ProjectileType::ptDirect)

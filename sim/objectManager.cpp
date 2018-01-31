@@ -224,7 +224,7 @@ void ObjectManager::useDevice(Unit *unit, int device, int port, int action, IOBu
 
 	if(role==Master)	// if server - execute here
 	{
-		Device *d = unit->getDevice(device);
+		DevicePtr d = unit->getDevice(device);
 		if(d)
 			d->execute(port,(DeviceCmd)action,actionData);
 	}
@@ -232,7 +232,7 @@ void ObjectManager::useDevice(Unit *unit, int device, int port, int action, IOBu
 	{
 		// TODO: reimplement
 		/*
-		std::for_each(clientsInfo.begin(),clientsInfo.end(),[&](ClientInfo & client)
+		for(auto& client: clientsInfo)
 		{
 			MsgBuffer &buffer=client.getMessages();
 			startHeader(buffer,unitUseDevice);
@@ -242,7 +242,7 @@ void ObjectManager::useDevice(Unit *unit, int device, int port, int action, IOBu
 				buffer.write(*actionData);
 			
 			finishHeader(buffer);
-		});*/
+		}*/
 	}
 }
 
