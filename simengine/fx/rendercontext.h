@@ -1,0 +1,56 @@
+#pragma once
+
+#include "basetypes.h"
+
+namespace Fx
+{
+
+class SpriteData;
+
+/**
+ * RenderContext class
+ * Wraps rendering pass
+ * Any object rendering should receive pointer to instance of RenderContext
+ */
+class RenderContext
+{
+public:
+	virtual ~RenderContext();
+
+	// Get current viewport size, in pixels
+	vec2f getViewportSize() const;
+
+	void drawSprite(const SpriteData* sprite,const Pose& p, float width, float height, bool rect=false);
+	void drawRect(const Fx::Rect& rect, Fx::FxRawColor color);
+	void drawRectSolid(const Fx::Rect& rect, Fx::FxRawColor color);
+
+	virtual void setClipping(const Rect& rect);
+	virtual void disableClipping();
+
+	void Gfx_RenderLine(float x0, float y0, float x1, float y1, FxRawColor rolor = MakeRGB(255, 255, 255));
+	void Gfx_RenderTriple(const Fx::Triple *triple);
+	void Gfx_RenderQuad(const Fx::Quad *quad);
+	void Gfx_Clear(FxRawColor color);
+
+	Fx::Vertex* Gfx_StartBatch(int prim_type, Fx::FxTextureId tex, int blend, int *max_prim);
+	void Gfx_FinishBatch(int nprim);
+
+	/// Should be moved to batch->render
+	void Render(const SpriteData* spr, float x, float y);
+	void RenderEx(const SpriteData* spr, float x, float y, float rot, float hscale=1.0f, float vscale=0.0f);
+	void RenderStretch(const SpriteData* spr, float x1, float y1, float x2, float y2);
+	void Render4V(const SpriteData* spr, float x0, float y0, float x1, float y1, float x2, float y2, float x3, float y3);
+protected:
+	bool _PrimsOutsideClipping(const Fx::Vertex *v, const int verts);
+
+	// Viewport width and height
+	int scr_width, scr_height;
+
+	// Clipping settings
+	float clipX, clipY, clipW, clipH;
+
+	Fx::Vertex* VertArray = nullptr;
+	bool bZBuffer = true;
+};
+
+} // namespace Fx

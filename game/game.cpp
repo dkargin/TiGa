@@ -67,12 +67,12 @@ void Game::loadTestScene(const char * scene)
 
 void Game::onRender()
 {
-	Core::onRender();
+	Application::onRender();
 }
 
 void Game::onUpdate()
 {
-	Core::onUpdate();
+	Application::onUpdate();
 
 	if( newActive != active )
 	{

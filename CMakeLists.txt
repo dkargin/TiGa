@@ -11,11 +11,14 @@ include_directories(${LUA_INCLUDE_DIR})
 # 
 find_package(SWIG)
 
+
 include_directories(depend/include)
 include_directories(depend/hge/include)
-include_directories(HGETools)
+include_directories(simengine)
 
-add_subdirectory(HGETools)
+
 add_subdirectory(depend)
-add_subdirectory(sim)
+
+add_subdirectory(simengine)
+include_directories(.)
 add_subdirectory(game)

@@ -4,14 +4,14 @@
 #include "objectManager.h"
 //#include "netLowHigh.h"
 //#include "network.h"
-#include "mapBuilderImage.h"
-#include "mapBuilderQuad.h"
+
+// From pathProject
+//#include "mapBuilderImage.h"
+//#include "mapBuilderQuad.h"
 
 typedef b2Body Solid;
 class Draw;
 class ObjectManager;
-
-//typedef NetCmd::Base *PNetCmd;
 
 struct CursorInfo
 {
@@ -28,6 +28,7 @@ enum KeyEventType
 };
 
 class World;
+
 struct Level
 {
 	struct Tile
@@ -76,8 +77,8 @@ struct Level
 	void update();
 	void update(int x0,int y0,int x1,int y1);
 
-	void saveState(IO::StreamOut &stream);
-	bool loadState(IO::StreamIn &stream);
+	void saveState(StreamOut &stream);
+	bool loadState(StreamIn &stream);
 protected:
 	void generateWallBlocks();
 	void generateWallEdges();
@@ -93,7 +94,7 @@ class World:
 {
 public:
 	b2World dynamics;
-	pathProject::PathCore pathCore;
+	//pathProject::PathCore pathCore;
 
 	std::string name;
 	bool updateSystems;
@@ -112,10 +113,10 @@ public:
 	bool server;
 	bool useNet;
 	bool helloSent;
-	/// 
+	//
 	Draw *draw;
 
-/// Level speciefic
+	// Level speciefic
 	Level level;
 public:
 	World(const char *name, Game * core);
@@ -159,11 +160,11 @@ public:
 	void onDelete(GameObject *unit);
 	/// messaging API
 	/*
-	void readMessages(IO::StreamIn &buffer,int client);
-	void writeMessages(IO::StreamOut &buffer,int client);
+	void readMessages(StreamIn &buffer,int client);
+	void writeMessages(StreamOut &buffer,int client);
 	void sendCmd(int client,NetCmd::Base * cmd);
-	void readCmd(IO::StreamIn &buffer,int client);
-	void writeCmd(IO::StreamOut &buffer,int client);
+	void readCmd(StreamIn &buffer,int client);
+	void writeCmd(StreamOut& buffer,int client);
 */
 	/// collision flags
 	void collisionsReset(bool val=false);
@@ -173,8 +174,9 @@ public:
 	void saveLevel(const char * file);
 	void loadLevel(const char * file);
 
-	void saveState(IO::StreamOut &stream);
-	bool loadState(IO::StreamIn &stream);
+	void saveState(StreamOut &stream);
+	bool loadState(StreamIn &stream);
+
 	/// attachable effects manager
 	FxPointer attachEffect(GameObjectPtr object, FxPointer effect);
 	void clearEffects(GameObjectPtr object);
@@ -185,18 +187,11 @@ protected:
 
 	std::multimap<GameObjectPtr, FxPointer> attachedEffects;
 
-//	void msgBegin(IO::StreamOut &buffer,int type);
-//	void msgEnd(IO::StreamOut &buffer);
-//	int msgPos;
 	// from Box2d contact filter
 	bool ShouldCollide(b2Fixture* fixtureA, b2Fixture* fixtureB);
 	// from Box2d contact listener
 	void BeginContact(b2Contact* contact);
 };
-
-//typedef NetCmd::Base NetCmdBase;
-//typedef NetCmd::Hello NetCmdHello;
-//typedef NetCmd::TakeControl NetCmdTakeControl;
 
 void testGameObject(GameObject * object);
 

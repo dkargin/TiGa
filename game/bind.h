@@ -52,9 +52,9 @@ namespace LuaBox
 #define SWIGTYPE_p_Core swig_types[2]
 namespace LuaBox
 {
-	template<> struct TypeIO<Core *>
+	template<> struct TypeIO<Application *>
 	{
-		typedef Core * value_type;
+		typedef Application * value_type;
 		static bool valid(Stream * l, int i)
 		{
 			int type = lua_type(l,i);

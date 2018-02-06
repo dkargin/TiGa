@@ -3,8 +3,7 @@
 #include "../sim/device.h"
 #include "../sim/projectile.h"
 #include "../sim/unit.h"
-#include "draw.h"
-
+#include "../simengine/sim/debugDraw.h"
 #include "Game.h"
 ///////////////////////////////////////////////////////////////
 // Globals
@@ -125,14 +124,14 @@ Scripter * World::getScripter()
 {
 	return core->getScripter();
 }
-void World::saveState(IO::StreamOut & stream)
+void World::saveState(StreamOut & stream)
 {
 	level.saveState(stream);
 	gameObjects->saveState(stream);
 	getScripter()->call("WorldSaveState",&stream);
 }
 
-bool World::loadState(IO::StreamIn & stream)
+bool World::loadState(StreamIn & stream)
 {
 	level.loadState(stream);
 	gameObjects->loadState(stream);

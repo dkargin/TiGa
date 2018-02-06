@@ -10,7 +10,7 @@ class GameData;
 
 struct ShipBlueprint;
 
-class Game : public Core
+class Game : public Application
 {
 public:
 	Game();
