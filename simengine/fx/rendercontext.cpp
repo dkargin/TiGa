@@ -7,6 +7,7 @@
 
 #include "rendercontext.h"
 #include "GL/gl.h"
+#include <string.h>
 
 #define CALL
 
@@ -62,7 +63,7 @@ void CALL RenderContext::Gfx_RenderLine(float x1, float y1, float x2, float y2, 
 template <class T> static inline const T Min(const T a, const T b) { return a < b ? a : b; }
 template <class T> static inline const T Max(const T a, const T b) { return a > b ? a : b; }
 
-void CALL RenderContext::Gfx_RenderTriple(const Fx::Triple *triple)
+void CALL RenderContext::Gfx_RenderTriple(const Fx::Triple* triple)
 {
 	if (!VertArray)
 		return;
@@ -85,12 +86,13 @@ void CALL RenderContext::Gfx_RenderTriple(const Fx::Triple *triple)
 			return;  // no, this is really totally clipped.
 	}
 
-	if(CurPrimType!=HGEPRIM_TRIPLES || nPrim>=VERTEX_BUFFER_SIZE/HGEPRIM_TRIPLES || CurTexture!=triple->tex || CurBlendMode!=triple->blend)
+	if(CurPrimType != HGEPRIM_TRIPLES || nPrim>=VERTEX_BUFFER_SIZE/HGEPRIM_TRIPLES || CurTexture!=triple->tex || CurBlendMode!=triple->blend)
 	{
 		_render_batch();
 
-		CurPrimType=HGEPRIM_TRIPLES;
-		if(CurBlendMode != triple->blend) _SetBlendMode(triple->blend);
+		CurPrimType = HGEPRIM_TRIPLES;
+		if(CurBlendMode != triple->blend)
+			_SetBlendMode(triple->blend);
 		_BindTexture((gltexture *) triple->tex);
 	}
 
@@ -223,6 +225,123 @@ void CALL RenderContext::Gfx_SetClipping(int x, int y, int w, int h)
 	glScissor(vp.X, (scr_height-vp.Y)-vp.Height, vp.Width, vp.Height);
 }
 
+
+void RenderContext::_render_batch(bool bEndScene)
+{
+	if(VertArray)
+	{
+		if(nPrim)
+		{
+			const float h = (float) ((pCurTarget) ? pCurTarget->height : nScreenHeight);
+
+			// texture rectangles range from 0 to size, not 0 to 1.  :/
+			float texwmult = 1.0f;
+			float texhmult = 1.0f;
+
+			if (CurTexture)
+			{
+				_SetTextureFilter();
+				const gltexture *pTex = ((gltexture *)CurTexture);
+				if (pOpenGLDevice->TextureTarget == GL_TEXTURE_RECTANGLE_ARB)
+				{
+					texwmult = pTex->width;
+					texhmult = pTex->height;
+				}
+				else if ((pTex->potw != 0) && (pTex->poth != 0))
+				{
+					texwmult = ( ((float)pTex->width) / ((float)pTex->potw) );
+					texhmult = ( ((float)pTex->height) / ((float)pTex->poth) );
+				}
+			}
+
+			for (int i = 0; i < nPrim*CurPrimType; i++)
+			{
+				// (0, 0) is the lower left in OpenGL, upper left in D3D.
+				VertArray[i].y = h - VertArray[i].y;
+
+				// Z axis is inverted in OpenGL from D3D.
+				VertArray[i].z = -VertArray[i].z;
+
+				// (0, 0) is lower left texcoord in OpenGL, upper left in D3D.
+				// Also, scale for texture rectangles vs. 2D textures.
+				VertArray[i].tx *= texwmult;
+				VertArray[i].ty = (1.0f - VertArray[i].ty) * texhmult;
+
+				// Colors are RGBA in OpenGL, ARGB in Direct3D.
+				const FxRawColor color = VertArray[i].col;
+				uint8_t *col = (uint8_t *) &VertArray[i].col;
+				const uint8_t a = ((color >> 24) & 0xFF);
+				const uint8_t r = ((color >> 16) & 0xFF);
+				const uint8_t g = ((color >>  8) & 0xFF);
+				const uint8_t b = ((color >>  0) & 0xFF);
+				col[0] = r;
+				col[1] = g;
+				col[2] = b;
+				col[3] = a;
+			}
+
+			switch(CurPrimType)
+			{
+				case HGEPRIM_QUADS:
+					glDrawElements(GL_TRIANGLES, nPrim * 6, GL_UNSIGNED_SHORT, pIB);
+					#if DEBUG_VERTICES
+					for (int i = 0; i < nPrim*6; i+=3)
+					{
+						printf("QUAD'S TRIANGLE:\n");
+						print_vertex(&pVB[pIB[i+0]]);
+						print_vertex(&pVB[pIB[i+1]]);
+						print_vertex(&pVB[pIB[i+2]]);
+					}
+					printf("DONE.\n");
+					#endif
+					break;
+
+				case HGEPRIM_TRIPLES:
+					glDrawArrays(GL_TRIANGLES, 0, nPrim * 3);
+					break;
+
+				case HGEPRIM_LINES:
+					glDrawArrays(GL_LINES, 0, nPrim * 2);
+					break;
+			}
+
+			nPrim=0;
+		}
+		if(bEndScene)
+			VertArray = 0;
+		else
+			VertArray = pVB;
+	}
+}
+
+void RenderContext::_SetBlendMode(int blend)
+{
+	if((blend & BLEND_ALPHABLEND) != (CurBlendMode & BLEND_ALPHABLEND))
+	{
+		if(blend & BLEND_ALPHABLEND)
+			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		else
+			glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+	}
+
+	if((blend & BLEND_ZWRITE) != (CurBlendMode & BLEND_ZWRITE))
+	{
+		if(blend & BLEND_ZWRITE)
+			glDepthMask(GL_TRUE);
+		else
+			glDepthMask(GL_FALSE);
+	}
+
+	if((blend & BLEND_COLORADD) != (CurBlendMode & BLEND_COLORADD))
+	{
+		if(blend & BLEND_COLORADD)
+			glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_ADD);
+		else
+			glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+	}
+
+	CurBlendMode = blend;
+}
 
 }
 
