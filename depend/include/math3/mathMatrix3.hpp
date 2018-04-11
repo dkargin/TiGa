@@ -1,7 +1,7 @@
 #pragma once
-#ifndef MATH_MATRIX
-#error "include <mathMatrix.hpp> first"
-#endif
+
+#include "math3/mathVector.hpp"
+#include "math3/mathMatrix.hpp"
 
 namespace math3
 {
@@ -34,7 +34,7 @@ public:
 	/// Get rotation matrix around Z axis
 	static my_type rotateZ ( float angle );
 	/// Get rotation matrix around specified axis
-	static my_type rotate ( const vec3& axis, float angle );	
+	static my_type rotate ( const Vector3D<Real>& axis, float angle );
 };
 
 /// Cast-trick to treat existing array as Matrix3
@@ -95,12 +95,12 @@ Matrix3<Real,order>	Matrix3<Real,order>::rotateZ ( float angle )
 }
 
 template<typename Real,bool order>
-Matrix3<Real,order>	Matrix3<Real,order>::rotate ( const vec3& axis, float angle )
+Matrix3<Real,order>	Matrix3<Real,order>::rotate ( const Vector3D<Real>& axis, float angle )
 {
 	my_type res=my_type::identity ( 1 );
 	float  cosine = cos ( angle );
 	float  sine   = sin ( angle );
-	
+
 	//axis X
 	res(0,0) = axis[0] * axis[0] + ( 1 - axis[0] * axis[0] ) * cosine;
 	res(0,1) = axis[0] * axis[1] * ( 1 - cosine ) + axis[2] * sine;

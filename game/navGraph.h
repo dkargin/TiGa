@@ -1,9 +1,13 @@
 #pragma once
-using namespace std;
+
+#include <math3/math.h>
+#include <map>
+
+using vec3f = math3::vec3f;
 
 struct PathNode
 {
-	vec3 startPt,endPt;	// target position
+	vec3f startPt,endPt;	// target position
 	int start,end;		// vertex pair
 	PathNode():startPt(0.f),endPt(0.f),start(-1),end(-1){}
 	PathNode(const PathNode &node):startPt(node.startPt),endPt(node.endPt),start(node.start),end(node.end){}
@@ -12,53 +16,63 @@ struct PathNode
 class Graph
 {
 public:
-	typedef vector<PathNode> Path;				// destination at front(). First waypoint is at back().
+	typedef std::vector<PathNode> Path;				// destination at front(). First waypoint is at back().
 
-	typedef multimap<int,int> Links;			// graph edges in flexible form
-	typedef vector<float>::size_type size_type;	
-	
+	typedef std::multimap<int,int> Links;			// graph edges in flexible form
+
 	Links links;				// graph edges
-	vector<float> fastLinks;	// graph in matrix form. Usefull for pathfinding
+	std::vector<float> fastLinks;	// graph in matrix form. Usefull for pathfinding
 	bool updateLinks;			// is any need to update fastLinks array
-	vector<vec3> points;		// graph points
+	std::vector<vec3f> points;		// graph points
 
 	// remove all points and edges
-	void clear();	
+	void clear();
+
 	// find nearest graph point
-	int getNearestPoint(const vec3 &pt)const;
+	int getNearestPoint(const vec3f &pt)const;
+
 	// build matrix representation of graph edges
 	void cookLinks();
+
 	// Simple wavefront pathfinding
-	int path(int from,int to,Path &path);
+	int path(int from,int to, Path &path);
+
 	// connect two points
 	void connect(int start,int end);
+
 	// create directed edge
 	void connectSingle(int start,int end);
+
 	// add point to graph
-	int addPoint(const vec3 &point);
+	int addPoint(const vec3f &point);
+
 	// distance between two graph points
-	inline float distance(int start,int end)const
+	float distance(int start,int end)const
 	{
 		assert(validPoint(start));
 		assert(validPoint(end));
 		return vecLength(points[start]-points[end]);
 	}
-	inline bool validPoint(size_type pt)const
+
+	bool validPoint(int pt)const
 	{
-		return pt<points.size();
+		return pt < points.size();
 	}
-	inline bool connected(size_type start,size_type end)const
+
+	bool connected(int start,int end)const
 	{
 		assert(!updateLinks);
 		assert(validPoint(start));
 		assert(validPoint(end));
-		return fastLinks[start+end*points.size()]>0.f;
+		return fastLinks[start+end*points.size()] > 0.f;
 	}
-	inline int getEdgesCount()const
+
+	int getEdgesCount()const
 	{
 		return links.size();
 	}
-	inline int getPointsCount()const
+
+	int getPointsCount()const
 	{
 		return points.size();
 	}

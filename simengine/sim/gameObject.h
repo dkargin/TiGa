@@ -82,7 +82,7 @@ public:
 	virtual bool local()
 	{
 		return bLocal;
-	}	
+	}
 	// update routines
 	virtual int writeState(StreamOut& buffer)=0;
 	virtual int readState(StreamIn& buffer)=0;
@@ -142,26 +142,23 @@ public:
 	virtual void save(StreamOut & stream);
 	virtual void load(StreamIn & stream);
 
-	virtual GameObject* getDefinition() = 0;
+	virtual GameObject* getDefinition();
 	virtual ObjectManager* getManager();
 	virtual ObjectType getType() const;
 	virtual Scripter * getScripter();
 
 	bool isUnique()const;
 
-	float getSphereSize() const
-	{
-		return getBoundingSphere().radius;
-	}
+	float getSphereSize() const;
 
 	Fx::EntityPtr getGraphics();
 	virtual Sphere2 getBoundingSphere() const;
 	virtual AABB2	getOOBB() const;			// get object oriented bounding box
-	
+
 	virtual void setCollisionGroup(CollisionGroup group);
 	virtual CollisionGroup getCollisionGroup()const;
 
-	virtual PerceptionClient * getPerceptionClient() { return NULL;};
+	virtual PerceptionClient * getPerceptionClient();
 
 	virtual void damage(const Damage &dmg);
 
@@ -175,10 +172,11 @@ public:
 
 	virtual void setPlayer(int p);
 
-	virtual void update(float dt);  
+	virtual void update(float dt);
 	virtual int writeState(StreamOut &buffer);
 	virtual int readState(StreamIn &buffer);
-	size_t id() const{return localID;}
+	size_t id() const;
+
 protected:
 	size_t localID;			/// object id
 
@@ -195,20 +193,6 @@ float GetCollisionSize(GameObject * object);
 // is object a hostile to object b
 // This function is exposed to LUA
 bool isHostile(const GameObject *a,const GameObject *b);
-
-#define TO_STRING(value) (#value)
-// installs some common methods related to definition in object-definition pair
-#define OBJECT_DEF(Type,enumType) \
-	ObjectType getType()const { return enumType;} \
-	const char * luaName()const { return TO_STRING(Type##Def);} \
-	Type##Def * copy()const { return new Type##Def(*this);} \
-	RootObjectDef * clone()const { return copy();}
-
-// installs some common methods related to object in object-definition pair
-#define OBJECT_IMPL(Type,enumType) \
-	ObjectType getType()const { return enumType;} \
-	const char * luaName()const { return #Type;} \
-	inline Type##Def& localDef(){return (Type##Def &)*definition;}
 
 b2Body * createSolidBox(ObjectManager *m, float width, float height, float mass);
 b2Body * createSolidSphere(ObjectManager *m, float size, float mass);

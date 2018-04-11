@@ -1,7 +1,10 @@
 #include "world.h"
 #include <cmath>
+#include <fx/fxmanager.h>
 
-using namespace pathProject;
+//using namespace pathProject;
+
+/*
 int gsystem(const char *format,...)
 {
 	static char fileName[MAX_PATH];
@@ -11,10 +14,13 @@ int gsystem(const char *format,...)
 	va_end(v);
 	return system(fileName);
 }
+*/
 
 Level::Level(World & world)
-:pathing(NULL),quadder(NULL), body(NULL), world(world), wallMode(Transparent)
-{}
+:body(NULL), world(world), wallMode(Transparent)
+{
+	//pathing(NULL),quadder(NULL),
+}
 
 Level::~Level()
 {
@@ -23,53 +29,41 @@ Level::~Level()
 
 void Level::clear()
 {
-	if(pathing)
-	{
-		delete pathing;
-		pathing=NULL;
-	}
-	if(quadder)
-	{
-		delete quadder;
-		quadder=NULL;
-	}
 	if(background)
-		delete background;
-	for(int i=0;i < blocks.size_x() * blocks.size_y();i++)
+		background = nullptr;
+
+	for(int i=0; i < size_x() * size_y(); i++)
 	{
 		Tile &tile=blocks[i];
 		if(tile.solid)
 		{
 			tile.solid->GetWorld()->DestroyBody(tile.solid);
-			tile.solid = NULL;
+			tile.solid = nullptr;
 			//blocks[i]->release();
 			//blocks[i]=NULL;
 		}
+
 		if(tile.effects)
 		{
-			delete tile.effects;
-			tile.effects=NULL;
+			tile.effects.reset();;
 		}
 	}
+
 	if(body)
 	{
 		body->GetWorld()->DestroyBody(body);
 		body = NULL;
 	}
-	if(background)
-	{
-		delete background;
-		background = NULL;
-	}
+
 	mapName = "";
 }
 
 void Level::update()
 {
-	update(0,0,blocks.size_x()-1,blocks.size_y()-1);
+	updateArea(0,0, size_x()-1, size_y()-1);
 }
 
-void Level::update(int x0,int y0,int x1,int y1)
+void Level::updateArea(int x0,int y0,int x1,int y1)
 {
 	if(!(x1-x0) || !(y1-y0))
 		return;
@@ -77,11 +71,14 @@ void Level::update(int x0,int y0,int x1,int y1)
 	{
 		int tmp=x1;x1=x0;x0=tmp;
 	}
+
 	if(y1>y0)
 	{
 		int tmp=y1;y1=y0;y0=tmp;
-	}	
-	std::vector<unsigned char> data(blocks.size_x()*blocks.size_y());
+	}
+
+#ifdef FIX_PATHING
+	std::vector<unsigned char> data(size_x()*size_y());
 	//for(int i=0;i<data.size();i++)
 	//	data[i]=blocks[i]?1:0;
 	if(pathing)
@@ -89,16 +86,17 @@ void Level::update(int x0,int y0,int x1,int y1)
 		pathing->setBitmap(Builder::targetCost0,blocks.size_x(),blocks.size_y(),Builder::sourceBitmap8,&data[0]);
 		pathing->build();
 	}
+#endif
 }
 
-void Level::saveState(IO::StreamOut & stream)
+void Level::saveState(sim::StreamOut & stream)
 {
 	stream.write(cellSize);
 	stream.write(mapName);
 	stream.write(wallMode);
 }
 
-bool Level::loadState(IO::StreamIn & stream)
+bool Level::loadState(sim::StreamIn & stream)
 {
 	float size = 0;
 	std::string file;
@@ -111,26 +109,21 @@ bool Level::loadState(IO::StreamIn & stream)
 	return true;
 }
 
-void World::initMap(const char * map,float size,bool rigid,const Pose &pose)
-{
-	level.init(map,size,rigid,pose);
-}
-
 void Level::initBlocks(int width, int height)
 {
-	blocks.resize(width, height);
-	for(size_t i = 0; i < width*height; i++)
-		blocks[i].solid = NULL;
+	blocks.resize(width*height);
+	blocks_w = width;
+	blocks_h = height;
 }
 
 void Level::generateWallBlocks()
 {
-	int width = blocks.size_x();
-	int height = blocks.size_y();
+	int width = size_x();
+	int height = size_y();
 
 	b2BodyDef bodyDef;
 	bodyDef.type = b2_kinematicBody;
-	bodyDef.position.Set(0.0f, 0.0f);		
+	bodyDef.position.Set(0.0f, 0.0f);
 	b2PolygonShape shape;
 
 	b2FixtureDef fixtureDef;
@@ -140,13 +133,13 @@ void Level::generateWallBlocks()
 	int objects = 0;
 	auto SolidLine = [&](float x0, float x1, float y)
 	{
-			
-		shape.SetAsBox(	cellSize/2 * (x1 - x0), 
-						cellSize/2, 
-						b2Vec2( (x1 + x0) * 0.5f * cellSize - width * cellSize/2, 
-								height * cellSize/2 - y * cellSize), 0);	
-			
-							
+
+		shape.SetAsBox(	cellSize/2 * (x1 - x0),
+						cellSize/2,
+						b2Vec2( (x1 + x0) * 0.5f * cellSize - width * cellSize/2,
+								height * cellSize/2 - y * cellSize), 0);
+
+
 		//level.blocks(x,y).solid = NULL;
 		//level.body = dynamics.CreateBody(&bodyDef);
 		body->CreateFixture(&fixtureDef);
@@ -158,26 +151,26 @@ void Level::generateWallBlocks()
 		int lineStart = -1;
 		for(int x = 0; x <= width; x++ )
 		{
-			unsigned int flag = (x < width) ? blocks(x,y).flags : 0;
+			unsigned int flag = (x < width) ? blocks[x + y*blocks_w].flags : 0;
 			if(flag && lineStart == -1)
-			{					
+			{
 				lineStart = x;
 			}
 			else if(!flag && lineStart != -1)
-			{					
+			{
 				if(!body)
 					body = world.dynamics.CreateBody(&bodyDef);
 				float hsize = cellSize / 2;
 				SolidLine(lineStart,x - 1,y);
 				objects++;
 				lineStart = -1;
-			}			
+			}
 		}
 	}
 	wallMode = WallBlocks;
 }
 // Instead of generating solid boxes i propose another approach
-// This algorithm generates edges for single cell and tries to merge 
+// This algorithm generates edges for single cell and tries to merge
 // edges from adjacent cells.
 void Level::generateWallEdges()
 {
@@ -185,8 +178,8 @@ void Level::generateWallEdges()
 
 	wallMode = Transparent;
 
-	int width = blocks.size_x();
-	int height = blocks.size_y();
+	int width = size_x();
+	int height = size_y();
 
 	int maxWalls = 4 * ((width*height +1)/2);
 	Wall * walls = new Wall[maxWalls];
@@ -197,7 +190,7 @@ void Level::generateWallEdges()
 		return;
 	}
 
-	int wallsCount = 0;	
+	int wallsCount = 0;
 	// create new wall and add it to container
 	auto addWall = [&](int x0, int y0, int dx, int dy)->Wall*
 	{
@@ -206,37 +199,39 @@ void Level::generateWallEdges()
 		wall->x0 = x0;
 		wall->y0 = y0;
 		wall->x1 = x0 + dx;
-		wall->y1 = y0 + dy;		
+		wall->y1 = y0 + dy;
 		return wall;
 	};
-	
-	struct CellWalls 
+
+	struct CellWalls
 	{
 		Wall * walls[4]; //{left, top, right, bottom }
 	};
 
-	Raster2D<CellWalls> cells(width,height);
+	//Raster2D<CellWalls> cells(width,height);
+	std::vector<CellWalls> cells(width*height);
 	// try to prolong existing wall found in cell(x,y) to direction (dx,dy)
 	auto mergeWall = [&](int w, int x0, int y0, int dx, int dy)->Wall*
 	{
-		Wall * wall = cells(x0,y0).walls[w];
+		Wall * wall = cells[x0 + y0*width].walls[w];
 		if(wall)
-		{			
+		{
 			wall->x1 += dx;
-			wall->y1 += dy;			
-		}	
+			wall->y1 += dy;
+		}
 		return wall;
-	};	
+	};
 
 	// 1. Analyse walls
 	for(int y = 0; y < height; y++)
 		for(int x = 0; x < width; x++ )
 		{
-			auto value = blocks(x,y).flags;
+			int i = x + y*blocks_w;
+			auto value = blocks[i].flags;
 			// skip free cells
 			if( value == 0 ) continue;
 
-			auto cell = cells(x,y).walls;
+			auto cell = cells[i].walls;
 
 			auto hasBorder = [&](int dx,int dy)->bool
 			{
@@ -245,12 +240,12 @@ void Level::generateWallEdges()
 					( dx > 0 && x + dx >= width) ||
 					( dy > 0 && y + dy >= height))
 					return true;
-				return value != blocks(x + dx, y + dy).flags;
+				return value != blocks[x + dx + (y + dy)*width].flags;
 			};
 
-			bool borders[] = 
+			bool borders[] =
 			{
-				hasBorder(-1, 0),	// left				
+				hasBorder(-1, 0),	// left
 				hasBorder( 0,-1),	// top
 				hasBorder( 1, 0),	// right
 				hasBorder( 0, 1)	// bottom
@@ -259,11 +254,11 @@ void Level::generateWallEdges()
 			auto build =  [&](int w, int cx, int cy, int x, int y)
 			{
 				// determine wall direction
-				int dy = ~w & 1;	
+				int dy = ~w & 1;
 				int dx = w & 1;
 
 				if(borders[w])
-				{	
+				{
 					// create new wall
 					if(borders[dy])
 						cell[w] = addWall(cx, cy, dx, dy);
@@ -278,17 +273,18 @@ void Level::generateWallEdges()
 			build(0,x,y,x,y);	// build left
 			build(1,x,y,x,y);	// build top
 			build(2,x+1,y,x,y);	// build right
-			build(3,x,y+1,x,y);	// build bottom		
+			build(3,x,y+1,x,y);	// build bottom
 		}
+
 	// 2. Generate solids for each wall
 	if(wallsCount)
 	{
 		// 2.1 Generate root body
 		b2BodyDef bodyDef;
 		bodyDef.type = b2_kinematicBody;
-		bodyDef.position.Set( -width * cellSize * 0.5, -height * cellSize * 0.5f);		
+		bodyDef.position.Set( -width * cellSize * 0.5, -height * cellSize * 0.5f);
 		body = world.dynamics.CreateBody(&bodyDef);
-		
+
 		b2PolygonShape shape;
 		b2FixtureDef fixtureDef;
 		fixtureDef.shape = &shape;
@@ -296,11 +292,11 @@ void Level::generateWallEdges()
 		fixtureDef.friction = 0.0f;
 		// 2.2 Add wall shapes
 		std::for_each(walls, walls + wallsCount,[&](const Wall &wall)
-		{		
+		{
 			shape.m_vertexCount = 2;
 			shape.m_type = b2PolygonShape::e_edge;
 			shape.m_vertices[0] = b2Vec2(wall.x0 * cellSize, (height - wall.y0) * cellSize);
-			shape.m_vertices[1] = b2Vec2( wall.x1 * cellSize, (height - wall.y1) * cellSize);			
+			shape.m_vertices[1] = b2Vec2( wall.x1 * cellSize, (height - wall.y1) * cellSize);
 			body->CreateFixture(&fixtureDef);
 		});
 		wallMode = WallEdges;
@@ -335,7 +331,7 @@ int Level::init(const char * map, float size, bool rigid, const Pose &pose)
 			size_t width;
 			size_t height;
 		}header;
-	
+#ifdef FIX_THIS
 		// convert to raw form
 		gsystem("shTools img2raw \"%s\" \"%s.raw\"", map, map);
 		// open image
@@ -347,13 +343,16 @@ int Level::init(const char * map, float size, bool rigid, const Pose &pose)
 		// read raw image header
 		fread(&header,sizeof(header),1,in);
 		cellSize = size;
+#endif
+
+#ifdef FIX_PATHING
 		// create map builders
 		MapManager *manager = world.pathCore.getMapManager();
 		pathing = new pathProject::Builder::MapBuilderImage(*manager,"map2D");
 		//quadder = new pathProject::MapBuilderQuad(*manager,"quad");
 
 		assert(pathing);
-		{		
+		{
 			pathing->setCellSize(cellSize, cellSize);
 			// set map orientation
 			Mt4x4 pose = Mt4x4::translate(- 0.5 * header.width * size ,0.5 * header.height * size,0);
@@ -389,26 +388,27 @@ int Level::init(const char * map, float size, bool rigid, const Pose &pose)
 			//pathCore.setParam(ppHeuristicMode,&mode);
 			delete []buffer;
 		}
-
+#endif`
 		if(rigid)
-		{			
+		{
 			//generateWallBlocks();
 			generateWallEdges();
-		}	
+		}
 		fclose(in);
 		// init level sprite
-		FxSprite::Pointer ptr = world.gameObjects->fxManager->fxSprite(map,0,0,0,0);
+		Fx::FxSpritePtr ptr = world.gameObjects->fxManager->fxSprite(map,0,0,0,0);
 		float w = ptr->sprite.GetWidth();
 		float h = ptr->sprite.GetHeight();
 		ptr->setBlendMode(COLORMUL | ALPHAADD);
 		float scale = header.width / w;
 		ptr->setScale(scale*size);
 		ptr->setPose(pose);
-		background = ptr;	
+		background = ptr;
 		mapName = map;
 	}
 	return 1;
 }
+
 /*
 void World::setWall(int x,int y,int z,int type)
 {

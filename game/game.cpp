@@ -1,4 +1,3 @@
-#include "core.h"
 #include "world.h"
 #include "game.h"
 
@@ -9,11 +8,14 @@ int hgeMain()
 {
 	Game game;
 	game.executeScript("./script/startup_Game.lua");
-	game.font = GUI::FontPtr(new hgeFont("./data/font1.fnt"));
+	game.font = GUI::FontPtr(new Fx::Font("./data/font1.fnt"));
 	game.initGame();
-	game.run();	
+	game.run();
 	return 0;
 }
+
+extern "C" int luaopen_TiGa(lua_State* L);
+
 
 /////////////////////////////////////////////////////////////////////
 // Game class implementation
@@ -49,14 +51,14 @@ public:
 */
 void Game::initGame()
 {
-	gameData = new GameData(this);	
+	gameData = std::make_shared<GameData>(this);
 	scripter.call("onGameInit", (LuaObject*)this);
 	showMainMenu();
 }
 
 void Game::registerTestScene(const char * scene)
 {
-	sceneNames.push_back(scene);	
+	sceneNames.push_back(scene);
 }
 
 void Game::loadTestScene(const char * scene)
@@ -82,37 +84,35 @@ void Game::onUpdate()
 			active->detach();
 			active = NULL;
 		}
-				
+
 		active = newActive;
 		guiRoot->insert(active);
 
 		if(active)
-			active->show(true);		
+			active->show(true);
 	}
 }
 
 void Game::showMainMenu()
-{	
-	makeActive(new MenuWindow(this));
+{
+	makeActive(std::make_shared<MenuWindow>(this));
 }
 
 void Game::showHangar()
 {
-	makeActive(new HangarWindow(this));
+	makeActive(std::make_shared<HangarWindow>(this));
 }
 
-void Game::makeActive(GUI::Object * object)
+void Game::makeActive(GUI::ObjectPtr object)
 {
 	if(active == object)
-		return;	
+		return;
 	newActive = object;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////
 ShipBlueprint::ShipBlueprint()
 {
-	blocks = NULL;	
-	devices = NULL;	
 	tileSize = 50;
 	reset();
 }
@@ -124,47 +124,34 @@ ShipBlueprint::~ShipBlueprint()
 
 size_t ShipBlueprint::findBlock( int x, int y, const GameData& data )
 {
-	for( Block * block = blocks; block < blocks + blocksCount; ++block)
+	//for(Block * block = blocks; block < blocks + blocksCount; ++block)
+	for(int i = 0; i < blocks.size(); i++)
 	{
-		TileSectionDesc & desc = data.sections[block->tileType];
+		const Block& block = blocks[i];
+		const TileSectionDesc& desc = data.sections[block.tileType];
 
-		if( block->x >= x && block->y >= y && block->x + desc.sizeX < x && block->y + desc.sizeY < desc.sizeY)
-			return block - blocks;
+		if( block.x >= x && block.y >= y && block.x + desc.sizeX < x && block.y + desc.sizeY < desc.sizeY)
+			return i;
 	}
 	return -1;
 }
 
-bool ShipBlueprint::addBlock(ShipBlueprint::Block * source)
+bool ShipBlueprint::addBlock(ShipBlueprint::Block* source)
 {
-	blocks = (Block*)realloc(blocks, sizeof(Block)*(blocksCount + 1));
-	if( blocks == NULL )
-	{
-		reset();
-		std::_Xoverflow_error("ShipBlueprint::addBlock");
-	}
-	memcpy(blocks + blocksCount, source, sizeof(Block));
-	blocksCount++;
+	blocks.push_back(*source);
 	return true;
 }
 
-void ShipBlueprint::copy(ShipBlueprint * source, bool suffix)
+void ShipBlueprint::copy(ShipBlueprint* source, bool suffix)
 {
 	reset();
-	blocksCount = source->blocksCount;	
-	if( blocksCount > 0 )
-	{
-		blocks = (Block*)malloc(sizeof(Block)*blocksCount);	
-		memcpy(blocks, source->blocks, sizeof(Block) * blocksCount);			
-	}
-	devicesCount = source->devicesCount;
-	if( devicesCount > 0 )
-	{
-		devices = (Device*)malloc(sizeof(Block)*devicesCount);
-		memcpy(devices, source->devices, sizeof(Device) * devicesCount);
-	}
-	strcpy_s(name, sizeof(name),source->name);	
+
+	blocks = source->blocks;
+	devices = source->devices;
+	name = source->name;
 }
 
+#ifdef FIX_THIS
 void ShipBlueprint::load(IO::StreamIn &stream)
 {
 	reset();
@@ -193,48 +180,44 @@ void ShipBlueprint::save(IO::StreamOut & stream)
 		stream.write(blocks, sizeof(Block) * blocksCount);
 	stream.write((unsigned short)devicesCount);
 	if(devicesCount > 0)
-		stream.write(devices, sizeof(Device) * devicesCount);	
+		stream.write(devices, sizeof(Device) * devicesCount);
 	// TODO: implement name saving
 }
+#endif
 
 void ShipBlueprint::reset()
 {
-	if( blocks != NULL )
-		free(blocks);
-	blocks = NULL;
-	blocksCount = 0;
-	if( devices != NULL )
-		free(devices);
-	devices = NULL;
-	devicesCount = NULL;
-	strcpy_s(name, sizeof(name),"Enterprise XIV");
+	blocks.clear();
+	devices.clear();
+	name = "Enterprise XIV";
 }
 
-hgeRect ShipBlueprint::getBounds(const GameData& data) const
+Fx::Rect ShipBlueprint::getBounds(const GameData& data) const
 {
-	hgeRect result;
+	Fx::Rect result;
 	bool first = true;
-	for( Block * block = blocks; block < blocks + blocksCount; ++block)
+
+	for( const Block& block: blocks)
 	{
-		TileSectionDesc & desc = data.sections[block->tileType];
+		const TileSectionDesc & desc = data.sections[block.tileType];
 		if( first )
 		{
-			result.x1 = block->x;
-			result.y1 = block->y;
-			result.x2 = block->x + desc.sizeX;
-			result.y2 = block->y + desc.sizeY;
+			result.x1 = block.x;
+			result.y1 = block.y;
+			result.x2 = block.x + desc.sizeX;
+			result.y2 = block.y + desc.sizeY;
 			first = false;
 		}
-		if( block->x < result.x1 )
-			result.x1 = block->x;
-		if( block->y < result.y1 )
-			result.y1 = block->y;
-		if( block->x + desc.sizeX > result.x2 )
-			result.x2 = block->x + desc.sizeX;
-		if( block->y + desc.sizeY >= result.y2 )
-			result.y2 = block->y + desc.sizeY;
+		if( block.x < result.x1 )
+			result.x1 = block.x;
+		if( block.y < result.y1 )
+			result.y1 = block.y;
+		if( block.x + desc.sizeX > result.x2 )
+			result.x2 = block.x + desc.sizeX;
+		if( block.y + desc.sizeY >= result.y2 )
+			result.y2 = block.y + desc.sizeY;
 		//&& block->y >= y && block->x + desc.sizeX < x && block->y + desc.sizeY < desc.sizeY)
 			//return block - blocks;
 	}
 	return result;
-} 
+}

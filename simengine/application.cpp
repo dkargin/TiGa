@@ -32,13 +32,11 @@
 
 namespace sim
 {
+
 int regStore(lua_State *l);	// store top stack object in lua registry
 int regGet(lua_State *l);	// get object from lua registry
 int regFree(lua_State *l);	// free lua registry object
-/*
-Ihandle * IupHGE(Ihandle * child);
-void iupRegisterHGE();
-*/
+
 Application * core = nullptr;
 
 typedef float Scalar;
@@ -319,12 +317,6 @@ bool Application::onScripterError(sim::Scripter& scripter,const char *error)
 	return true;
 }
 
-/*
-void Core::createWorld()
-{
-	assert(hge);	
-}
-*/
 void Application::executeScript( const char * file )
 {
 	scripter.runScript( file, false );

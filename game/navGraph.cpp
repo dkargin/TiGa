@@ -14,7 +14,7 @@ void Graph::clear()
 }
 
 // find nearest graph point
-int Graph::getNearestPoint(const vec3 &pt)const
+int Graph::getNearestPoint(const vec3f& pt)const
 {
 	float minRange=vecLength(pt-points[0]);
 	int best=0;
@@ -29,32 +29,34 @@ int Graph::getNearestPoint(const vec3 &pt)const
 	}
 	return best;
 }
+
 // build matrix representation of graph edges
 void Graph::cookLinks()
 {
 	if(!updateLinks)return;
-	size_type size = points.size();
+	int size = points.size();
 	fastLinks.resize(size * size,0);
 	for(Links::iterator it = links.begin();it != links.end();++it)
 		fastLinks[size*it->first + it->second] = distance(it->first, it->second);
 	updateLinks=false;
 }
+
 // connect two points
 void Graph::connect(int start,int end)
 {
-	links.insert(make_pair(start,end));
-	links.insert(make_pair(end,start));
+	links.insert({start,end});
+	links.insert({end,start});
 	updateLinks=true;
 }
 
 void Graph::connectSingle(int start,int end)
 {
-	links.insert(make_pair(start,end));
+	links.insert({start,end});
 	updateLinks=true;
 }
 
 // add point to graph
-int Graph::addPoint(const vec3 &point)
+int Graph::addPoint(const vec3f &point)
 {
 	//std::tr1::function
 	updateLinks=true;
@@ -77,19 +79,20 @@ int Graph::path(int from, int to, Path &path)
 		TreeNode():back(-1),cost(0),open(false){}
 		TreeNode(const TreeNode &node):open(node.open),cost(node.cost),back(node.back){}
 	};
-	size_type size=points.size();
-	vector<TreeNode> pathTree(points.size());	// pathfinding tree
 
-	pathTree[from].back=from;	
+	int size = points.size();
+	std::vector<TreeNode> pathTree(points.size());	// pathfinding tree
+
+	pathTree[from].back=from;
 	pathTree[from].open=true;
 
-	TreeNode *tree=&pathTree.front();	// just for debug view
+	TreeNode* tree = &pathTree.front();	// just for debug view
 
 	while(true)
 	{
-		size_type best=-1;	// best node index
+		int best=-1;	// best node index
 		// 1. Find best node
-		for(size_type i=0;i<size;i++)
+		for(int i=0; i < size; i++)
 			if(pathTree[i].open && (best==-1 || pathTree[i].cost<pathTree[best].cost))
 				best=i;
 		// 2. Check if we reached the goal
@@ -100,10 +103,10 @@ int Graph::path(int from, int to, Path &path)
 			return -1;	// wave is empty
 		// 4. Expand path tree
 		TreeNode &bestNode=pathTree[best];
-		for(size_type i=0;i<size;i++)	
+		for(int i=0;i<size;i++)
 		{
 			TreeNode &adjacent=pathTree[i];
-			float linkCost=fastLinks[best*size+i];	
+			float linkCost=fastLinks[best*size+i];
 			if(linkCost<=0.0f)continue;	// ignore zero and negative costs
 			float newCost=bestNode.cost+linkCost;
 			if(adjacent.back==-1 || newCost<adjacent.cost)
@@ -123,8 +126,8 @@ int Graph::path(int from, int to, Path &path)
 		node.start=pathTree[current].back;
 		node.end=current;
 		node.startPt=points[node.start];
-		node.endPt=points[node.end];		
-		
+		node.endPt=points[node.end];
+
 		current=node.start;
 		path.push_back(node);
 	}

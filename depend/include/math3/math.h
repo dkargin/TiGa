@@ -212,7 +212,7 @@ template<class Type> struct StorageDynamic
 	~StorageDynamic()
 	{
 		reset();
-	}	
+	}
 	/// Get total numer of elements
 	int size() const
 	{
@@ -244,7 +244,7 @@ template<class Type> struct StorageDynamic
 	typedef VectorDynamic<Type> col_type;
 
 	/// Create row object
-	row_type make_row()	const // constructs row type 
+	row_type make_row()	const // constructs row type
 	{
 		return row_type(cols());
 	}
@@ -256,7 +256,7 @@ template<class Type> struct StorageDynamic
 protected:
 	/// Assign data from raw array
 	template<class R> void assign(const R *data,int w,int h)
-	{	
+	{
 		resize(w,h);
 		if(data)
 			for(int i=0;i<w*h;i++)c[i]=data[i];
@@ -270,7 +270,7 @@ protected:
 		if(!w*h)	// no zero-sized matrices
 			return;
 
-		c=new value_type[w*h];		
+		c=new value_type[w*h];
 		size_x=w;
 		size_y=h;
 	}
@@ -308,7 +308,7 @@ namespace math3
 /// Apply only rotation part from 4x4 mathix to 3D vector
 template<typename Real,bool order>
 Vector3D<Real> transform3 ( const Matrix4<Real,order>& m, const Vector3D<Real>& v )
-{	
+{
 	return Vector3D<Real>((Real*)Vector<Real,4>(m.col(0)*v[0]+m.col(1)*v[1]+m.col(2)*v[2]));
 }
 
@@ -334,7 +334,7 @@ Vector3D<Real> inverseRotateVect( const Matrix4<Real,true>& m, const Vector3D<Re
 	// 0 1 2| 0 3 6
 	// 3 4 5| 1 4 7
 	// 6 7 8| 2 5 8
-	vec3 res;
+	Vector3D<Real> res;
 	//float vec[3];
 	//column order
 	res=getVec3(res[0]*m.row(0)+res[1]*m.row(1)+res[2]*m.row(2));
@@ -355,22 +355,11 @@ template<class R> inline bool valueInRange(const R &a,const R &c,const R &b)
 		return (b>=c) && (b<=a);
 }
 
-/// Tests. Something
-inline float sideXY(const vec3 &a,const vec3 &b)
-{
-	return a[0]*b[1]-b[0]*a[1];
-}
-
-/// Tests. Something.
-inline bool testvecXY(const vec3 &a,const vec3 &b,const vec3 &c)
-{
-	return (sideXY(a,c)>0) ^ (sideXY(b,c)>0);
-}
-
 namespace Math
 {
+	// Am I ambitious enough to compete with eigen?
 	const bool RowOrder=true;
-};
+}
 
 /// Cast vector3 to vector2
 template<class Type> const Vector2D<Type> & vec3to2(const Vector3D<Type> & v)
@@ -392,6 +381,7 @@ public:
 	typedef vec3f vec3;		///< describes "vector" type
 	typedef vec2f vec;		///< "flat" vector
 	typedef vec dir;		///< describes "direction" type. Actually is syninonim to "vector"
+	// Why do we use scalar rotation, instead of sin/cos?
 	typedef float rot;		///< describes "rotation" type.
 	typedef Mt3x3 mat;		///< describes "matrix" type
 
@@ -459,7 +449,7 @@ public:
 	}
 
 	/// Get cos(angle)
-	float CS() const	
+	float CS() const
 	{
 		return cosf(orientation);
 	}
@@ -483,7 +473,7 @@ public:
 		float cs = CS();
 		float sn = SN();
 		res(0,0)=cs;res(1,0)=-sn;res(2,0)=position[0];
-		res(0,1)=sn;res(1,1)= cs;res(2,1)=position[1];	
+		res(0,1)=sn;res(1,1)= cs;res(2,1)=position[1];
 		res(2,2) = position[2];
 		return res;
 	}
@@ -538,9 +528,9 @@ public:
 	inline pos projectPos(const pos &p) const
 	{
 		float cs = CS();
-		float sn = SN();		
+		float sn = SN();
 		float lx = p[0] - position[0];
-		float ly = p[1] - position[1];		
+		float ly = p[1] - position[1];
 		float x = cs * lx + sn * ly;
 		float y = -sn * lx + cs * ly;
 		return pos(x,y);	// unrotate
@@ -666,6 +656,7 @@ class Pose2
 public:
 	typedef vec2f pos;		///< describes "position" type
 	typedef vec2f vec;		///< describes "vector" type
+	typedef vec3f vec3;		///< describes "vector" type
 	typedef vec dir;		///< describes "direction" type. Actually is syninonim to "vector"
 	typedef FastAngle rot;	///< describes "rotation" type.
 	typedef Mt3x3 mat;		///< describes "matrix" type
@@ -730,7 +721,7 @@ public:
 		return orientation.DEG();
 	}
 	/// get cos(angle)
-	float CS() const	
+	float CS() const
 	{
 		return orientation.cs;
 	}
@@ -755,7 +746,7 @@ public:
 		float cs = CS();
 		float sn = SN();
 		res(0,0)=cs;res(1,0)=-sn;res(2,0)=position[0];
-		res(0,1)=sn;res(1,1)= cs;res(2,1)=position[1];	
+		res(0,1)=sn;res(1,1)= cs;res(2,1)=position[1];
 		res(2,2) = position[2];
 		return res;
 	}*/
@@ -769,6 +760,7 @@ public:
 	{
 		return vec(-SN(), CS());
 	}
+
 	/// convert from local direction to world direction(vector)
 	inline vec transformVec(const vec &v) const
 	{
@@ -795,18 +787,18 @@ public:
 		float x = cs * p[0] - sn * p[1] + position[0];
 		float y = sn * p[0] + cs * p[1] + position[1];
 		return vec(x,y);
-	}	
+	}
 	/// convert from world position to local position (untranslate+unrotate)
 	inline pos projectPos(const pos &p) const
 	{
 		float cs = CS();
-		float sn = SN();		
+		float sn = SN();
 		float lx = p[0] - position[0];
-		float ly = p[1] - position[1];		
+		float ly = p[1] - position[1];
 		float x = cs * lx + sn * ly;
 		float y = -sn * lx + cs * ly;
 		return pos(x,y);	// unrotate
-	}	
+	}
 	/// convert from world direction to local direction (unrotate)
 	inline vec projectVec(const vec &v) const
 	{

@@ -8,8 +8,7 @@ void addDoubleBlock(Game * game, GameData * gameData, const char * path )
 	if (!sprite)
 		return;
 	
-	gameData->sprites.push_back(sprite);
-	sprite = sprite->clone();
+	gameData->sprites.push_back(sprite->clone());
 	sprite->flipVer();
 	gameData->sprites.push_back(sprite);
 
@@ -112,6 +111,7 @@ ShipyardArea::~ShipyardArea()
 {
 }
 
+
 const TileSectionDesc & ShipyardArea::getSectionDesc(size_t id) const
 {
 	return shipyard->game->gameData->sections[id];
@@ -126,7 +126,7 @@ void ShipyardArea::updateCells()
 		cells[i].blockId = -1;
 	}
 	// fill by tile id
-	for( size_t i = 0; i < blueprint.blocksCount; ++i )
+	for( size_t i = 0; i < blueprint.blocks.size(); ++i )
 	{
 		const ShipBlueprint::Block & block = blueprint.blocks[i];
 		const TileSectionDesc & desc = getSectionDesc(block.tileType);
@@ -152,6 +152,7 @@ void ShipyardArea::addTile( int x, int y, size_t pickedTile )
 	blueprint.addBlock(&block);
 	updateCells();
 }
+
 
 vec2i ShipyardArea::screenToLocal( const uiVec & vec )
 {
@@ -180,6 +181,7 @@ bool ShipyardArea::onMouseMove( int mouseId, const uiVec & vec, ShipyardArea::Mo
 	selectedCell = screenToLocal(vec);
 	return true;
 }
+
 
 vec2i ShipyardArea::screenCellCenter( const vec2i & cell ) const
 {
@@ -212,6 +214,7 @@ size_t ShipyardArea::findTile(int cx, int cy)
 	return cells[cx + cellsCenterX + (cy + cellsCenterY) * cellsWidth].blockId;
 }
 
+
 bool ShipyardArea::canPlaceTile(int cx, int cy, size_t tileId)
 {
 	TileSectionDesc& desc = shipyard->game->gameData->sections[tileId];
@@ -230,27 +233,29 @@ bool ShipyardArea::canPlaceTile(int cx, int cy, size_t tileId)
 	return true;
 }
 
-void DrawBlueprint( ShipBlueprint * blueprint, GameData * data, float cornerX, float cornerY, float tileSize, float scale )
+void DrawBlueprint(Fx::RenderContext* rc, ShipBlueprint * blueprint, GameData * data, float cornerX, float cornerY, float tileSize, float scale )
 {
 	// draw blocks
-	for( size_t i = 0; i < blueprint->blocksCount; ++i)
+	for( size_t i = 0; i < blueprint->blocks.size(); ++i)
 	{
 		ShipBlueprint::Block & block = blueprint->blocks[i];
 		const TileSectionDesc & desc = data->sections[block.tileType];	
-		Pose2z pose( cornerX + (block.x + (float)desc.sizeX * 0.5) * tileSize, cornerY + (block.y + (float)desc.sizeX * 0.5) * tileSize, 0, 0 );
+		Fx::Pose pose(
+				cornerX + (block.x + (float)desc.sizeX * 0.5) * tileSize,
+				cornerY + (block.y + (float)desc.sizeX * 0.5) * tileSize, 0, 0 );
 		Fx::EntityPtr ptr = data->getSectionSprite(block.tileType);
-		ptr->render(ptr->getManager(), pose);
+		ptr->render(rc, pose);
 	}
 }
 
-void ShipyardArea::onRender()
+void ShipyardArea::onRender(Fx::RenderContext* rc)
 {
-	hgeRect rect = getClientRect();
+	Fx::Rect rect = getClientRect();
 
 	int cellsX = (rect.x2 - rect.x1) / tileSize;
 	int cellsY = (rect.y2 - rect.y1) / tileSize;
 
-	hgeRect cellRect;
+	Fx::Rect cellRect;
 
 	vec2i selected = screenCellCenter( selectedCell );
 	cellRect.x1 = rect.x1 + (selectedCell[0] + tileOffsetX ) * tileSize;
@@ -258,8 +263,9 @@ void ShipyardArea::onRender()
 	cellRect.x2 = cellRect.x1 + tileSize;
 	cellRect.y2 = cellRect.y1 + tileSize;
 
+#ifdef FIX_THIS
 	// draw bounding rect
-	drawRectSolid(hge, cellRect, color );
+	drawRectSolid(rc, cellRect, color );
 
 	// draw grid
 	for( int x = rect.x1 + tileOffsetX * tileSize; x < rect.x2; x+= tileSize )
@@ -267,9 +273,11 @@ void ShipyardArea::onRender()
 
 	for( int y = rect.y1 + tileOffsetY * tileSize; y < rect.y2; y+= tileSize )
 		hge->Gfx_RenderLine(rect.x1, y, rect.x2, y, color );
+#endif
 	// draw blueprint
-	DrawBlueprint(&blueprint, shipyard->game->gameData, rect.x1, rect.y1, tileSize, 1.0);	
+	DrawBlueprint(rc, &blueprint, shipyard->game->gameData.get(), rect.x1, rect.y1, tileSize, 1.0);
 }
+
 /////////////////////////////////////////////////////////////////////////////////////
 ShipyardWindow::ShipyardWindow(Game * game)
 	:GUI::Object(Fx::Rect(0,0,0,0)), game(game)

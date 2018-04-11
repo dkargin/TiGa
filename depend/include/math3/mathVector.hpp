@@ -64,7 +64,7 @@ public:
 			if( c[i] != value_type(0) )
 				return false;
 		return true;
-	} 
+	}
 	/// pointer conversion
 	inline operator value_type * ()
 	{
@@ -208,7 +208,7 @@ public:
 template <class _Vr>
 inline typename _Vr::vector_type operator+(const _Vr& v1,const typename _Vr::vector_type& v2)
 {
-    typedef typename _Vr::size_type size_type;
+	typedef typename _Vr::size_type size_type;
 	_Vr res(v1);
 	for(size_type i = 0; i < _Vr::D; i++)
 		res[i] += v2[i];
@@ -276,7 +276,7 @@ template <class Real>
 class	Vector2D: public Vector<Real,2>
 {
 public:
-    typedef Vector<Real,2> parent_type;
+	typedef Vector<Real,2> parent_type;
 	typedef typename parent_type::value_type value_type;
 	typedef typename parent_type::size_type size_type;
 	static const size_type size = 2;
@@ -303,7 +303,7 @@ public:
 	//rotates vector around Z-axis
 	const vector_type& rotate(float angle)
 	{
-	    float *p = (float*)this;
+		float *p = (float*)this;
 		float cs = cosf(angle);
 		float sn = sinf(angle);
 
@@ -326,7 +326,7 @@ template <class Real>
 class	Vector3D: public Vector<Real,3>
 {
 public:
-    typedef Vector<Real,3> parent_type;
+	typedef Vector<Real,3> parent_type;
 	typedef Vector3D<Real> vector_type;
 
 	typedef typename parent_type::value_type value_type;
@@ -362,14 +362,14 @@ public:
 
 	template<class tReal>inline Vector3D(const Vector<tReal,3> &v):parent_type(v){}
 
-    float   maxLength () const
-    {
-        const float *p=(float*)this;
-        return max3 ( fabs (p[0]), fabs (p[1]), fabs (p[2]) );
-    }
+	float   maxLength () const
+	{
+		const float *p=(float*)this;
+		return max3 ( fabs (p[0]), fabs (p[1]), fabs (p[2]) );
+	}
 	void set(Real x,Real y,Real z)
 	{
-        float *p=(float*)this;
+		float *p=(float*)this;
 		p[0] = x;
 		p[1] = y;
 		p[2] = z;
@@ -377,7 +377,7 @@ public:
 
 	vector_type& dir(float angle)
 	{
-	    float *p = (float*)this;
+		float *p = (float*)this;
 		p[0] = cosf(angle);
 		p[1] = sinf(angle);
 		p[2] = Real(0);
@@ -386,7 +386,7 @@ public:
 	//rotates vector around Z-axis
 	const vector_type& rotateZ(float angle)
 	{
-	    float *p = (float*)this;
+		float *p = (float*)this;
 		float cs = cosf(angle);
 		float sn = sinf(angle);
 
@@ -424,7 +424,7 @@ public:
 
 	void rotateY(float angle)
 	{
-	    float *p = (float*)this;
+		float *p = (float*)this;
 		float cs = cosf(angle);
 		float sn = sinf(angle);
 
@@ -462,11 +462,11 @@ public:
 		return val;
 	}
 private:
-    Real   max3 ( Real a, Real b, Real c ) const
-    {
-        return a > b ? (a > c ? a : (b > c ? b : c)) :
-                       (b > c ? b : (a > c ? a : c));
-    }
+	Real   max3 ( Real a, Real b, Real c ) const
+	{
+		return a > b ? (a > c ? a : (b > c ? b : c)) :
+					   (b > c ? b : (a > c ? a : c));
+	}
 };
 
 template <typename Real>
@@ -480,7 +480,7 @@ template <class Real>
 class	Vector4D: public Vector<Real,4>
 {
 public:
-    typedef Vector<Real,4> parent_type;
+	typedef Vector<Real,4> parent_type;
 	typedef typename parent_type::value_type value_type;
 	typedef typename parent_type::size_type size_type;
 	static const size_type size=4;
@@ -490,7 +490,7 @@ public:
 	{}
 	inline Vector4D ( Real px, Real py, Real pz, Real pw)
 	{
-	    float *p=(float*)this;
+		float *p=(float*)this;
 		p[0] = px;
 		p[1] = py;
 		p[2] = pz;
@@ -504,7 +504,7 @@ public:
 	{}
 	inline Vector4D(const Vector3D<Real>&v,Real w)
 	{
-        float *p=(float*)this;
+		float *p=(float*)this;
 		p[0] = v[0];
 		p[1] = v[1];
 		p[2] = v[2];
@@ -524,7 +524,7 @@ public:
 	}
 	inline Vector4D<Real> operator = (parent_type &v)
 	{
-        float *p = (float*)this;
+		float *p = (float*)this;
 		p[0] = v[0];
 		p[1] = v[1];
 		p[2] = v[2];
@@ -540,7 +540,6 @@ typedef const vec4f & crvec4f;
 
 typedef Vector3D<float> vec3f;
 typedef const vec3f & crvec3f;
-typedef vec3f vec3;				// Most polular type. Just for faster typing.
 typedef crvec3f crvec3;
 typedef Vector3D<signed int> vec3i;
 typedef const vec3i & crvec3i;
@@ -599,7 +598,7 @@ template <class _Vr> inline typename _Vr::value_type vecDistance(const _Vr &a, c
 }
 
 template <class _Vr> inline typename _Vr::value_type vecDotProduct(const _Vr &a, const _Vr &b)
-{	
+{
 	return a&b;
 }
 
@@ -678,13 +677,15 @@ bool collinear(const _Vr &a,const _Vr &b)
 	float f = (a&b)/(vecLength(a)*vecLength(b));
 	return fabs(f)>0.9999f;
 }
+
 template <class _Vr> inline float vecAngle(const _Vr &a, const _Vr &b, const _Vr &up)
 {
-	vec3 va = a - vecProject(a,up);
-	vec3 vb = b - vecProject(b,up);
-	vec3 left = crossProduct(up , va);
+	vec3f va = a - vecProject(a,up);
+	vec3f vb = b - vecProject(b,up);
+	vec3f left = crossProduct(up , va);
 
 	float y = vecAngle(va,vb);
+
 	if((left&vb) >= 0.0f)
 		return y;
 	else
@@ -693,7 +694,7 @@ template <class _Vr> inline float vecAngle(const _Vr &a, const _Vr &b, const _Vr
 
 template <class _Vr> inline float vecAngle_n(const _Vr &a, const _Vr &b, const _Vr &up)
 {
-	static vec3 c;
+	static vec3f c;
 	static float y;
 	c = (a^b);
 	y = acosf(a&b);
@@ -722,36 +723,37 @@ template<class _Vr> signed int pointInEdge(const _Vr &start, const _Vr &end, con
 	return 0;
 }
 
+/*
 template <> inline float vecDistance<vec2f>(const vec2f &a, const vec2f &b)
-{	
+{
 	return sqrt((a[0]-b[0])*(a[0]-b[0]) + (a[1] - b[1])*(a[1] - b[1]));
 }
 
 template <> inline float vecSqrDistance<vec2f>(const vec2f &a, const vec2f &b)
-{	
+{
 	return ((a[0]-b[0])*(a[0]-b[0]) + (a[1] - b[1])*(a[1] - b[1]));
 }
 
 template <> inline float vecDotProduct<vec2f>(const vec2f &a, const vec2f &b)
-{	
+{
 	return a[0]*b[0] + a[1]*b[1];
 }
 
-template <> inline float vecDistance<vec3>(const vec3 &a, const vec3 &b)
-{	
+template <> inline float vecDistance<vec3f>(const vec3f &a, const vec3 &b)
+{
 	return sqrt((a[0]-b[0])*(a[0]-b[0]) + (a[1] - b[1])*(a[1] - b[1])+(a[2] - b[2])*(a[2] - b[2]));
 }
 
-template <> inline float vecSqrDistance<vec3>(const vec3 &a, const vec3 &b)
-{	
+template <> inline float vecSqrDistance<vec3f>(const vec3 &a, const vec3 &b)
+{
 	return (a[0]-b[0])*(a[0]-b[0]) + (a[1] - b[1])*(a[1] - b[1])+(a[2] - b[2])*(a[2] - b[2]);
 }
 
 
 template <> inline float vecDotProduct<vec3>(const vec3 &a, const vec3 &b)
-{	
+{
 	return a[0]*b[0] + a[1]*b[1] + a[2]*b[2];
-}
+}*/
 
 }
 

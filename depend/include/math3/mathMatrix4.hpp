@@ -1,7 +1,7 @@
 #pragma once
-#ifndef MATH_MATRIX
-#error "include <mathMatrix.hpp> first"
-#endif
+
+#include "math3/mathVector.hpp"
+#include "math3/mathMatrix.hpp"
 
 namespace math3
 {
@@ -33,9 +33,9 @@ public:
 	}
 
 	/// Set X axis
-	inline void axisX(vec3 v)
+	inline void axisX(vec3f v)
 	{
-	    value_type *c=(value_type*)this;
+		value_type *c=(value_type*)this;
 		this->set(0,0,v[0]);
 		this->set(0,1,v[1]);
 		this->set(0,2,v[2]);
@@ -43,27 +43,29 @@ public:
 		//c[4]=v[1];
 		//c[8]=v[2];
 	}
+
 	/// Set X axis
 	inline void axisX(Real x,Real y,Real z)
 	{
-		axisX(vec3(x,y,z));
+		axisX(vec3f(x,y,z));
 	}
+
 	/// Set Y axis
-	inline void axisY(const vec3 &v)
+	inline void axisY(const vec3f &v)
 	{
-	    value_type *c=(value_type*)this;
-	    this->set(1,0,v[0]);
-	    this->set(1,1,v[1]);
-	    this->set(1,2,v[2]);
+		value_type *c=(value_type*)this;
+		this->set(1,0,v[0]);
+		this->set(1,1,v[1]);
+		this->set(1,2,v[2]);
 	}
 
 	/// Set Y axis
 	inline void axisY(Real x,Real y,Real z)
 	{
-		axisY(vec3(x,y,z));
+		axisY(vec3f(x,y,z));
 	}
 	/// Set Z axis
-	inline void axisZ(const vec3 &v)
+	inline void axisZ(const vec3f &v)
 	{
 		value_type *c=(value_type*)this;
 		this->set(2,0,v[0]);
@@ -73,15 +75,15 @@ public:
 	/// Set Z axis
 	inline void axisZ(Real x,Real y,Real z)
 	{
-		this->axisZ(vec3(x,y,z));
+		this->axisZ(vec3f(x,y,z));
 	}
 	/// Set transform origin
-	inline void origin(const vec3 &v)
+	inline void origin(const vec3f &v)
 	{
-	    //value_type *c=(value_type*)this;
-	    this->set(3,0,v[0]);
-	    this->set(3,1,v[1]);
-	    this->set(3,2,v[2]);
+		//value_type *c=(value_type*)this;
+		this->set(3,0,v[0]);
+		this->set(3,1,v[1]);
+		this->set(3,2,v[2]);
 	}
 
 	/// Set transform origin
@@ -101,46 +103,46 @@ public:
 		(*this)*=rotateX(ang);
 	}
 	/// Get X axis
-	inline vec3 axisX() const
+	inline vec3f axisX() const
 	{
-	    //const value_type *c=(const value_type*)this;
-		return vec3(this->get(0,0),this->get(0,1),this->get(0,2));
+		//const value_type *c=(const value_type*)this;
+		return vec3f(this->get(0,0),this->get(0,1),this->get(0,2));
 	}
 	/// Get Y axis
-	inline vec3 axisY() const
+	inline vec3f axisY() const
 	{
-	    //const value_type *c=(const value_type*)this;
-		return vec3(this->get(1,0),this->get(1,1),this->get(1,2));
+		//const value_type *c=(const value_type*)this;
+		return vec3f(this->get(1,0),this->get(1,1),this->get(1,2));
 	}
 	/// Get Z axis
-	inline vec3 axisZ() const
+	inline vec3f axisZ() const
 	{
-	    //const value_type *c=(const value_type*)this;
-		return vec3(this->get(2,0),this->get(2,1),this->get(2,2));
+		//const value_type *c=(const value_type*)this;
+		return vec3f(this->get(2,0),this->get(2,1),this->get(2,2));
 	}
 	/// Get transform origin
-	inline vec3 origin() const
+	inline vec3f origin() const
 	{
-	    //const value_type *c=(const value_type*)this;
-		return vec3(this->get(3,0),this->get(3,1),this->get(3,2));
+		//const value_type *c=(const value_type*)this;
+		return vec3f(this->get(3,0),this->get(3,1),this->get(3,2));
 	}
 	/// Project point into local coordinate system
-	inline vec3 project(const vec3 &a)const
+	inline vec3f project(const vec3f &a)const
 	{
-		return vec3(vecProjectLen(a-origin(),axisX()),
+		return vec3f(vecProjectLen(a-origin(),axisX()),
 					vecProjectLen(a-origin(),axisY()),
 					vecProjectLen(a-origin(),axisZ()));
 	}
 	/// Project direction into local coordinate system
-	inline vec3 projectDir(const vec3 &a)
+	inline vec3f projectDir(const vec3f &a)
 	{
-		return vec3(vecProjectLen(a,axisX()),
+		return vec3f(vecProjectLen(a,axisX()),
 					vecProjectLen(a,axisY()),
 					vecProjectLen(a,axisZ()));
 	}
 
 	/// Create translation matrix
-	static my_type	translate ( const vec3& );
+	static my_type	translate ( const vec3f& );
 	/// Create translation matrix
 	static my_type  translate (Real x,Real y,Real z)
 	{
@@ -149,7 +151,7 @@ public:
 		return res;
 	}
 	/// Create scale matrix
-	static my_type	scale     ( const vec3& );
+	static my_type	scale     ( const vec3f& );
 	/// Create scale matrix
 	static my_type	scale     ( float x,float y,float z );
 	/// Create rotation matrix
@@ -159,7 +161,7 @@ public:
 	/// Create rotation matrix
 	static my_type	rotateZ   ( float );
 	/// Create rotation matrix
-	static my_type	rotate    ( const vec3& v, float );
+	static my_type	rotate    ( const vec3f& v, float );
 	//static my_type	mirrorX   ();
 	//static my_type	mirrorY   ();
 	//static my_type	mirrorZ   ();
@@ -186,7 +188,7 @@ public:
 	/// Cast to a parent type
 	operator parent_type ()
 	{
-		return *this; 
+		return *this;
 	}
 };
 
@@ -232,7 +234,7 @@ Matrix4<Real> setRotation(Matrix4<Real,false> mt4,Matrix3<Real,true> rot)
 	return mt4;
 }
 */
-template<typename Real,bool order> Matrix4<Real,order> Matrix4<Real,order>::translate ( const vec3& loc )
+template<typename Real,bool order> Matrix4<Real,order> Matrix4<Real,order>::translate ( const vec3f& loc )
 {
 	Matrix4<Real,order> res = my_type::identity();
 
@@ -250,7 +252,7 @@ template<typename Real,bool order> Matrix4<Real,order>	Matrix4<Real,order>::scal
 	return res;
 }
 
-template<typename Real,bool order> Matrix4<Real,order>	Matrix4<Real,order>::scale ( const vec3& v )
+template<typename Real,bool order> Matrix4<Real,order>	Matrix4<Real,order>::scale ( const vec3f& v )
 {
 	Matrix4<Real,order> res = my_type::identity();
 
@@ -308,12 +310,12 @@ Matrix4<Real,order>	Matrix4<Real,order>::rotateZ ( float angle )
 }
 
 template<typename Real,bool order>
-Matrix4<Real,order>	Matrix4<Real,order>::rotate ( const vec3& axis, float angle )
+Matrix4<Real,order>	Matrix4<Real,order>::rotate ( const vec3f& axis, float angle )
 {
 	my_type res=my_type::identity();
 	float  cosine = cos ( angle );
 	float  sine   = sin ( angle );
-	
+
 	//axis X
 	res(0,0) = axis[0] * axis[0] + ( 1 - axis[0] * axis[0] ) * cosine;
 	res(0,1) = axis[0] * axis[1] * ( 1 - cosine ) + axis[2] * sine;
@@ -405,7 +407,7 @@ inline Matrix4<Real,order> &Matrix4<Real,order>::setInverseRotationDegrees( cons
 template<class Real,bool order>
 Matrix4<Real,order> &Matrix4<Real,order>::setRotationRadians( const float *angles )
 {
-    value_type *c=(value_type*)this;
+	value_type *c=(value_type*)this;
 	//Matrix4<Real> m_matrix;
 	float cr = cos( angles[0] );
 	float sr = sin( angles[0] );

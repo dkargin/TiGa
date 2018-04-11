@@ -297,7 +297,7 @@ public:
 		:center(c),dimensions(d)
 	{}
 	/// Create AABB from lower/upper bounds
-	template<typename Vec> static _AABB<Vec> minmax(const Vec &min,const Vec &max)		
+	template<typename Vec> static _AABB<Vec> minmax(const Vec &min,const Vec &max)
 	{
 		return _AABB<Vec>((min+max)/2,(max - min)/2);
 	}
@@ -619,8 +619,8 @@ template<class Real> int intersection3(const _Edge<Vector3D<Real> > &a,const _Ed
 		float d=a.start&normal;
 		_Plane<Vector3D<Real> > plane(normal,d);
 		_Edge<Vector3D<Real> > c=plane.project(b);
-		vec3 side_c=a.start-c.start;
-		vec3 dir[]={a.direction(),c.direction()};
+		Vector3D<Real> side_c=a.start-c.start;
+		Vector3D<Real> dir[]={a.direction(),c.direction()};
 		float angle[]={vecAngle(a.direction(),side_c*-1.0f),vecAngle(c.direction(),side_c)};
 		float sides[2];
 		float sign[2]={1,1};
@@ -907,11 +907,12 @@ template<class Source> void wrapHull(const Source &source,std::vector<vec2f> &ta
 //public:
 //	float angle;
 //};
-typedef _Sphere<vec3> Sphere;
-typedef _Edge<vec3> Edge;
-typedef _Edge<vec3> Ray;
-typedef _AABB<vec3> AABB;
-typedef _Plane<vec3> Plane;
+
+typedef _Sphere<vec3f> Sphere;
+typedef _Edge<vec3f> Edge;
+typedef _Edge<vec3f> Ray;
+typedef _AABB<vec3f> AABB;
+typedef _Plane<vec3f> Plane;
 //////////////////////////////////////////////////////////////////
 
 /// Linear trajectory
@@ -920,7 +921,7 @@ template<class _Vr> struct _Trajectory
 	typedef _Vr vec;	///< Defines vector type
 	_Vr start;		///< First trajectrory point
 	_Vr velocity;	///< Trajectory velocity
-	
+
 	/// Copy constructor
 	_Trajectory(const _Trajectory &tr)
 	:start(tr.start),velocity(tr.velocity)
@@ -949,7 +950,7 @@ template<class _Vr> struct _Trajectory
 /// Get minimal distance between two trajectories
 template<class _V> float getMinDistance(const _Trajectory<_V> &tr0,const _Trajectory<_V> &tr1,float maxTime,float &time)
 {
-	float res=0;	
+	float res=0;
 	_V u=tr0.start-tr1.start;
 	_V v=tr0.velocity-tr1.velocity;
 	double c=u&u;
@@ -958,7 +959,7 @@ template<class _V> float getMinDistance(const _Trajectory<_V> &tr0,const _Trajec
 	if(a)
 	{
 		time=-b/a;
-		if(time>=0 &&  time<=maxTime)		
+		if(time>=0 &&  time<=maxTime)
 		{
 			res=sqrt(c-b*b/a);
 		}

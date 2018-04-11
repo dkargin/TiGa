@@ -69,14 +69,14 @@ void HangarWindow::frameBack()
 void HangarWindow::frameRun()
 {
 	game->selectedBlueprint = getSelectedBlueprint();
-	game->makeActive(new GameplayWindow(game));	
+	game->makeActive(std::make_shared<GameplayWindow>(game));
 }
 
 void HangarWindow::frameEdit()
 {
 	game->selectedBlueprint = getSelectedBlueprint();
-	ShipyardWindow * shipyard = new ShipyardWindow(game);
-	game->makeActive(shipyard);		
+	auto shipyard = std::make_shared<ShipyardWindow>(game);
+	game->makeActive(shipyard);
 	if( game->selectedBlueprint )
 		shipyard->setBlueprint(game->selectedBlueprint, false);
 }

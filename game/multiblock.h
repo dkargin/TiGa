@@ -1,6 +1,6 @@
 #pragma once
 
-#include "sim/gameObject.h"
+#include <simengine/sim/gameObject.h>
 
 enum AdjacentDirection
 {
@@ -17,7 +17,7 @@ inline int adjacentX( AdjacentDirection dir, int x = 0 )
 	switch( dir )
 	{
 	case DirLeft: return x - 1;
-	case DirRight: return x + 1;					
+	case DirRight: return x + 1;
 	};
 	return x;
 }
@@ -27,7 +27,7 @@ inline int adjacentY( AdjacentDirection dir, int y = 0 )
 	switch( dir )
 	{
 	case DirTop: return y - 1;
-	case DirBottom: return y + 1;					
+	case DirBottom: return y + 1;
 	};
 	return y;
 }
@@ -39,8 +39,8 @@ inline AdjacentDirection getOppositeDirection( AdjacentDirection dir )
 }
 
 inline AdjacentDirection getDirection( int x1, int y1, int x2, int y2)
-{	
-	AdjacentDirection table[3][3] = 
+{
+	AdjacentDirection table[3][3] =
 	{
 		{DirInvalid, DirTop, DirInvalid},
 		{DirLeft, DirSame, DirRight},
@@ -48,7 +48,7 @@ inline AdjacentDirection getDirection( int x1, int y1, int x2, int y2)
 	};
 
 	int x = x2 - x1;
-	int y = y2 - y1;	
+	int y = y2 - y1;
 
 	if( abs(x) > 1 || abs(y) > 1)
 		return DirInvalid;
@@ -79,10 +79,10 @@ public:
 	typedef LinkedGrid<CellData, LinkData> grid_type;
 	enum { MaxSize = 5 };
 	// links = 2 * width * height - width - height
-	enum 
-	{ 
-		MaxCells = MaxSize * MaxSize, 
-		MaxLinks = 2 * MaxSize * MaxSize - 2 * MaxSize 
+	enum
+	{
+		MaxCells = MaxSize * MaxSize,
+		MaxLinks = 2 * MaxSize * MaxSize - 2 * MaxSize
 	};
 
 	enum State
@@ -96,12 +96,12 @@ public:
 	struct Cell
 	{
 		CellData data;
-		State state;	
+		State state;
 		int x,y;
 		bool isFree() const { return state == Free;}
 	};
 
-	struct Link 
+	struct Link
 	{
 		State state;
 		LinkData data;
@@ -154,8 +154,8 @@ public:
 		}
 		if( x < 0 || y < 0 )
 			return NULL;
-		
-		if( dir == DirRight )// 1st row			
+
+		if( dir == DirRight )// 1st row
 		{
 			return (x < MaxSize - 1 && y < MaxSize) ? (Link*)&links[x + y * rowWidth] : NULL;
 		}
@@ -165,10 +165,12 @@ public:
 		}
 		return NULL;
 	}
+
 	LinkRef getLinkRef( const Link * link ) const
-	{		
+	{
 		return getLinkRef( link - &links[0] );
 	}
+
 	LinkRef getLinkRef( size_t linkIndex ) const
 	{
 		LinkRef result = {NULL, 0, 0, DirInvalid};
@@ -181,7 +183,7 @@ public:
 			result.y = linkIndex / doubleRow;
 			if( rowPos >= doubleRow / 2 )
 			{
-				result.x = rowPos - (width - 1);				
+				result.x = rowPos - (width - 1);
 				result.dir = DirBottom;
 			}
 			else
@@ -192,9 +194,9 @@ public:
 		}
 		return result;
 	}
-	
+
 	bool createLink( int x, int y, AdjacentDirection dir)
-	{		
+	{
 		Link * link = getLink(x,y, dir);
 		// check if link already exists
 		if( link == NULL )
@@ -205,10 +207,10 @@ public:
 		Cell * cell1 = getAdjacentCell( x, y, dir ).cell;
 		Cell * cell2 = getCell( x, y );
 		if( cell1 == NULL || cell2 == NULL || cell1->state != Occupied || cell2->state != Occupied )
-			return false;		
+			return false;
 		link->state = Occupied;
 		// call event
-		onLinkCreated(link, x, y, dir);	
+		onLinkCreated(link, x, y, dir);
 		LinkRef ref = getLinkRef(link);
 		return true;
 	}
@@ -216,7 +218,7 @@ public:
 	Cell * createCell( int x, int y, const CellData &data, bool move = false)
 	{
 		Cell * cell = getCell(x,y);
-		if( cell && cell->isFree() ) 
+		if( cell && cell->isFree() )
 		{
 			// assign new center position
 			if( centerX == -1 || centerY == -1)
@@ -229,13 +231,13 @@ public:
 			ref.x = x;
 			ref.y = y;
 			// 1. create cell
-			onCellCreated( ref, data );	
+			onCellCreated( ref, data );
 			cell->state = Occupied;
 			Cell * adj = NULL;
 			// 2. create links with adjacent cells
 			if( !move )	// do not create links now, while we are moving
 				for( size_t i = 0; i < 4; ++i)
-					createLink(x,y, (AdjacentDirection)i);	
+					createLink(x,y, (AdjacentDirection)i);
 			cellsCount++;
 		}
 		return cell;
@@ -246,8 +248,8 @@ public:
 		Cell * cell = getCell(x,y);
 		if( cell == NULL || cell->state != Occupied)
 			return false;
-		CellRef ref = {cell, x, y};	
-		cell->state = Destroying;	
+		CellRef ref = {cell, x, y};
+		cell->state = Destroying;
 		cellsCount--;
 		// 1. find new center
 		bool findCenter = false;
@@ -259,7 +261,7 @@ public:
 		}
 		onCellDestroyed( ref );
 		// 2. remove links with adjacent cells
-		LinkRef linkRef = {NULL, x, y, DirInvalid};			
+		LinkRef linkRef = {NULL, x, y, DirInvalid};
 		for( size_t i = 0; i < 4; ++i)
 		{
 			linkRef.dir = (AdjacentDirection)i;
@@ -287,17 +289,17 @@ public:
 		int cx = ref.x;
 		int cy = ref.y;
 		AdjacentDirection dir = ref.dir;
-		
+
 		if( link == NULL || link->state != Occupied )
 			return;
 		link->state = Destroying;
-		
+
 		onLinkDestroyed( link, cx, cy, dir );
 		int marks[MaxCells];
 		for( int i = 0; i < MaxCells; i++)
 			marks[i] = 0;
 		int selected = waveMark( centerX, centerY, 1, marks);
-		// split		
+		// split
 		if( selected != cellsCount )
 		{
 			// 1. Calculate mass center
@@ -308,7 +310,7 @@ public:
 				{
 					size_t index = x + y * MaxSize;
 					if( marks[ index ] != 0 || getCell(x,y)->state != Occupied )
-						continue;					
+						continue;
 					averageX += x;
 					averageY += y;
 					count++;
@@ -339,7 +341,7 @@ public:
 					for( int y = 0; y < MaxSize; y++ )
 						for(int x = 0; x < MaxSize; x++, i++)
 						{
-							Cell & cell = cells[i];			
+							Cell & cell = cells[i];
 							if( cell.state == Moving )
 							{
 								fractured->createCell( offsetX + (x - averageX), offsetY + (y - averageY), cell.data, true);
@@ -358,24 +360,24 @@ public:
 							fractured->createLink( offsetX + (linkRef.x - averageX),  offsetY + (linkRef.y - averageY), linkRef.dir);
 							onLinkDestroyed( linkRef.link, linkRef.x, linkRef.y, linkRef.dir, true);
 							link.state = Free;
-						}					
+						}
 					}
 				}
 			}
 		}
 		link->state = Free;
 	}
-	
+
 	int waveMark( int x, int y, int mark, int marks[])
 	{
 		int & m = marks[ x + y * MaxSize ];
 		int marked = 0;
 		if( m != mark)
-		{			
+		{
 			m = mark;
 			marked = cells[ x + y * MaxSize].state == Occupied ? 1 : 0;
 			for( size_t i = 0; i < 4; ++i)
-			{				
+			{
 				const AdjacentDirection dir = (AdjacentDirection)i;
 				const Link * link = getLink(x,y, dir);
 				if( link && link->state == Occupied )
@@ -392,7 +394,7 @@ public:
 		return (Cell*)&cells[x + y * MaxSize];
 	}
 	// called when cell is created
-	virtual void onCellCreated(CellRef & ref, const CellData & data) {}	
+	virtual void onCellCreated(CellRef & ref, const CellData & data) {}
 	virtual void onLinkCreated(Link * link, int x, int y, AdjacentDirection dir) {}
 	// called when cell is completely
 	virtual void onCellDestroyed(CellRef & ref, bool move = false) {}
@@ -401,6 +403,7 @@ public:
 	// create 'fractured' object, based on cell (x,y) from original object. This coorninates are necesarry to
 	// calculate new pose for derived grid_type class
 	virtual grid_type * fracture(int x, int y) = 0;
+
 public:
 	void Clean()
 	{
@@ -423,14 +426,14 @@ public:
 	//Link links[MaxLinks];
 };
 
-struct CellDesc 
+struct CellDesc
 {
 	b2Fixture * fixture;
 	int health;
 	sim::vec2f totalImpulse;
 };
 
-struct LinkDesc 
+struct LinkDesc
 {
 	int health;
 	float stress[2];	// { normal, tangent }
@@ -443,18 +446,17 @@ public:
 	using vec2f = sim::vec2f;
 
 	float cellWidth;
-	Cell* selection;
+	Cell* selection = nullptr;
 	//b2Body * body;
-	//Application * application;
 public:
-	Multiblock(sim::ObjectManager* manager);
+	Multiblock();
 	~Multiblock();
-	
+
 	void init(const Pose2& pose, b2World& world);
 
 	Cell * rayHit();
 	CellRef pick(const vec2f& worldPos) const;
-	
+
 	sim::GameObject* getDefinition() override;
 
 	void hit(Multiblock::Cell* cell, const vec2f& pos, const vec2f& dir, float &impulse);

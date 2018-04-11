@@ -44,7 +44,7 @@ public:
 
 	float tileSize;
 	float tileOffsetX, tileOffsetY;
-	std::weak_ptr<ShipyardWindow> shipyard;
+	std::shared_ptr<ShipyardWindow> shipyard;
 	
 	// blueprints
 	void setBlueprint( ShipBlueprint * blueprint, bool locked );
@@ -61,9 +61,9 @@ public:
 
 	void clearContents();
 	// UI handlers
-	virtual void onRender();
-	virtual bool onMouse(int mouseId, int key, int state, const uiVec & vec);
-	virtual bool onMouseMove(int mouseId,  const uiVec & vec, MoveState state );
+	virtual void onRender(Fx::RenderContext* rc) override;
+	virtual bool onMouse(int mouseId, int key, int state, const uiVec & vec) override;
+	virtual bool onMouseMove(int mouseId,  const uiVec & vec, MoveState state ) override;
 	// Helpers
 	vec2i screenCellCenter( const vec2i & cell ) const;
 	Fx::Rect screenCellRect( const vec2i & cell ) const;

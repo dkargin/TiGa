@@ -136,7 +136,7 @@ struct VertexBatch
 
 typedef math3::Pose2z Pose;
 typedef math3::vec2f vec2f;
-typedef math3::vec3 vec3;
+typedef math3::vec3f vec3f;
 
 // Context for game update
 struct UpdateContext

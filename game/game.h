@@ -40,7 +40,7 @@ public:
 	//void showGameplay();
 	void showHangar();
 	void showMainMenu();
-	void makeActive(GUI::Object * active);
+	void makeActive(GUI::ObjectPtr active);
 	void popGameState();
 	const char * luaName()const { return "Game";}
 
@@ -133,8 +133,7 @@ struct ShipBlueprint
 		unsigned short tileType;	
 	};
 
-	Block * blocks;
-	size_t blocksCount;
+	std::vector<Block> blocks;
 	
 	struct Device
 	{
@@ -143,12 +142,12 @@ struct ShipBlueprint
 		unsigned short deviceType;	// device type
 	};
 
-	Device * devices;
-	size_t devicesCount;
+	std::vector<Device> devices;
 
 	float tileSize;					// size of tile, in pixels ?
 
-	char name[255];					// ship name
+	// ship name
+	std::string name;
 
 	ShipBlueprint();
 	~ShipBlueprint();

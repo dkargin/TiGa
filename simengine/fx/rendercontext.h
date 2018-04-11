@@ -20,9 +20,16 @@ public:
 	// Get current viewport size, in pixels
 	vec2f getViewportSize() const;
 
+	// This should be moved to 'VertexBatch' system as well. RenderContext should become as thin as possible
 	void drawSprite(const SpriteData* sprite,const Pose& p, float width, float height, bool rect=false);
 	void drawRect(const Fx::Rect& rect, Fx::FxRawColor color);
 	void drawRectSolid(const Fx::Rect& rect, Fx::FxRawColor color);
+
+	/// Should be moved to batch->render as well
+	void Render(const SpriteData* spr, float x, float y);
+	void RenderEx(const SpriteData* spr, float x, float y, float rot, float hscale=1.0f, float vscale=0.0f);
+	void RenderStretch(const SpriteData* spr, float x1, float y1, float x2, float y2);
+	void Render4V(const SpriteData* spr, float x0, float y0, float x1, float y1, float x2, float y2, float x3, float y3);
 
 	virtual void setClipping(const Rect& rect);
 	virtual void disableClipping();
@@ -37,12 +44,6 @@ public:
 
 	//Fx::Vertex* Gfx_StartBatch(int prim_type, Fx::FxTextureId tex, int blend, int *max_prim);
 	//void Gfx_FinishBatch(int nprim);
-
-	/// Should be moved to batch->render
-	void Render(const SpriteData* spr, float x, float y);
-	void RenderEx(const SpriteData* spr, float x, float y, float rot, float hscale=1.0f, float vscale=0.0f);
-	void RenderStretch(const SpriteData* spr, float x1, float y1, float x2, float y2);
-	void Render4V(const SpriteData* spr, float x0, float y0, float x1, float y1, float x2, float y2, float x3, float y3);
 
 protected:
 

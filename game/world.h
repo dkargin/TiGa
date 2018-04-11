@@ -1,6 +1,7 @@
 #pragma once
 
 #include "sim/objectManager.h"
+#include <map>
 
 //#include "netLowHigh.h"
 //#include "network.h"
@@ -11,10 +12,13 @@
 
 typedef b2Body Solid;
 
-class Draw;
+namespace sim
+{
+	class Draw;
+}
 
 using vec2f = Fx::vec2f;
-using vec3 = Fx::vec3;
+using vec3f = Fx::vec3f;
 using Pose = Fx::Pose;
 
 using namespace sim;
@@ -35,15 +39,16 @@ enum KeyEventType
 
 class World;
 
-struct Level
+class Level
 {
+public:
 	struct Tile
 	{
-		Solid* solid;
+		Solid* solid = nullptr;
 		Fx::EntityPtr effects;
-		int flags;
+		int flags = 0;
 	};
-	
+
 	// describe wall
 	struct Wall
 	{
@@ -54,7 +59,7 @@ struct Level
 	{
 		Transparent,
 		WallBlocks,	// create solid block for each nonempty tile
-		WallEdges,	// generate solids from wall edges. 
+		WallEdges,	// generate solids from wall edges.
 	};
 
 	// basic level parameters
@@ -63,32 +68,46 @@ struct Level
 	WallMode wallMode;
 	World & world;
 	// derrived level parameters
-	Solid * body;									/// solid root
-	std::vector<Tile> blocks;
+	// Solid body root
+	Solid * body;
 	//Raster<Tile> blocks;							///
 	//pathProject::Builder::MapBuilderImage * pathing;/// pathCore map builder
 	//pathProject::MapBuilderQuad * quadder;			/// quad map builder
 	Fx::EntityPtr background;
 
-	Level(World & world);
+	Level(World& world);
 	~Level();
 
 	bool isSolid() const;
 
 	int init(const char * path, float cellSize, bool solid, const Pose & pose);
 
+	int size_x() const
+	{
+		return blocks_w;
+	}
+
+	int size_y() const
+	{
+		return blocks_h;
+	}
+
 	int getWall(int x,int y,int z);
 	void setWall(int x,int y,int z,int type);
 	void initBlocks(int w, int h);
 	void clear();
 	void update();
-	void update(int x0,int y0,int x1,int y1);
+	void updateArea(int x0,int y0,int x1,int y1);
 
-	void saveState(StreamOut &stream);
-	bool loadState(StreamIn &stream);
+	void saveState(sim::StreamOut &stream);
+	bool loadState(sim::StreamIn &stream);
 protected:
 	void generateWallBlocks();
 	void generateWallEdges();
+
+	std::vector<Tile> blocks;
+	int blocks_w = 0;
+	int blocks_h = 0;
 };
 
 class Game;
@@ -96,7 +115,7 @@ class Game;
 /// The place we play in
 class World:
 	//public ObjectManager::Listener,
-	protected b2ContactFilter, 
+	protected b2ContactFilter,
 	protected b2ContactListener
 {
 public:
@@ -104,15 +123,15 @@ public:
 	//pathProject::PathCore pathCore;
 
 	std::string name;
-	bool updateSystems;
-	sim::ObjectManager* gameObjects;
+	bool updateSystems = false;
+	sim::ObjectManager* gameObjects = nullptr;
 	Game * core;
-	
+
 #ifdef FIX_THIS
 	HTARGET visionPass;
 	hgeSprite* visionLayer;
 #endif
-	
+
 	/// information about cursor selection
 	CursorInfo cursor;
 
@@ -120,22 +139,22 @@ public:
 	int updatePeriod;		/// number of steps before update
 	int updateLeft;			/// steps left to update
 	bool server;
-	bool useNet;
-	bool helloSent;
+	bool useNet = false;
+	bool helloSent = false;
 	//
-	Draw *draw;
+	std::unique_ptr<Draw> draw;
 
 	// Level speciefic
 	Level level;
 public:
 	World(const char *name, Game * core);
 	~World();
-	
+
 	void updateMap();
 	/// init world - create window and init main systems
 	int initSimulation(bool server);
 	void initMap(const char * map, float cellSize, bool rigid, const Pose &pose);
-	Solid * createWall(const vec3 &from,const vec3 &to,float width);
+	Solid * createWall(const vec3f &from,const vec3f &to,float width);
 	/// coordinate conversion & viewport
 	void world2map(float worldCoords[2],int mapCoords[2]);
 	void screen2world(int screenCoords[2],float worldCoords[2]);
@@ -150,7 +169,7 @@ public:
 	const sim::ObjectManager * getObjectManager() const;
 	lua_State* getVM();//{return scripter.getVM();}
 	Level * getLevel() { return &level;}
-		
+
 	void update(float dt);
 	/// rendering
 	void renderObjects();

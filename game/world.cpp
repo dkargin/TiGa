@@ -1,10 +1,11 @@
 #include "world.h"
 
-#include "../sim/device.h"
-#include "../sim/projectile.h"
-#include "../sim/unit.h"
-#include "../simengine/sim/debugDraw.h"
-#include "Game.h"
+#include <simengine/fx/fxmanager.h>
+#include "sim/device.h"
+#include "sim/projectile.h"
+#include "sim/unit.h"
+#include "simengine/sim/debugDraw.h"
+#include "game.h"
 ///////////////////////////////////////////////////////////////
 // Globals
 ///////////////////////////////////////////////////////////////
@@ -14,20 +15,14 @@
 // World class
 ///////////////////////////////////////////////////////////////
 World::World(const char *name, Game * core)
-	:draw(NULL)
-	,dynamics(b2Vec2(0,0))
-	,helloSent(false)
-	,updateSystems(true)
-	,visionLayer(NULL)
-	,visionPass(NULL)
-	,gameObjects(NULL)
+	:dynamics(b2Vec2(0,0))
 	,level(*this)
 	,core(core)
-{	
+{
 	//LogFunction(*g_logger);
 	if(name)
 		this->name = name;
-	
+
 	dynamics.SetContactFilter(this);
 	dynamics.SetContactListener(this);
 	dynamics.SetContinuousPhysics(true);
@@ -44,15 +39,17 @@ World::World(const char *name, Game * core)
 }
 
 World::~World()
-{	
+{
 //	LogFunction(*g_logger);
 	level.clear();
 
+#ifdef FUCK_THIS
 	if(visionLayer)
 		delete visionLayer;
 
 	if(visionPass)
 		draw->hge->Target_Free(visionPass);
+#endif
 
 	if(draw)
 		delete draw;
@@ -75,7 +72,7 @@ World::~World()
 void World::initRenderer(HGE * hge)
 {
 	assert(!draw);
-	draw = new Draw;
+	draw.reset(new sim::Draw);
 	draw->init(hge);
 	dynamics.SetDebugDraw(draw);
 	draw->SetFlags(b2Draw::e_shapeBit/* | b2DebugDraw::e_aabbBit*/);
@@ -83,20 +80,20 @@ void World::initRenderer(HGE * hge)
 	int screenHeight = core->getScreenHeight();
 	visionPass = hge->Target_Create(screenWidth,screenHeight,false);
 	visionLayer=new hgeSprite(hge->Target_GetTexture(visionPass),0,0,screenWidth,screenHeight);
-	visionLayer->SetBlendMode(BLEND_MUL);//BLEND_MUL | BLEND_NOZWRITE | BLEND_ALPHAADD /*| BLEND_NOZWRITE*/);	
+	visionLayer->SetBlendMode(BLEND_MUL);//BLEND_MUL | BLEND_NOZWRITE | BLEND_ALPHAADD /*| BLEND_NOZWRITE*/);
 }
 
 void World::saveLevel(const char * file)
 {
-	IO::BufferPtr buffer(new IO::DataBuffer);
-	IO::StreamOut stream(buffer);
+	sim::IOBuffer buffer;
+	sim::StreamOut stream(&buffer);
 	saveState(stream);
 	FILE * fp = fopen(file, "wb");
 	if(file)
 	{
-		size_t bufferSize = buffer->size();
+		size_t bufferSize = buffer.size();
 		fwrite(&bufferSize,sizeof(bufferSize), 1, fp);
-		fwrite(buffer->data(), bufferSize, 1, fp);
+		fwrite(buffer.data(), bufferSize, 1, fp);
 		fclose(fp);
 	}
 }
@@ -104,17 +101,17 @@ void World::saveLevel(const char * file)
 void World::loadLevel(const char * file)
 {
 	FILE * fp = fopen(file, "rb");
-	
+
 	if(fp)
 	{
 		size_t bufferSize = 0;
 		fread((char*)&bufferSize,sizeof(bufferSize),1,fp);
 		if(bufferSize)
 		{
-			IO::BufferPtr buffer(new IO::DataBuffer);
-			buffer->resize(bufferSize);
-			fread((char*)buffer->data(), bufferSize,1,fp);			
-			loadState(IO::StreamIn(buffer));
+			sim::IOBuffer buffer;
+			buffer.resize(bufferSize);
+			fread((char*)buffer.data(), bufferSize,1,fp);
+			loadState(sim::StreamIn(&buffer));
 		}
 		fclose(fp);
 	}
@@ -124,6 +121,7 @@ Scripter * World::getScripter()
 {
 	return core->getScripter();
 }
+
 void World::saveState(StreamOut & stream)
 {
 	level.saveState(stream);
@@ -139,7 +137,7 @@ bool World::loadState(StreamIn & stream)
 	return true;
 }
 
-void World::setCursor(FxEffect * effect)
+void World::setCursor(Fx::EntityPtr effect)
 {
 	core->cursor[0].effect = effect;
 }
@@ -164,18 +162,18 @@ bool World::collisionsGet(CollisionGroup a,CollisionGroup b)
 }
 
 int World::initSimulation(bool server)
-{	
+{
 //	LogFunction(*g_logger);
 	assert(!gameObjects);
 	int result = 1;
-	this->server = server;	
+	this->server = server;
 	// create unit manager
 	try
 	{
-		gameObjects = new ObjectManager(getScripter(), core->fxManager);	
-		gameObjects->initSimulation( &dynamics, &pathCore );
+		gameObjects = new ObjectManager(getScripter(), core->fxManager);
+		gameObjects->initSimulation( &dynamics);
 		gameObjects->initManagers();
-		gameObjects->addListener(this);	
+		gameObjects->addListener(this);
 		gameObjects->role = server ? ObjectManager::Master : ObjectManager::Slave;
 	}
 	catch(...)
@@ -191,8 +189,10 @@ const ObjectManager * World::getObjectManager() const
 
 void World::restore()
 {
-	if(visionLayer && visionPass) 
+#ifdef FIX_THIS
+	if(visionLayer && visionPass)
 		visionLayer->SetTexture(draw->hge->Target_GetTexture(visionPass));
+#endif
 }
 
 #ifdef WORLD_USE_NETWORK
@@ -243,7 +243,7 @@ void World::restore()
 //};
 //
 //void World::readMessages(IO::StreamIn &buffer,int client)
-//{	
+//{
 //	while(!buffer.eof())
 //	{
 //		WorldMsg msg;
@@ -270,7 +270,7 @@ void World::restore()
 //	/*
 //	msgPos = buffer.pos();
 //	WorldMsg msg = {type,0};
-//	buffer.write(msg);	
+//	buffer.write(msg);
 //	*/
 //}
 //
@@ -297,7 +297,7 @@ void World::restore()
 //	// write messages from ObjectManager
 //	//msgBegin(buffer,sourceObjectManager);
 //	//	gameObjects->writeMessages(buffer,client);
-//	//msgEnd(buffer);	
+//	//msgEnd(buffer);
 //	// write messages from World
 //	//msgBegin(buffer,sourceWorld);
 //	//	writeCmd(buffer,client);
@@ -307,20 +307,23 @@ void World::restore()
 
 const bool useVision = false;
 void World::renderVision()
-{	
+{
 	const float unseenOpacity = 0.4;
 	if(!useVision)
 		return;
+#ifdef FIX_VISION
 	HGE* hge = draw->hge;
 	hge->Gfx_BeginScene(visionPass);
 	hge->Gfx_Clear(ARGB(255*unseenOpacity,255*unseenOpacity,255*unseenOpacity,255*unseenOpacity));
 	hge->Gfx_SetTransform();
-		
+
 	gameObjects->fxManager->setView( draw->globalView );
 	for(auto it = gameObjects->vision.begin();it != gameObjects->vision.end();++it)
 		draw->draw(*it);
 
-	hge->Gfx_EndScene();	
+	hge->Gfx_EndScene();
+
+#endif
 }
 
 void World::renderUI()
@@ -340,8 +343,8 @@ void renderNode(pathProject::MapBuilderQuad::QuadNode *n)
 		renderNode(n->children[3]);
 	}
 	else
-	{			
-		RECT &rc=n->rc;	
+	{
+		RECT &rc=n->rc;
 		//GLParam param[] = {	GLParam(GL_LINE_WIDTH,2),};
 
 		//glColor3fv(colorQuad);
@@ -357,12 +360,12 @@ void renderNode(pathProject::MapBuilderQuad::QuadNode *n)
 	for(std::set<QuadNode*>::iterator it=n->links.begin();it!=n->links.end();it++)
 	{
 		vec3 end=0.5*((*it)->getCenter()+start);
-		geom->setColor(0.3,0.1,0.9);	
+		geom->setColor(0.3,0.1,0.9);
 		geom->setLineWidth(2);
 		geom->drawLine(start[0],start[1],end[0],end[1]);
 
 		vec3 s=((*it)->getCenter());
-		geom->setColor(0.9,0.1,0.3);	
+		geom->setColor(0.9,0.1,0.3);
 		geom->setLineWidth(1);
 		geom->drawLine(s[0],s[1],end[0],end[1]);
 	}*/
@@ -370,14 +373,14 @@ void renderNode(pathProject::MapBuilderQuad::QuadNode *n)
 
 void drawQuadMap()
 {
-	
+
 }
 #endif
 void World::renderObjects()
-{		
+{
 	gameObjects->fxManager->setView( draw->globalView );
 
-	FxManager * manager = gameObjects->fxManager.get();
+	Fx::FxManagerPtr manager = gameObjects->fxManager;
 
 	if(level.background != NULL)
 		level.background->query(manager, Pose(0,0,0));
@@ -389,30 +392,30 @@ void World::renderObjects()
 		auto nodeDrawer = [&](pathProject::Node * node)->int
 		{
 			const vec3 offset(0,0,10.0f);
-			
-			pathProject::Node * parent = mapmanager->getMap(node)->getNodeParent(node);	
 
-			
+			pathProject::Node * parent = mapmanager->getMap(node)->getNodeParent(node);
+
+
 			/*pathProject::MapManager * manager = mapmanager;
-			
+
 			auto adjacentDrawer = [to,offset,manager](pathProject::Node * node)->int
 			{
 				glBegin(GL_LINES);
-				glVertex3fv(manager->getNodePos(node) + offset);	
+				glVertex3fv(manager->getNodePos(node) + offset);
 				glVertex3fv(to + offset);
 				glEnd();
 				return 1;
 			};*/
 
 			if(node->back)
-			{		
-				vec3 to = mapmanager->getNodePos(node); 
-				glBegin(GL_LINES);		
-				glVertex3fv(mapmanager->getNodePos(node->back)+offset);		
+			{
+				vec3 to = mapmanager->getNodePos(node);
+				glBegin(GL_LINES);
+				glVertex3fv(mapmanager->getNodePos(node->back)+offset);
 				glVertex3fv(to + offset);
 				glEnd();
 			}
-	
+
 			//manager->enumAdjacentNodes(process, node, adjacentDrawer);
 			return 1;
 		};
@@ -436,22 +439,22 @@ void World::renderObjects()
 				glPopMatrix();
 			}
 		}
-		glEnable(GL_DEPTH_TEST);		
+		glEnable(GL_DEPTH_TEST);
 	}
 #endif
 
-	for(GameObject * it = gameObjects->objectsHead; it != NULL; it = it->getNext())
+	for(GameObjectPtr it: gameObjects->objects)
 		draw->drawObject(it);
 
 	for(auto it = attachedEffects.begin(); it != attachedEffects.end(); it++)
 	{
 		if(it->first != NULL)
 			it->second->render(manager, it->first->getPose());
-	}	
-	
+	}
+
 	if(draw->drawDynamics)
 		dynamics.DrawDebugData();
-	
+
 	getScripter()->call("onRenderObjects");
 
 	gameObjects->fxManager->pyro.render(manager, Pose(),1);
@@ -469,19 +472,19 @@ void World::render()
 {
 	if(!draw)
 		return;
-	
+
 	HGE* hge = draw->hge;
 	//int i;
 	//bool visionRendered = false;
 	// Render graphics to the texture
 	//if(/*!visionRendered && */useVision)
-	//{		
-	//	renderVision();		
+	//{
+	//	renderVision();
 	//}
 
 	//hge->Gfx_BeginScene();
 	//hge->Gfx_Clear(0);
-	//hge->Gfx_SetTransform();	
+	//hge->Gfx_SetTransform();
 	renderObjects();
 
 
@@ -547,9 +550,10 @@ void World::update(float dt)
 
 	if(level.background)
 		level.background->update(dt);
+
 	// update effects that are attached to some objects
 	for(auto it = attachedEffects.begin(); it != attachedEffects.end();)
-	{		
+	{
 		if(it->first == NULL)
 		{
 			auto toDelete = it;
@@ -564,10 +568,10 @@ void World::update(float dt)
 		}
 	}
 	// update scripted part
-	getScripter()->call("onUpdateWorld",dt);		
+	getScripter()->call("onUpdateWorld",dt);
 }
 
-Solid * World::createWall(const vec3 &from, const vec3 &to, float width)
+Solid * World::createWall(const vec3f &from, const vec3f &to, float width)
 {
 	//vec3 dir=normalise(to-from);
 	//float length=(to-from).length();
@@ -586,7 +590,7 @@ Solid * World::createWall(const vec3 &from, const vec3 &to, float width)
 }
 // calculate transform from world to screen
 void World::screen2world(int screen[2],float world[2])
-{	
+{
 //	LogFunction(*g_logger);
 	float cs=cosf(draw->globalView.pose.orientation);
 	float sn=sinf(draw->globalView.pose.orientation);
@@ -594,6 +598,11 @@ void World::screen2world(int screen[2],float world[2])
 	int screenHeight = core->getScreenHeight();
 	vec2f &v=*(vec2f*)world;
 	v = draw->globalView.pose.coords((screen[0] - screenWidth/2) / draw->globalView.scale,(screen[1]-screenHeight/2) / draw->globalView.scale);
+}
+
+void World::initMap(const char * map,float size,bool rigid,const Pose &pose)
+{
+	level.init(map,size,rigid,pose);
 }
 
 void World::world2map(float worldCoords[2],int mapCoords[2])
@@ -617,7 +626,7 @@ void World::onControl(int key,KeyEventType type,int x,int y,float wheel)
 }
 
 int World::processHit(GameObject *a, ObjectType typea,GameObject *b,ObjectType typeb,const vec2f &normal,const vec2f &tangent)
-{	
+{
 //	LogFunction(*g_logger);
 	if(a && typea==typeProjectile)
 	{
@@ -627,9 +636,9 @@ int World::processHit(GameObject *a, ObjectType typea,GameObject *b,ObjectType t
 //			(*g_logger)(2,"wrong collision pair");
 			assert(!b);
 		}
-		else if(typeb=typeUnit){}		
+		else if(typeb=typeUnit){}
 		proj->onHit(b);
-	}	
+	}
 	return 1;
 }
 

@@ -22,14 +22,14 @@ GameObject::~GameObject()
 		scene->removeObject(shared_from_this());
 }
 
-ObjectManager * GameObject::getManager() 
-{	
-	return scene; 
+ObjectManager * GameObject::getManager()
+{
+	return scene;
 }
 
-ObjectType GameObject::getType() const 
-{ 
-	return typeVoid; 
+ObjectType GameObject::getType() const
+{
+	return typeVoid;
 }
 
 Fx::EntityPtr GameObject::getGraphics()
@@ -37,9 +37,14 @@ Fx::EntityPtr GameObject::getGraphics()
 	return fx_root.sharedMe();
 }
 
+GameObject* GameObject::getDefinition()
+{
+	return prototype;
+}
+
 Scripter * GameObject::getScripter()
-{ 
-	return scene ? scene->getScripter() : NULL; 
+{
+	return scene ? scene->getScripter() : NULL;
 }
 
 bool GameObject::isUnique()const
@@ -47,6 +52,15 @@ bool GameObject::isUnique()const
 	return prototype != nullptr;
 }
 
+float GameObject::getSphereSize() const
+{
+	return getBoundingSphere().radius;
+}
+
+size_t GameObject::id() const
+{
+	return localID;
+}
 
 float GameObject::getHealth() const
 {
@@ -80,6 +94,11 @@ CollisionGroup GameObject::getCollisionGroup()const
 	return collisionGroup;
 }
 
+PerceptionClient * GameObject::getPerceptionClient()
+{
+	return nullptr;
+}
+
 int GameObject::writeState(StreamOut &buffer)
 {
 	buffer.write(getPose());
@@ -107,7 +126,7 @@ AABB2 GameObject::getOOBB()const			// get object oriented bounding box
 }
 
 void GameObject::damage(const Damage &dmg)
-{		
+{
 	if(onDamage!=0)
 		onDamage->onDamage(dmg);
 	health-=dmg;

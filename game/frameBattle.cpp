@@ -15,7 +15,7 @@ void GenerateShipGraphics(Fx::EntityPtr effect, ShipBlueprint * blueprint, Game 
 	float centerX = (bounds.x1 + bounds.x2) * 0.5;
 	float centerY = (bounds.y1 + bounds.y2) * 0.5;
 
-	for( int i = 0; i < blueprint->blocksCount; i++)
+	for( int i = 0; i < blueprint->blocks.size(); i++)
 	{
 		ShipBlueprint::Block & block = blueprint->blocks[i];
 		TileSectionDesc & desc = game->gameData->sections[block.tileType];
@@ -34,13 +34,13 @@ void AddShipToWorld(World * world, ShipBlueprint * blueprint, Game * game)
 	sim::ObjectManager* manager = world->gameObjects;
 	float tileSize = 50;
 	Multiblock* multiblock = new Multiblock(manager);
-	if( blueprint->blocksCount > 0 )
+	if(!blueprint->blocks.empty())
 	{
 		multiblock->init(Pose::zero(), world->dynamics);
 	}
 	//multiblock->effects = game->fxManager->fxHolder();
 	multiblock->cellWidth = tileSize;
-	for( int i = 0; i < blueprint->blocksCount; i++)
+	for( int i = 0; i < blueprint->blocks.size(); i++)
 	{
 		ShipBlueprint::Block & block = blueprint->blocks[i];		
 		TileSectionDesc & desc = game->gameData->sections[block.tileType];

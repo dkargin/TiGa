@@ -12,7 +12,7 @@
 namespace Fx
 {
 
-struct FxTextureId
+struct CTextureList
 {
 	HTEXTURE			tex;
 	int					width;

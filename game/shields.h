@@ -1,8 +1,12 @@
 #ifndef _DEVICE_SHIELDS_H
 #define _DEVICE_SHIELDS_H
 
+
+#include <simengine/sim/device.h>
+
 class ObjectManager;
 
+/*
 class GeneratorDef: public DeviceDef
 {
 public:
@@ -11,22 +15,31 @@ public:
 	float maxStorage;	/// maximum energy storage
 	float generated;	/// energy output
 };
+*/
 
-class Generator : public Device
+class Generator : public sim::Device
 {
 public:
-	GeneratorDef * definition;
+
 	float storage;
-	Generator(GeneratorDef *def)
-		:Device(def),storage(0)
+	// From Def
+	float maxStorage = 0;	/// maximum energy storage
+	float generated = 0;	/// energy output
+
+	Generator(Generator* proto = nullptr)
+		:Device(proto),storage(0)
 	{
 	}
+
+	Generator* definition;
 };
+
+/*
 class ForceField;
 
 class ForceFieldDef : public DeviceDef
 {
-public:	
+public:
 	ForceFieldDef(DeviceManager& manager);
 	Device *create(IO::StreamIn *context=NULL);
 	FxPointer impact;	/// when someone hits
@@ -38,26 +51,40 @@ public:
 	float energyConsumption;
 	float size;			/// dome radius
 };
-
-class ForceField : public Device
+*/
+class ForceField : public sim::Device
 {
 public:
-	OBJECT_IMPL(ForceField,typeDummy);
-	GameObject dome;	/// solid sphere for shield dome
-	ForceFieldDef * definition;
-	bool enabled;
-	bool recharge;
+	sim::GameObject dome;	/// solid sphere for shield dome
+	bool enabled = false;
+	bool recharge = false;
+	// From Def
+
+	bool hitProjectiles;
+	bool hitObjects;
+	bool reflectBeams;
+	float amount;
+	float integrity;
+	float energyConsumption;
+	float size;			/// dome radius
 public:
-	ForceField(ForceFieldDef *def);
+
+	ForceField(ForceField *proto = nullptr);
+
 	enum FieldState
 	{
 		fsDisabled, /// manually turned off
 	};
+
 	void enableField();
 	void update(float dt);
-	int writeState(IO::StreamOut &buffer);
-	int readState(IO::StreamIn &buffer);
-	bool validCommand(int port,DeviceCmd cmd)const;	
+
+	int writeState(sim::StreamOut &buffer);
+	int readState(sim::StreamIn &buffer);
+	bool validCommand(int port, sim::DeviceCmd cmd)const;
+
+private:
+	ForceField* definition = nullptr;
 };
 
 #endif

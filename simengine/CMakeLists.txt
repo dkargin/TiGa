@@ -1,7 +1,7 @@
 find_package(OpenGL REQUIRED)
 
 # Find SDL
-INCLUDE(FindPkgConfig)
+#INCLUDE(FindPkgConfig)
 
 find_package(SDL2 REQUIRED)
 
@@ -32,4 +32,6 @@ add_subdirectory(sim)
 
 add_library(simengine application.cpp)
 
-target_link_libraries(simengine fx gui sim ${SDL2_LIBRARY})
+target_link_libraries(simengine fx gui sim ${SDL2_LIBRARIES})
+
+add_subdirectory(examples)

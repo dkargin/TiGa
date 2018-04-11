@@ -1,11 +1,11 @@
 //#include "common.h"
 #include "multiblock.h"
 
-#include "../sim/gameObject.h"
+#include <simengine/sim/gameObject.h>
 
-Pose2 GetPose(const b2Body * body)
+math3::Pose2z GetPose(const b2Body * body)
 {
-	Pose2 pose;
+	math3::Pose2z pose;
 	pose.orientation = body->GetAngle();
 	b2Vec2 pos = body->GetPosition();
 	pose.position[0] = pos.x;
@@ -13,16 +13,18 @@ Pose2 GetPose(const b2Body * body)
 	return pose;
 }
 
-Multiblock::Multiblock(ObjectManager * manager)
-	:GameObject(manager, NULL), cellWidth(15), selection(NULL)
-{}
+Multiblock::Multiblock()
+	:GameObject(nullptr), cellWidth(15)
+{
+
+}
 
 Multiblock::~Multiblock()
-{	
+{
 }
 
 void Multiblock::init(const Pose2 & pose, b2World & world)
-{	
+{
 	// create world borders
 	b2BodyDef bodyDef;
 	bodyDef.position.Set(pose.position[0], pose.position[1]);
@@ -39,8 +41,8 @@ void Multiblock::init(const Pose2 & pose, b2World & world)
 Multiblock::CellRef Multiblock::pick( const vec2f & worldPos ) const
 {
 	CellRef result;
-	// 1. Obtain body pose 
-	Pose2 pose = GetPose(getBody());
+	// 1. Obtain body pose
+	math3::Pose2z pose = GetPose(getBody());
 	// 2. Transform to local coordinates
 	vec2f local = pose.projectPos(worldPos) / cellWidth;
 	result.x = local[0] + 0.5;
@@ -63,13 +65,13 @@ sim::GameObject* Multiblock::getDefinition()
 void Multiblock::onCellCreated( Multiblock::CellRef & ref, const CellDesc &desc)
 {
 	b2PolygonShape groundBox;
-	groundBox.SetAsBox(cellWidth/2, cellWidth/2,  b2Vec2( ref.x * cellWidth, ref.y * cellWidth), 0);	
+	groundBox.SetAsBox(cellWidth/2, cellWidth/2,  b2Vec2( ref.x * cellWidth, ref.y * cellWidth), 0);
 	b2FixtureDef def;
 	def.shape = &groundBox;
 	def.density = 1.0;
 	def.isSensor = false;
 	def.userData = ref.cell;
-	ref.cell->data.fixture = getBody()->CreateFixture(&def);	
+	ref.cell->data.fixture = getBody()->CreateFixture(&def);
 	ref.cell->data.health = 100;
 }
 
@@ -93,14 +95,14 @@ const float impulseToCellDamage = 1.0;			// ������������
 const float impulseAdsorbedByLink = 20;
 
 void Multiblock::hit( Multiblock::Cell * cell, const vec2f & pos, const vec2f & dir, float &impulseMod )
-{	
+{
 	// 1. Adsorb impulse by cell
 	// limit by impulseAdsorbedByCellMax, limit by current health
-	float impulseAdsorbedByCell = std::min( std::min( cell->data.health / impulseToCellDamage, impulseAdsorbedByCellMax), impulseMod );	
+	float impulseAdsorbedByCell = std::min( std::min( cell->data.health / impulseToCellDamage, impulseAdsorbedByCellMax), impulseMod );
 	cell->data.health -= impulseToCellDamage * impulseAdsorbedByCell;
 	impulseMod -= impulseAdsorbedByCell;
 	// 2. Dissipate impulse to other cells
-	Pose pose = getPose();
+	Pose2 pose = getPose();
 	vec2f localDir = pose.projectVec( dir );
 	for( size_t i = 0; i < 4; i ++ )
 	{
@@ -116,10 +118,10 @@ void Multiblock::hit( Multiblock::Cell * cell, const vec2f & pos, const vec2f & 
 	E01 + E02 = E12 + D
 	2. A
 	Total projectile impulse = proj impulse P01 + body impulse P02
-	{		
+	{
 		E11
 		E12
-		body damage 
+		body damage
 	}
 	*/
 	// 3. destroy cells
@@ -127,7 +129,7 @@ void Multiblock::hit( Multiblock::Cell * cell, const vec2f & pos, const vec2f & 
 		destroyCell( cell->x, cell->y );
 
 	// . Apply remaining impulse to body
-	getBody()->ApplyLinearImpulse( b2conv(dir * impulseMod), b2conv(pos) );
+	getBody()->ApplyLinearImpulse( sim::b2conv(dir * impulseMod), sim::b2conv(pos) );
 }
 
 Multiblock::grid_type * Multiblock::fracture(int x, int y)
@@ -137,11 +139,11 @@ Multiblock::grid_type * Multiblock::fracture(int x, int y)
 	if( body != NULL)
 	{
 		result = createFractureBody();
-		Pose2 pose = GetPose(body);
+		math3::Pose2z pose = GetPose(body);
 		pose.position = pose.transformPos( vec2f(x,y) * cellWidth );
-		
+
 		result->init( pose, *body->GetWorld());
-		result->getBody()->SetLinearVelocity( body->GetLinearVelocityFromWorldPoint(b2conv(pose.position)));
+		result->getBody()->SetLinearVelocity( body->GetLinearVelocityFromWorldPoint(sim::b2conv(pose.position)));
 		result->getBody()->SetAngularVelocity( body->GetAngularVelocity() );
 	}
 	return result;

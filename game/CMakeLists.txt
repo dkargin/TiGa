@@ -1,11 +1,10 @@
-add_executable(game 
-	frameBattle.cpp 
-	frameHangar.cpp 
+add_executable(game
+	frameBattle.cpp
+	frameHangar.cpp
 	frameMainMenu.cpp
 	frameShipyard.cpp
 	game.cpp
 	level.cpp
-	luaTools.cpp
 	multiblock.cpp
 	navGraph.cpp
 	shields.cpp
