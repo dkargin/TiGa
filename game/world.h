@@ -1,7 +1,7 @@
-#ifndef _WORLD_H_
-#define _WORLD_H_
+#pragma once
 
-#include "objectManager.h"
+#include "sim/objectManager.h"
+
 //#include "netLowHigh.h"
 //#include "network.h"
 
@@ -10,8 +10,14 @@
 //#include "mapBuilderQuad.h"
 
 typedef b2Body Solid;
+
 class Draw;
-class ObjectManager;
+
+using vec2f = Fx::vec2f;
+using vec3 = Fx::vec3;
+using Pose = Fx::Pose;
+
+using namespace sim;
 
 struct CursorInfo
 {
@@ -33,8 +39,8 @@ struct Level
 {
 	struct Tile
 	{
-		Solid * solid;
-		FxEffect * effects;
+		Solid* solid;
+		Fx::EntityPtr effects;
 		int flags;
 	};
 	
@@ -52,16 +58,17 @@ struct Level
 	};
 
 	// basic level parameters
-	std::string mapName;			
+	std::string mapName;
 	float cellSize;
 	WallMode wallMode;
 	World & world;
 	// derrived level parameters
 	Solid * body;									/// solid root
-	Raster<Tile> blocks;							/// 
-	pathProject::Builder::MapBuilderImage * pathing;/// pathCore map builder
-	pathProject::MapBuilderQuad * quadder;			/// quad map builder
-	FxPointer background;	
+	std::vector<Tile> blocks;
+	//Raster<Tile> blocks;							///
+	//pathProject::Builder::MapBuilderImage * pathing;/// pathCore map builder
+	//pathProject::MapBuilderQuad * quadder;			/// quad map builder
+	Fx::EntityPtr background;
 
 	Level(World & world);
 	~Level();
@@ -88,7 +95,7 @@ class Game;
 
 /// The place we play in
 class World:
-	public ObjectManager::Listener,
+	//public ObjectManager::Listener,
 	protected b2ContactFilter, 
 	protected b2ContactListener
 {
@@ -98,11 +105,13 @@ public:
 
 	std::string name;
 	bool updateSystems;
-	ObjectManager * gameObjects;
+	sim::ObjectManager* gameObjects;
 	Game * core;
 	
-	HTARGET				visionPass;
-	hgeSprite*			visionLayer;
+#ifdef FIX_THIS
+	HTARGET visionPass;
+	hgeSprite* visionLayer;
+#endif
 	
 	/// information about cursor selection
 	CursorInfo cursor;
@@ -129,15 +138,16 @@ public:
 	Solid * createWall(const vec3 &from,const vec3 &to,float width);
 	/// coordinate conversion & viewport
 	void world2map(float worldCoords[2],int mapCoords[2]);
-	void screen2world(int screenCoords[2],float worldCoords[2]);	
-	void setView(float x,float y,float angle,float scale);		
+	void screen2world(int screenCoords[2],float worldCoords[2]);
+	void setView(float x,float y,float angle,float scale);
 	/// process cursor
-	void setCursor(FxEffect * effect);		
+	void setCursor(Fx::EntityPtr effect);
 	/// init HGE rendering
+	struct HGE {};
 	void initRenderer(HGE* hge);
 
-	Scripter * getScripter();
-	const ObjectManager * getObjectManager() const;
+	sim::Scripter * getScripter();
+	const sim::ObjectManager * getObjectManager() const;
 	lua_State* getVM();//{return scripter.getVM();}
 	Level * getLevel() { return &level;}
 		
@@ -154,10 +164,10 @@ public:
 	/// executed from WndProc
 	void onControl(int key,KeyEventType type,int x,int y,float wheel);
 	/// executed by onHit
-	virtual int processHit(GameObject *a,ObjectType typea,GameObject *b,ObjectType typeb,const vec2f &normal,const vec2f &tangent);
+	virtual int processHit(GameObject *a, ObjectType typea, GameObject *b, ObjectType typeb, const vec2f &normal, const vec2f &tangent);
 	/// executed from ObjectManager
-	void onDie(GameObject *unit);
-	void onDelete(GameObject *unit);
+	void onDie(GameObject* unit);
+	void onDelete(GameObject* unit);
 	/// messaging API
 	/*
 	void readMessages(StreamIn &buffer,int client);
@@ -178,14 +188,14 @@ public:
 	bool loadState(StreamIn &stream);
 
 	/// attachable effects manager
-	FxPointer attachEffect(GameObjectPtr object, FxPointer effect);
+	Fx::EntityPtr attachEffect(GameObjectPtr object, Fx::EntityPtr effect);
 	void clearEffects(GameObjectPtr object);
 protected:
 	bool collisionMap[CollisionGroup::cgMax][CollisionGroup::cgMax];
 //	std::map<int,std::string> cmdMap;	// map to lua commands
 //	std::list<PNetCmd> commands;
 
-	std::multimap<GameObjectPtr, FxPointer> attachedEffects;
+	std::multimap<GameObjectPtr, Fx::EntityPtr> attachedEffects;
 
 	// from Box2d contact filter
 	bool ShouldCollide(b2Fixture* fixtureA, b2Fixture* fixtureB);
@@ -194,5 +204,3 @@ protected:
 };
 
 void testGameObject(GameObject * object);
-
-#endif

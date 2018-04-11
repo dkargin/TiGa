@@ -154,6 +154,7 @@ public:
 		return getBoundingSphere().radius;
 	}
 
+	Fx::EntityPtr getGraphics();
 	virtual Sphere2 getBoundingSphere() const;
 	virtual AABB2	getOOBB() const;			// get object oriented bounding box
 	

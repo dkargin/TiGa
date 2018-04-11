@@ -113,6 +113,7 @@ public:
 		return this;
 	}
 
+	EntityPtr sharedMe();
 	// Animation stuff
 
 	// Start animation (if there is any)

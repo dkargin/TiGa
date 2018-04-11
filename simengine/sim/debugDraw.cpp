@@ -16,11 +16,14 @@ namespace sim
 
 void drawLine(Fx::RenderContext* rc,const vec2f &from,const vec2f &to,Fx::FxRawColor color)
 {
+#ifdef FIX_THIS
 	rc->Gfx_RenderLine(from[0],from[1],to[0],to[1]);
+#endif
 }
 
 void drawArrow(Fx::RenderContext* rc,const vec2f &from,const vec2f &to,Fx::FxRawColor color,float width,float length)
 {
+#ifdef FIX_THIS
 	auto dir=to-from;
 	vec2f left(-dir[1],dir[0]);
 	auto l=from-dir*0.2+left*0.1;
@@ -28,31 +31,39 @@ void drawArrow(Fx::RenderContext* rc,const vec2f &from,const vec2f &to,Fx::FxRaw
 	rc->Gfx_RenderLine(to[0],to[1],from[0],from[1]);
 	rc->Gfx_RenderLine(to[0],to[1],r[0],r[1]);
 	rc->Gfx_RenderLine(to[0],to[1],l[0],l[1]);
+#endif
 }
 
 void drawPoint(Fx::RenderContext* rc,const vec2f &pos,Fx::FxRawColor color,float size,int style)
 {
+#ifdef FIX_THIS
 	size/=2;
 	rc->Gfx_RenderLine(pos[0]-size,pos[1]-size,pos[0]+size,pos[1]+size);
 	rc->Gfx_RenderLine(pos[0]-size,pos[1]+size,pos[0]+size,pos[1]-size);
+#endif
 }
 
 void Draw::DrawPolygon(const b2Vec2* vertices, int32 vertexCount, const b2Color& color)
 {
+#ifdef FIX_THIS
 	for (int32 i = 1; i <vertexCount; i++)
 		hge->Gfx_RenderLine(vertices[i-1].x, vertices[i-1].y,  vertices[i].x, vertices[i].y, Fx::MakeARGB(200,color.r*128,color.g*128,color.b*128));
 	hge->Gfx_RenderLine(vertices[vertexCount-1].x, vertices[vertexCount-1].y,  vertices[0].x, vertices[0].y, Fx::MakeARGB(200,color.r*128,color.g*128,color.b*128));
+#endif
 }
 
 void Draw::DrawSolidPolygon(const b2Vec2* vertices, int32 vertexCount, const b2Color& color)
 {
+#ifdef FIX_THIS
 	for (int32 i = 1; i <vertexCount; i++)
 		hge->Gfx_RenderLine(vertices[i-1].x,  vertices[i-1].y, vertices[i].x, vertices[i].y, Fx::MakeARGB(200,color.r*128,color.g*128,color.b*128));
 	hge->Gfx_RenderLine(vertices[vertexCount-1].x,  vertices[vertexCount-1].y, vertices[0].x, vertices[0].y, Fx::MakeARGB(200,color.r*128,color.g*128,color.b*128));
+#endif
 }
 
 void Draw::DrawCircle(const b2Vec2& center, float32 radius, const b2Color& color)
 {
+#ifdef FIX_THIS
    if(!hge) return;
    int NUMPOINTS = 24+(int)radius/20;;
    //Set up vertices for a circle
@@ -65,10 +76,12 @@ void Draw::DrawCircle(const b2Vec2& center, float32 radius, const b2Color& color
 							center.x + radius*cosf(deltaAngle*(i+1)), 
 							center.y + radius*sinf(deltaAngle*(i+1)), Fx::MakeARGB(255,color.r*255,color.g*255,color.b*255));
    }
+#endif
 }
 
 void Draw::DrawSolidCircle(const b2Vec2& center, float32 radius, const b2Vec2& axis, const b2Color& color)
 {
+#ifdef FIX_THIS
 	if(!hge) return;
 
 	int NUMPOINTS = 24+(int)radius/20;
@@ -81,18 +94,22 @@ void Draw::DrawSolidCircle(const b2Vec2& center, float32 radius, const b2Vec2& a
 						center.x + radius*cosf(deltaAngle*(i+1)),
 						center.y + radius*sinf(deltaAngle*(i+1)), Fx::MakeARGB(255,color.r*255,color.g*255,color.b*255));
 	}
+#endif
 }
 
 void Draw::DrawSegment(const b2Vec2& p1, const b2Vec2& p2, const b2Color& color)
 {
+#ifdef FIX_THIS
    if(!hge)
   	 return;
    Fx::FxRawColor raw = Fx::MakeARGB(255, color.r*255, color.g*255, color.b*255);
    hge->Gfx_RenderLine(p1.x, p1.y, p2.x, p2.y, raw);
+#endif
 }
 
 void Draw::DrawTransform(const b2Transform& xf)
 {
+#ifdef FIX_THIS
    if(!hge) return;
 
    b2Vec2 p1 = xf.p, p2;
@@ -103,6 +120,7 @@ void Draw::DrawTransform(const b2Transform& xf)
 
    p2 = p1 + b2Vec2( xf.q.GetYAxis() );
    hge->Gfx_RenderLine(p1.x,p1.y,p2.x,p2.y, Fx::MakeARGB(255,0,255,0));
+#endif
 }
 
 Draw::Draw()
@@ -160,28 +178,26 @@ void Draw::init(Fx::RenderContext* hge)
 void DrawCone(Fx::RenderContext* hge,const Pose &pose,float z,float fov,float distance,Fx::FxRawColor color)
 {
 	const float delta=0.1;
-	Fx::Triple triple;
 
-	triple.tex=0;
-	for(int i=0;i<3;i++)
-	{
-		triple.v[i].z=z;	
-		triple.v[i].col=color;	
-	}
-	triple.v[0].x=pose.position[0];
-	triple.v[0].y=pose.position[1];
-	triple.blend=BLEND_COLORADD | BLEND_ALPHABLEND | BLEND_NOZWRITE;
+	Fx::VertexBatch batch(Fx::VertexBatch::PRIM_TRIPLES);
+	batch.blend = BLEND_COLORADD | BLEND_ALPHABLEND | BLEND_NOZWRITE;
 	
 	for(float angle=-fov/2;angle < fov/2;angle+=delta)
 	{
 		float step=(angle+delta > fov/2)?fov/2-angle:delta;
-		triple.v[1].x=pose.position[0]+distance*cosf(angle+pose.orientation);
-		triple.v[1].y=pose.position[1]+distance*sinf(angle+pose.orientation);
-		triple.v[2].x=pose.position[0]+distance*cosf(angle+pose.orientation+step);
-		triple.v[2].y=pose.position[1]+distance*sinf(angle+pose.orientation+step);
-
-		hge->Gfx_RenderTriple(&triple);
+		batch +=
+		{
+				Fx::Vertex::make3c(pose.position[0], pose.position[1], z, color),
+				Fx::Vertex::make3c(
+						pose.position[0]+distance*cosf(angle+pose.orientation),
+						pose.position[1]+distance*sinf(angle+pose.orientation), z, color),
+				Fx::Vertex::make3c(
+						pose.position[0]+distance*cosf(angle+pose.orientation+step),
+						pose.position[1]+distance*sinf(angle+pose.orientation+step), z, color)
+		};
 	}
+
+	hge->renderBatch(batch);
 }
 
 void Draw::drawObject(GameObject* object)
@@ -226,47 +242,60 @@ void Draw::draw(Unit* unit)
 }
 
 void drawSolidArrow(Fx::RenderContext* rc, const vec2f & from, const vec2f & to, float z, Fx::FxRawColor color, float width, float arrowWidth, float arrowLength)
-{		
-	auto assign = [color,z](Fx::Vertex & target, const vec2f & from)
-	{
-		target.x = from[0];
-		target.y = from[1];
-		target.z = z;
-		target.tx = 0;
-		target.ty = 0;
-		target.col = color;
-	};
-
+{
 	width /= 2;
 	arrowWidth /= 2;
+
+	Fx::VertexBatch body(Fx::VertexBatch::PRIM_TRIPLES);
 
 	vec2f dir = to - from;
 	float length = dir.length();
 	if(length > 0.f)
 		dir/=length;
+
 	vec2f left(-dir[1], dir[0]);	
 
 	float bodyLength = length - arrowLength;
+
 	if( bodyLength > 0 )
 	{
-		Fx::Quad body;
-		body.tex = 0;
-		body.blend = 0;
 		vec2f bodyEnd = from + dir * bodyLength;
-		assign(body.v[0],from + left* width);
-		assign(body.v[1],from - left* width);
-		assign(body.v[2],bodyEnd - left* width);
-		assign(body.v[3],bodyEnd + left* width);
-		rc->Gfx_RenderQuad(&body);
+
+		vec2f quad[] =
+		{
+			from + left* width,
+			from - left* width,
+			bodyEnd - left* width,
+			bodyEnd + left* width,
+		};
+
+		body +=
+		{
+			Fx::Vertex::make3c(quad[0][0], quad[0][1], z, color),
+			Fx::Vertex::make3c(quad[1][0], quad[1][1], z, color),
+			Fx::Vertex::make3c(quad[2][0], quad[2][1], z, color),
+
+			Fx::Vertex::make3c(quad[0][0], quad[1][1], z, color),
+			Fx::Vertex::make3c(quad[2][0], quad[2][1], z, color),
+			Fx::Vertex::make3c(quad[3][0], quad[0][1], z, color),
+		};
 	}
 
-	Fx::Triple tip;
-	tip.tex = 0;
-	tip.blend = 0;
-	assign(tip.v[0],to);
-	assign(tip.v[1],to - dir * arrowLength - left * arrowWidth);
-	assign(tip.v[2],to - dir * arrowLength + left * arrowWidth);
-	rc->Gfx_RenderTriple(&tip);
+	vec2f tip[] =
+	{
+		to,
+		to - dir * arrowLength - left * arrowWidth,
+		to - dir * arrowLength + left * arrowWidth
+	};
+
+	body +=
+	{
+		Fx::Vertex::make3c(tip[0][0], tip[0][1], z, color),
+		Fx::Vertex::make3c(tip[1][0], tip[1][1], z, color),
+		Fx::Vertex::make3c(tip[2][0], tip[2][1], z, color),
+	};
+
+	rc->renderBatch(body);
 }
 
 void DrawCircleArea(Fx::RenderContext* rc,const Pose& pose,float radius, Fx::FxRawColor color)

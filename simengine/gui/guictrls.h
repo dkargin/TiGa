@@ -131,6 +131,8 @@ namespace GUI
 		bool bOldState;
 	};
 
+	typedef std::shared_ptr<Button> ButtonPtr;
+
 	/*
 	 * Image container widget
 	 */

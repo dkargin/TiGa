@@ -6,7 +6,10 @@ namespace Fx
 
 ///////////////////////////////////////////////////////
 // Common drawing tools
+
 ///////////////////////////////////////////////////////
+
+/*
 void drawPoints(RenderContext* rc,const vec2f *p,int n)
 {
 	if(n>1)
@@ -15,7 +18,7 @@ void drawPoints(RenderContext* rc,const vec2f *p,int n)
 		rc->Gfx_RenderLine(p[i-1][0],p[i-1][1],p[i][0],p[i][1]);
 }
 
-/*
+
 void drawPoints(RenderContext* rc, const vec3 *p, int n)
 {
 	if(n>1)
@@ -36,15 +39,18 @@ void boxCorners(const Pose &p,float width,float height, Pose::vec *result)
 void drawSprite(RenderContext* rc, SpriteData *sprite,
 			const Pose &p, float width, float height,bool rect=false)
 {
-	Pose::vec c[]={	p.coords(-width, height),
-								p.coords( width, height),
-								p.coords( width,-height),
-								p.coords(-width,-height)};
+	Pose::vec c[]=
+	{
+		p.coords(-width, height),
+		p.coords( width, height),
+		p.coords( width,-height),
+		p.coords(-width,-height)
+	};
 
 	rc->Render4V(sprite,c[0][0],c[0][1],c[1][0],c[1][1],c[2][0],c[2][1],c[3][0],c[3][1]);
 
-	if(rect)
-		drawPoints(rc,c,4);
+	//if(rect)
+	//	drawPoints(rc,c,4);
 }
 
 FxAnimation2::FxAnimation2(FxManager *manager, FxTextureId tex, float x, float y, float w, float h)

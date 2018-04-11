@@ -4,6 +4,7 @@
 #include <chrono>
 #include <math3/math.h>
 #include <stdint.h>
+#include <vector>
 
 #include "rect.h"
 #include "color.h"
@@ -54,26 +55,83 @@ struct Vertex
 	float z;				// Z-buffer depth 0..1
 	FxRawColor col;	// color
 	float tx, ty;		// texture coordinates
-};
-/*
-** HGE Triple structure
-*/
-struct Triple
-{
-	Vertex v[3];
-	FxTextureId tex;
-	int blend;
+
+	static Vertex make2c(float x, float y, FxRawColor color, float tx = 0, float ty = 1)
+	{
+		return Vertex{x, y, 0.f, color, tx, ty};
+	}
+
+	static Vertex make3c(float x, float y, float z, FxRawColor color, float tx = 0, float ty = 1)
+	{
+		return Vertex{x, y, z, color, tx, ty};
+	}
 };
 
-
-/*
-** HGE Quad structure
-*/
-struct Quad
+// Batch with a vertices
+struct VertexBatch
 {
-	Vertex v[4];
-	FxTextureId tex;
-	int blend;
+	// Primitive type constants
+	enum PrimType
+	{
+		PRIM_INVALID = 0,
+		PRIM_POINTS = 1,
+		PRIM_LINES = 2,
+		PRIM_TRIPLES = 3,
+		PRIM_QUADS = 4,
+	};
+
+	VertexBatch(PrimType prim)
+	:primType(prim)
+	{
+	}
+
+	int primType = PRIM_INVALID;
+	int blend = 0;
+	FxTextureId texture = -1;
+	// Number of generated primitives
+	int prims = 0;
+	std::vector<Vertex> buffer;
+
+	VertexBatch& operator += (std::initializer_list<Vertex>&& data)
+	{
+		append(std::move(data));
+		return *this;
+	}
+
+	VertexBatch& operator += (std::vector<Vertex>&& data)
+	{
+		append(std::move(data));
+		return *this;
+	}
+
+	// Append vertex data to a batch
+	int append(std::initializer_list<Vertex>&& data)
+	{
+		if (primType == PRIM_INVALID)
+			return 0;
+
+		// Data length should correspond to current primitive type
+		int size = data.size();
+		if (size % primType)
+			return 0;
+
+		buffer.insert(buffer.end(), std::move(data));
+		prims += size / primType;
+		return buffer.size();
+	}
+
+	// Append vertex data to a batch
+	int append(std::vector<Vertex>&& data)
+	{
+		// Data length should correspond to current primitive type
+		int size = data.size();
+		if (size % primType)
+			return 0;
+
+		buffer.insert(buffer.end(), data.begin(), data.end());
+		prims += size / primType;
+		return buffer.size();
+	}
 };
 
 typedef math3::Pose2z Pose;

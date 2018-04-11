@@ -1,5 +1,4 @@
-#ifndef _SHIPYARD_H_
-#define _SHIPYARD_H_
+#pragma once
 
 class ShipyardWindow;
 
@@ -15,6 +14,8 @@ public:
 };
 */
 
+using vec2i = math3::vec2i;
+
 class ShipyardArea : public GUI::Object
 {
 public:
@@ -26,7 +27,6 @@ public:
 	public:
 		virtual void onDesignFinished(ShipyardArea * shipyard, ShipBlueprint * blueprint) = 0;
 	};
-
 	std::shared_ptr<ShipyardListener> listener;
 	*/
 	struct Cell
@@ -44,7 +44,7 @@ public:
 
 	float tileSize;
 	float tileOffsetX, tileOffsetY;
-	WeakPtr<ShipyardWindow> shipyard;
+	std::weak_ptr<ShipyardWindow> shipyard;
 	
 	// blueprints
 	void setBlueprint( ShipBlueprint * blueprint, bool locked );
@@ -66,7 +66,7 @@ public:
 	virtual bool onMouseMove(int mouseId,  const uiVec & vec, MoveState state );
 	// Helpers
 	vec2i screenCellCenter( const vec2i & cell ) const;
-	hgeRect screenCellRect( const vec2i & cell ) const;
+	Fx::Rect screenCellRect( const vec2i & cell ) const;
 
 	const TileSectionDesc & getSectionDesc(size_t id) const;
 };
@@ -88,30 +88,30 @@ public:
 	size_t pickedSection;
 
 	ShipyardWindow(Game * core);
+
 	GUI::FontPtr font;
-	Game * game;
-	Instance<GUI::Button> menu, save;
-	Instance<GUI::Frame> toolbox;	
-	Instance<GUI::Button> tiles, objects, designTest, designSave;
-	Instance<ShipyardArea> shipyardArea;
-	Instance <GUI::Slider> toolboxSlider;
+	Game* game;
+	GUI::ButtonPtr menu, save;
+	std::shared_ptr<GUI::Frame> toolbox;
+	GUI::ButtonPtr tiles, objects, designTest, designSave;
+	std::shared_ptr<ShipyardArea> shipyardArea;
+	std::shared_ptr<GUI::Slider> toolboxSlider;
 	
-	std::list<SharedPtr<GUI::Object> > contents;
+	std::list<GUI::ObjectPtr> contents;
 //	std::list<GUI::Button*> tileTypes;
 //	std::list<GUI::Button*> objectTypes;
 // shipyard specific
 	void showTiles();
 	void showObjects();
-	void setControlMode( ShipyardEditMode mode );
+	void setControlMode(ShipyardEditMode mode);
 	void selectTile(size_t tileId);
 	void clearContents();
-	void addListboxItem( GUI::Object * object );
+	void addListboxItem(GUI::ObjectPtr object);
 
 	void frameBack();
 
 	void setBlueprint( ShipBlueprint * blueprint, bool locked );
 	void getBlueprint( ShipBlueprint * blueprint );
 
-	FxEffect::Pointer getSectionSprite(size_t sectionId);	
+	Fx::EntityPtr getSectionSprite(size_t sectionId);
 };
-#endif

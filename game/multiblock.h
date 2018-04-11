@@ -1,8 +1,16 @@
-#ifndef _MULTIBLOCK_H_
-#define _MULTIBLOCK_H_
-#include "../sim/gameObject.h"
+#pragma once
 
-enum AdjacentDirection	{	DirLeft = 0, DirRight = 1, DirTop = 2, DirBottom = 3, DirSame, DirInvalid	};
+#include "sim/gameObject.h"
+
+enum AdjacentDirection
+{
+	DirLeft = 0,
+	DirRight = 1,
+	DirTop = 2,
+	DirBottom = 3,
+	DirSame,
+	DirInvalid
+};
 
 inline int adjacentX( AdjacentDirection dir, int x = 0 )
 {
@@ -62,10 +70,12 @@ public:
 		return data[index];
 	}
 };
+
 template< class CellData, class LinkData >
 class LinkedGrid
 {
 public:
+	using vec2f = sim::vec2f;
 	typedef LinkedGrid<CellData, LinkData> grid_type;
 	enum { MaxSize = 5 };
 	// links = 2 * width * height - width - height
@@ -74,6 +84,7 @@ public:
 		MaxCells = MaxSize * MaxSize, 
 		MaxLinks = 2 * MaxSize * MaxSize - 2 * MaxSize 
 	};
+
 	enum State
 	{
 		Free,
@@ -99,8 +110,8 @@ public:
 
 	struct CellRef
 	{
-		Cell * cell;
-		int x, y;		// coordinates
+		Cell* cell;
+		int x, y;	// coordinates
 	};
 
 	struct LinkRef
@@ -112,19 +123,23 @@ public:
 
 	int cellsCount, linksCount;
 	int centerX, centerY;
+
 public:
 	LinkedGrid(): cellsCount(0), linksCount(0), centerX(-1), centerY(-1)
 	{
 		Clean();
 	}
+	virtual ~LinkedGrid() {}
+
 	CellRef getAdjacentCell( int x, int y, AdjacentDirection dir) const
 	{
 		CellRef result = { NULL, adjacentX(dir, x), adjacentY(dir, y) };
 		result.cell = getCell( result.x, result.y );
 		return result;
 	}
+
 	Link * getLink( int x, int y,  AdjacentDirection dir) const
-	{		
+	{
 		const int width = MaxSize;
 		const int rowWidth = width + width - 1;
 		if( dir == DirLeft )
@@ -361,7 +376,7 @@ public:
 			marked = cells[ x + y * MaxSize].state == Occupied ? 1 : 0;
 			for( size_t i = 0; i < 4; ++i)
 			{				
-				const AdjacentDirection dir = (AdjacentDirection)i;			
+				const AdjacentDirection dir = (AdjacentDirection)i;
 				const Link * link = getLink(x,y, dir);
 				if( link && link->state == Occupied )
 					marked += waveMark( adjacentX(dir, x) , adjacentY(dir, y), mark, marks );
@@ -412,7 +427,7 @@ struct CellDesc
 {
 	b2Fixture * fixture;
 	int health;
-	vec2f totalImpulse;
+	sim::vec2f totalImpulse;
 };
 
 struct LinkDesc 
@@ -421,34 +436,35 @@ struct LinkDesc
 	float stress[2];	// { normal, tangent }
 };
 
-class ObjectManager;
+class Multiblock : public LinkedGrid<CellDesc, LinkDesc>, public sim::GameObject
+{
+public:
+	using Pose2 = sim::Pose;
+	using vec2f = sim::vec2f;
 
-class Multiblock : public LinkedGrid<CellDesc, LinkDesc>, public GameObject
-{	
-public:	
-	float cellWidth;	
-	Cell * selection;
+	float cellWidth;
+	Cell* selection;
 	//b2Body * body;
 	//Application * application;
 public:
-	Multiblock(ObjectManager * manager);
+	Multiblock(sim::ObjectManager* manager);
 	~Multiblock();
 	
-	void init(const Pose2 & pose, b2World & world);
+	void init(const Pose2& pose, b2World& world);
 
-	Cell * rayHit( );
-	CellRef pick( const vec2f & worldPos ) const;
+	Cell * rayHit();
+	CellRef pick(const vec2f& worldPos) const;
 	
-	void hit( Multiblock::Cell * cell, const vec2f & pos, const vec2f & dir, float &impulse );
-	void clearStress();
-	virtual grid_type * fracture(int x, int y);	
-	virtual Multiblock * createFractureBody();	
-	/// LinkedGrid events
-	virtual void onCellCreated(CellRef & ref, const CellDesc & source);
-	virtual void onLinkCreated(Link * link, int x, int y, AdjacentDirection dir, bool move = false);
-	virtual void onCellDestroyed(CellRef & ref, bool move = false);	
-	/// for debug purposes
-	void markSelected( Cell * cell );
-};
+	sim::GameObject* getDefinition() override;
 
-#endif
+	void hit(Multiblock::Cell* cell, const vec2f& pos, const vec2f& dir, float &impulse);
+	void clearStress();
+	virtual grid_type * fracture(int x, int y);
+	virtual Multiblock * createFractureBody();
+	/// LinkedGrid events
+	virtual void onCellCreated(CellRef& ref, const CellDesc& source);
+	virtual void onLinkCreated(Link* link, int x, int y, AdjacentDirection dir, bool move = false);
+	virtual void onCellDestroyed(CellRef& ref, bool move = false);
+	/// for debug purposes
+	void markSelected(Cell* cell);
+};

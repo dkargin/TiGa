@@ -5,13 +5,6 @@
 namespace Fx
 {
 
-/*
-** HGE Primitive type constants
-*/
-#define HGEPRIM_LINES		2
-#define HGEPRIM_TRIPLES		3
-#define HGEPRIM_QUADS		4
-
 class SpriteData;
 
 /**
@@ -36,23 +29,46 @@ public:
 
 
 	void Gfx_SetClipping(int x, int y, int w, int h);
-	void Gfx_RenderLine(float x0, float y0, float x1, float y1, FxRawColor rolor = MakeRGB(255, 255, 255), float z = 0);
-	void Gfx_RenderTriple(const Fx::Triple *triple);
-	void Gfx_RenderQuad(const Fx::Quad *quad);
+	//void Gfx_RenderLine(float x0, float y0, float x1, float y1, FxRawColor rolor = MakeRGB(255, 255, 255), float z = 0);
+	//void Gfx_RenderTriple(const Fx::Triple *triple);
+	//void Gfx_RenderQuad(const Fx::Quad *quad);
+	void renderBatch(const Fx::VertexBatch& batch);
 	void Gfx_Clear(FxRawColor color);
 
-	Fx::Vertex* Gfx_StartBatch(int prim_type, Fx::FxTextureId tex, int blend, int *max_prim);
-	void Gfx_FinishBatch(int nprim);
+	//Fx::Vertex* Gfx_StartBatch(int prim_type, Fx::FxTextureId tex, int blend, int *max_prim);
+	//void Gfx_FinishBatch(int nprim);
 
 	/// Should be moved to batch->render
 	void Render(const SpriteData* spr, float x, float y);
 	void RenderEx(const SpriteData* spr, float x, float y, float rot, float hscale=1.0f, float vscale=0.0f);
 	void RenderStretch(const SpriteData* spr, float x1, float y1, float x2, float y2);
 	void Render4V(const SpriteData* spr, float x0, float y0, float x1, float y1, float x2, float y2, float x3, float y3);
+
 protected:
+
+	struct TargetBuffer
+	{
+		int width;
+		int height;
+		int id;
+	};
+
+	struct TextureInfo
+	{
+		int width;
+		int height;
+		int id;
+		int potw;
+		int poth;
+	};
+
+	const TextureInfo* getTextureInfo(FxTextureId id);
+
 	bool _PrimsOutsideClipping(const Fx::Vertex *v, const int verts);
-	void _SetBlendMode(int blend);
-	void _render_batch(bool bEndScene=false);
+	int updateBlendMode(int blend, int curBlend);
+	void _BindTexture(FxTextureId id);
+	void _ActivateBatch(const Fx::VertexBatch& batch);
+	void _render_batch(Fx::VertexBatch& batch, bool bEndScene=false);
 
 	// Viewport width and height
 	int scr_width, scr_height;
@@ -65,12 +81,19 @@ protected:
 	Fx::Vertex* pVB;	//< vertex buffer is a client-side array in the OpenGL renderer.
 	uint16_t* pIB;		//> index buffer is a client-side array in the OpenGL renderer.
 
+	static bool canMergeBatches(const Fx::VertexBatch& a, const Fx::VertexBatch& b);
+
+	Fx::VertexBatch currentBatch;
+
+	//FxTextureId CurTexture = -1;
 	// Number of generated primitives
-	int nPrim;
+	//int nPrim;
 	// Current primitive type
-	int CurPrimType;
+	//int CurPrimType;
 	// Current blend mode
-	int CurBlendMode;
+	//int CurBlendMode;
+
+	int VERTEX_BUFFER_SIZE = 1024;
 };
 
 } // namespace Fx

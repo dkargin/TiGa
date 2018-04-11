@@ -15,7 +15,7 @@ public:
 	SpriteData(FxTextureId tex, float x, float y, float w, float h);
 	SpriteData(const SpriteData &spr);
 
-	~SpriteData() {  }
+	~SpriteData();
 	
 	/*
 	/// Should be moved to batch->render
@@ -25,36 +25,39 @@ public:
 	void		Render4V(float x0, float y0, float x1, float y1, float x2, float y2, float x3, float y3);
 	*/
 
-	void		SetTexture(FxTextureId tex);
-	void		SetTextureRect(float x, float y, float w, float h, bool adjSize = true);
-	void		SetColor(FxRawColor col, int i=-1);
-	void		SetZ(float z, int i=-1);
-	void		SetBlendMode(int blend) { quad.blend=blend; }
-	void		SetHotSpot(float x, float y) { hotX=x; hotY=y; }
-	void		SetFlip(bool bX, bool bY, bool bHotSpot = false);
+	void SetTexture(FxTextureId tex);
+	void SetTextureRect(float x, float y, float w, float h, bool adjSize = true);
+	void SetColor(FxRawColor col);
+	void SetZ(float z);
+	void SetBlendMode(int blend);
+	void SetHotSpot(float x, float y);
+	void SetFlip(bool bX, bool bY, bool bHotSpot = false);
 
-	FxTextureId	GetTexture() const { return quad.tex; }
-	void		GetTextureRect(float *x, float *y, float *w, float *h) const { *x=tx; *y=ty; *w=width; *h=height; }
-	FxRawColor	GetColor(int i=0) const { return quad.v[i].col; }
-	float		GetZ(int i=0) const { return quad.v[i].z; }
-	int			GetBlendMode() const { return quad.blend; }
-	void		GetHotSpot(float *x, float *y) const { *x=hotX; *y=hotY; }
-	void		GetFlip(bool *bX, bool *bY) const { *bX=bXFlip; *bY=bYFlip; }
+	FxTextureId GetTexture() const;
+	void GetTextureRect(float *x, float *y, float *w, float *h) const;
+	FxRawColor GetColor() const;
+	float GetZ() const;
+	int GetBlendMode() const;
+	void GetHotSpot(float *x, float *y) const;
+	void GetFlip(bool *bX, bool *bY) const;
 
-	float		GetWidth() const { return width; }
-	float		GetHeight() const { return height; }
+	float GetWidth() const;
+	float GetHeight() const;
 
-	Rect*	GetBoundingBox(float x, float y, Rect *rect) const { rect->Set(x-hotX, y-hotY, x-hotX+width, y-hotY+height); return rect; }
-	Rect*	GetBoundingBoxEx(float x, float y, float rot, float hscale, float vscale,  Rect *rect) const;
+	Rect* GetBoundingBox(float x, float y, Rect *rect) const { rect->Set(x-hotX, y-hotY, x-hotX+width, y-hotY+height); return rect; }
+	Rect* GetBoundingBoxEx(float x, float y, float rot, float hscale, float vscale,  Rect *rect) const;
 
 protected:
 	SpriteData();
-	
-	Quad		quad;
-	float		tx, ty, width, height;
-	float		tex_width, tex_height;
-	float		hotX, hotY;
-	bool		bXFlip, bYFlip, bHSFlip;
+
+	int blend;
+	FxTextureId tex;
+	FxRawColor color;
+	float tx, ty, width, height;
+	float tex_width, tex_height;
+	float hotX, hotY;
+	float z;
+	bool bXFlip, bYFlip, bHSFlip;
 };
 
 }

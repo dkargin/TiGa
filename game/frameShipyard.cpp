@@ -1,17 +1,17 @@
-#include "stdafx.h"
 #include "game.h"
+#include <simengine/fx/fxobjects.h>
 #include "frameShipyard.h"
 
 void addDoubleBlock(Game * game, GameData * gameData, const char * path )
 {
-	FxSpritePtr sprite = game->fxManager->fxSprite(path,0,0,0,0);
-	if( sprite == NULL )
+	Fx::FxSpritePtr sprite = game->fxManager->fxSprite(path,0,0,0,0);
+	if (!sprite)
 		return;
 	
-	gameData->sprites.push_back((FxEffect*)sprite);
-	sprite = FxSpritePtr(sprite->copy());
+	gameData->sprites.push_back(sprite);
+	sprite = sprite->clone();
 	sprite->flipVer();
-	gameData->sprites.push_back((FxEffect*)sprite);
+	gameData->sprites.push_back(sprite);
 
 	TileSectionDesc desc;
 	desc.sizeX = 1;
@@ -75,7 +75,7 @@ GameData::~GameData()
 		delete []blueprints;
 }
 
-FxEffect::Pointer GameData::getSprite( size_t spriteId )
+Fx::EntityPtr GameData::getSprite( size_t spriteId )
 {
 	if( spriteId >= sprites.size() )
 	{
@@ -84,7 +84,7 @@ FxEffect::Pointer GameData::getSprite( size_t spriteId )
 	return sprites[spriteId];
 }
 
-FxEffect::Pointer GameData::getSectionSprite(size_t sectionType)
+Fx::EntityPtr GameData::getSectionSprite(size_t sectionType)
 {
 	if( sectionType >= sections.size() )
 	{
@@ -93,7 +93,9 @@ FxEffect::Pointer GameData::getSectionSprite(size_t sectionType)
 	return getSprite(sections[sectionType].spriteId);
 }
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-ShipyardArea::ShipyardArea(ShipyardWindow * shipyard) : Object(hgeRect(0,0,0,0)), shipyard(shipyard)
+ShipyardArea::ShipyardArea(ShipyardWindow * shipyard):
+	Object(Fx::Rect(0,0,0,0)),
+	shipyard(shipyard)
 {
 	tileSize = 50;
 	tileOffsetX = 0;
@@ -153,7 +155,7 @@ void ShipyardArea::addTile( int x, int y, size_t pickedTile )
 
 vec2i ShipyardArea::screenToLocal( const uiVec & vec )
 {
-	hgeRect rect = getClientRect();
+	Fx::Rect rect = getClientRect();
 	// cells on screen
 	float x = (vec[0] - rect.x1) / tileSize - tileOffsetX;
 	float y = (vec[1] - rect.y1) / tileSize - tileOffsetY;
@@ -181,7 +183,7 @@ bool ShipyardArea::onMouseMove( int mouseId, const uiVec & vec, ShipyardArea::Mo
 
 vec2i ShipyardArea::screenCellCenter( const vec2i & cell ) const
 {
-	hgeRect rect = getClientRect();
+	Fx::Rect rect = getClientRect();
 	// cells on screen
 	int cellsX = (rect.x2 - rect.x1) / tileSize;
 	int cellsY = (rect.y2 - rect.y1) / tileSize;
@@ -212,7 +214,7 @@ size_t ShipyardArea::findTile(int cx, int cy)
 
 bool ShipyardArea::canPlaceTile(int cx, int cy, size_t tileId)
 {
-	TileSectionDesc & desc = shipyard->game->gameData->sections[tileId];
+	TileSectionDesc& desc = shipyard->game->gameData->sections[tileId];
 	// bounds checking
 	if( cy + cellsCenterY < 0 || cx + cellsCenterX < 0 || cx + cellsCenterX >= cellsWidth || cy + cellsCenterY >= cellsHeight )
 		return false;
@@ -236,7 +238,7 @@ void DrawBlueprint( ShipBlueprint * blueprint, GameData * data, float cornerX, f
 		ShipBlueprint::Block & block = blueprint->blocks[i];
 		const TileSectionDesc & desc = data->sections[block.tileType];	
 		Pose2z pose( cornerX + (block.x + (float)desc.sizeX * 0.5) * tileSize, cornerY + (block.y + (float)desc.sizeX * 0.5) * tileSize, 0, 0 );
-		FxEffect::Pointer ptr = data->getSectionSprite(block.tileType);
+		Fx::EntityPtr ptr = data->getSectionSprite(block.tileType);
 		ptr->render(ptr->getManager(), pose);
 	}
 }
@@ -270,10 +272,11 @@ void ShipyardArea::onRender()
 }
 /////////////////////////////////////////////////////////////////////////////////////
 ShipyardWindow::ShipyardWindow(Game * game)
-	:GUI::Object(hgeRect(0,0,0,0)), game(game), shipyardArea( this )
+	:GUI::Object(Fx::Rect(0,0,0,0)), game(game)
 {
+	shipyardArea = std::make_shared<ShipyardArea>(this);
 	setAlign(GUI::AlignExpand, GUI::AlignExpand);
-	color = ARGB(255,0,0,0);
+	color = Fx::MakeARGB(255,0,0,0);
 	controlMode = Normal;
 
 	menu->setDesiredSize(buttonWidth, buttonHeight);
@@ -293,8 +296,8 @@ ShipyardWindow::ShipyardWindow(Game * game)
 
 	toolbox->drawFrame = true;
 
-	toolbox->color = ARGB(255,0,0,0);
-	toolbox->clrFrame = ARGB(255,0,255,0);
+	toolbox->color = Fx::MakeARGB(255,0,0,0);
+	toolbox->clrFrame = Fx::MakeARGB(255,0,255,0);
 	toolbox->slideVer = true;
 
 	font = game->font;
@@ -313,7 +316,7 @@ ShipyardWindow::ShipyardWindow(Game * game)
 	objects->setAlign(GUI::AlignMax, GUI::AlignMin);	
 	toolbox->insert(objects);
 
-	toolboxSlider->sprite = game->fxManager->fxSolidQuad(10, 50, ARGB(255,255,0,0));
+	toolboxSlider->sprite = game->fxManager->fxSolidQuad(10, 50, Fx::MakeARGB(255,255,0,0));
 	toolboxSlider->setMode(0, 100, 0);
 	toolboxSlider->setDesiredPos( 0, 0 );
 	toolboxSlider->setDesiredSize( sliderWidth, 0 );
@@ -325,7 +328,9 @@ ShipyardWindow::ShipyardWindow(Game * game)
 	toolbox->insert(toolboxSlider);
 
 	shipyardArea->setDesiredPos( toolboxWidth, 0 );
-	shipyardArea->setDesiredSize( core->getScreenWidth() - toolboxWidth, core->getScreenHeight() );
+	shipyardArea->setDesiredSize(
+			game->getScreenWidth() - toolboxWidth,
+			game->getScreenHeight());
 	shipyardArea->setAlign(GUI::AlignMax, GUI::AlignExpand);
 	insert(shipyardArea);
 
@@ -352,14 +357,14 @@ void ShipyardWindow::setControlMode( ShipyardEditMode mode )
 	controlMode = mode;		
 	if( controlMode == Normal )
 	{
-		core->uiResetCursorEffect(0);
+		game->uiResetCursorEffect(0);
 	}	
 }
 
-void ShipyardWindow::addListboxItem( GUI::Object * object )
+void ShipyardWindow::addListboxItem(GUI::ObjectPtr object )
 {
-	hgeRect containerRect = toolbox->getClientRect();
-	hgeRect rect = object->getRect();
+	Fx::Rect containerRect = toolbox->getClientRect();
+	Fx::Rect rect = object->getRect();
 
 	const int cols = 2;
 	int cellWidth = containerRect.width() / cols;
@@ -377,11 +382,11 @@ void ShipyardWindow::showTiles()
 	clearContents();
 	for( int i = 0; i < game->gameData->sections.size(); i++ )
 	{
-		SharedPtr<GUI::Button> button = new GUI::Button;
+		GUI::ButtonPtr button(new GUI::Button);
 		button->sprite = game->gameData->getSectionSprite(i);
 		button->onPressed = [=]()
 		{
-			selectTile(i);			
+			selectTile(i);
 		};
 		addListboxItem(button);
 	}
@@ -392,8 +397,8 @@ void ShipyardWindow::selectTile( size_t tileId )
 	if( controlMode == Normal )
 	{
 		pickedSection = tileId;
-		core->uiSetCursorEffect(0, getSectionSprite(tileId));
-		setControlMode( CreateTile );		
+		game->uiSetCursorEffect(0, getSectionSprite(tileId));
+		setControlMode( CreateTile );
 	}
 	else
 		controlMode = Normal;
@@ -404,7 +409,7 @@ void ShipyardWindow::showObjects()
 	clearContents();	
 }
 
-FxEffect::Pointer ShipyardWindow::getSectionSprite(size_t sectionType)
+Fx::EntityPtr ShipyardWindow::getSectionSprite(size_t sectionType)
 {
 	if(game->gameData)
 		return game->gameData->getSectionSprite(sectionType);

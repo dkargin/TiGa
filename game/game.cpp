@@ -122,11 +122,11 @@ ShipBlueprint::~ShipBlueprint()
 	reset();
 }
 
-size_t ShipBlueprint::findBlock( int x, int y, SharedPtr<GameData> data )
+size_t ShipBlueprint::findBlock( int x, int y, const GameData& data )
 {
 	for( Block * block = blocks; block < blocks + blocksCount; ++block)
 	{
-		TileSectionDesc & desc = data->sections[block->tileType];
+		TileSectionDesc & desc = data.sections[block->tileType];
 
 		if( block->x >= x && block->y >= y && block->x + desc.sizeX < x && block->y + desc.sizeY < desc.sizeY)
 			return block - blocks;
@@ -210,13 +210,13 @@ void ShipBlueprint::reset()
 	strcpy_s(name, sizeof(name),"Enterprise XIV");
 }
 
-hgeRect ShipBlueprint::getBounds(SharedPtr<GameData> data) const
+hgeRect ShipBlueprint::getBounds(const GameData& data) const
 {
 	hgeRect result;
 	bool first = true;
 	for( Block * block = blocks; block < blocks + blocksCount; ++block)
 	{
-		TileSectionDesc & desc = data->sections[block->tileType];
+		TileSectionDesc & desc = data.sections[block->tileType];
 		if( first )
 		{
 			result.x1 = block->x;

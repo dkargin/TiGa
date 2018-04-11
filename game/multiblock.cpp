@@ -54,6 +54,10 @@ void Multiblock::markSelected( Cell * cell )
 	selection = cell;
 }
 
+sim::GameObject* Multiblock::getDefinition()
+{
+	return nullptr;
+}
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // box2d specific
 void Multiblock::onCellCreated( Multiblock::CellRef & ref, const CellDesc &desc)

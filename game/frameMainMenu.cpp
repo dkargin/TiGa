@@ -1,4 +1,3 @@
-#include "stdafx.h"
 #include "game.h"
 #include "frameMainMenu.h"
 
@@ -6,7 +5,7 @@ MenuWindow::MenuWindow(Game * game)
 {
 	setAlign(GUI::AlignCenter, GUI::AlignExpand);
 
-	color = ARGB(255,128,128,128);
+	color = Fx::MakeARGB(255,128,128,128);
 	setDesiredSize(300,300);
 	
 	float y = 0;
@@ -30,7 +29,8 @@ MenuWindow::MenuWindow(Game * game)
 	exit->setDesiredSize(buttonWidth, buttonHeight);
 	exit->onPressed = [&]()
 	{
-		game->exitHGE();
+		//game->exit();
+		// TODO: Exit somehow
 	};
 	exit->setText("Exit",game->font);
 	exit->setAlign(GUI::AlignExpand, GUI::AlignManual);
@@ -39,7 +39,8 @@ MenuWindow::MenuWindow(Game * game)
 	
 	for(auto it = game->sceneNames.begin(); it != game->sceneNames.end(); ++it)
 	{
-		GUI::Button * button = new GUI::Button;
+		auto button = std::make_shared<GUI::Button>();
+
 		std::string sceneName = *it;
 		button->setDesiredSize(buttonWidth, buttonHeight);
 		button->setDesiredPos(0, 120 + (buttonHeight + buttonSpacing) * y++);
@@ -51,17 +52,13 @@ MenuWindow::MenuWindow(Game * game)
 		};
 		button->setAlign(GUI::AlignExpand, GUI::AlignManual);
 		insert(button);
-		scenes.push_back(button);
+		sceneButtons.push_back(button);
 	}	
 }
 
 MenuWindow::~MenuWindow()
 {
-	while(!scenes.empty())
-	{
-		delete scenes.front();
-		scenes.pop_front();
-	}
+	auto tmp = std::move(sceneButtons);
 }
 
 bool MenuWindow::onMouseMove(int mouseId, const uiVec & vec, GUI::Object::MoveState state)

@@ -11,6 +11,12 @@ typedef struct Ihandle_ Ihandle;
 
 const int MaxCursors = 1;
 
+// Some forward declarations from SDL
+class SDL_Surface;
+class SDL_Window;
+class SDL_Renderer;
+union SDL_Event;
+
 namespace sim
 {
 /**

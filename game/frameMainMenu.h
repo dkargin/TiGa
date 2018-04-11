@@ -11,8 +11,9 @@ public:
 
 	void addTestScene(const char * scene);
 	bool onMouseMove(int mouseId, const uiVec & vec, MoveState state);
-	Instance<GUI::Button> options, exit, start;
-	std::list<GUI::Button*> scenes;
+
+	std::shared_ptr<GUI::Button> options, exit, start;
+	std::list< GUI::ButtonPtr> sceneButtons;
 };
 
 #endif

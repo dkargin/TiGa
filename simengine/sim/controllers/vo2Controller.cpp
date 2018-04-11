@@ -297,27 +297,35 @@ Mover::Driver * createVO2Driver(Mover* m)
 void drawRangeSet(Fx::RenderContext* rc, const vec2f & pos, const RangeSet &rs,float angle)
 {
 	float cs=cosf(angle),sn=sinf(angle);
-	//glBegin(GL_LINES);
+
+	Fx::FxRawColor color = Fx::MakeRGB(255, 255, 255);
+	Fx::VertexBatch batch(Fx::VertexBatch::PRIM_LINES);
+
+	const float veryFar = 60.f;
+
 	for(RangeSet::Ranges::const_iterator it=rs.ranges.begin();it!=rs.ranges.end();++it)
 	{
 		const Range &r=*it;
-		if(!r.isInf())		
-		{
-			rc->Gfx_RenderLine(pos[0] + r.min * cs, pos[1] + r.min * sn, pos[0] + r.max * cs, pos[1] + r.max * sn);
-		}
+		if(!r.isInf())
+			batch += {
+				Fx::Vertex::make2c(pos[0] + r.min * cs, pos[1] + r.min * sn, color),
+				Fx::Vertex::make2c(pos[0] + r.max * cs, pos[1] + r.max * sn, color)
+			};
 		else if(r.tmax==Range::Inf)
-		{
-			const float veryFar = 60.f;
-			rc->Gfx_RenderLine(pos[0] + r.min * cs, pos[1] + r.min * sn, pos[0] + veryFar * cs, pos[1] + veryFar * sn);
-		}
+			batch += {
+					Fx::Vertex::make2c(pos[0] + r.min * cs, pos[1] + r.min * sn, color),
+					Fx::Vertex::make2c(pos[0] + veryFar * cs, pos[1] + veryFar * sn, color)
+			};
 	}
+
+	rc->renderBatch(batch);
 }
 
 // ������ ��������� �����
 void drawRays(Fx::RenderContext* rc, const vec2f &pos,const Rays &rays)
 {
 	for(unsigned int i=0;i<rays.size();i++)
-	{		
+	{
 		float angle=rays[i].first;
 		drawRangeSet(rc, pos, rays[i].second, angle);
 	}

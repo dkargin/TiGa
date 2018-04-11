@@ -116,6 +116,11 @@ float Entity::getHeight() const
 	return getClipRect().height();
 }
 
+EntityPtr Entity::sharedMe()
+{
+	return shared_from_this();
+}
+
 void Entity::start(AnimationMode mode)
 {
 	for(EntityPtr ptr: children)

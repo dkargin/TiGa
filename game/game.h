@@ -1,7 +1,9 @@
 #ifndef _GAME_H_
 #define _GAME_H_ 
 
-#include "Core.h"
+#include <simengine/application.h>
+#include <simengine/fx/fxobjects.h>
+#include <simengine/gui/guibase.h>
 
 class MenuWindow;
 class Game;
@@ -10,7 +12,7 @@ class GameData;
 
 struct ShipBlueprint;
 
-class Game : public Application
+class Game : public sim::Application
 {
 public:
 	Game();
@@ -23,9 +25,9 @@ public:
 	//SharedPtr<HangarWindow> hangar;
 
 	GUI::FontPtr		 font;						///< font for debug layer
-	SharedPtr<GameData> gameData;
+	std::shared_ptr<GameData> gameData;
 	//World * world;
-	SharedPtr<GUI::Object> active, newActive;
+	GUI::ObjectPtr active, newActive;
  
 	virtual void onRender();
 	virtual void onUpdate();
@@ -57,7 +59,7 @@ protected:
 	const float buttonHeight = 20;
 	const float buttonSpacing = 5;
 
-	const DWORD clrButtons = ARGB(255,128,128,128);
+	const Fx::FxRawColor clrButtons = Fx::MakeARGB(255,128,128,128);
 //}
 
 struct TileSectionDesc
@@ -113,16 +115,16 @@ public:
 	size_t blueprintsCount;
 
 	/// fast access
-	Fx::EffectPtr getSectionSprite(size_t sectionId);
-	Fx::EffectPtr getSprite(size_t spriteId);
+	Fx::EntityPtr getSectionSprite(size_t sectionId);
+	Fx::EntityPtr getSprite(size_t spriteId);
 	/// resources
 	std::vector<TileSectionDesc> sections;
-	std::vector<FxEffect::Pointer> sprites;				/// cached sprites	
+	std::vector<Fx::EntityPtr> sprites;				/// cached sprites
 	std::vector<std::string> strings;				/// string resources
 };
 
 /// Describes ship layout
-struct ShipBlueprint : public Referenced
+struct ShipBlueprint
 {
 	struct Block
 	{
@@ -151,10 +153,10 @@ struct ShipBlueprint : public Referenced
 	ShipBlueprint();
 	~ShipBlueprint();
 
-	size_t findBlock(int x, int y, SharedPtr<GameData> gameData);	// find first block
+	size_t findBlock(int x, int y, const GameData& gameData);	// find first block
 	bool addBlock(Block * source);
 
-	hgeRect getBounds(SharedPtr<GameData> gameData) const;	/// get cells bounding rect
+	Fx::Rect getBounds(const GameData& gameData) const;	/// get cells bounding rect
 	
 	unsigned int getTotalCost() const;
 	unsigned int getTotalMass() const;
@@ -165,10 +167,12 @@ struct ShipBlueprint : public Referenced
 	void copy(ShipBlueprint * source, bool suffix = false);	
 
 	/// serialisation
+#ifdef FIX_THIS
 	void load(IO::StreamIn & stream);
 	void save(IO::StreamOut & stream);
+#endif
 };
 
-void GenerateShipGraphics(Fx::Entity* root, ShipBlueprint * blueprint, Game * game);
+void GenerateShipGraphics(Fx::EntityPtr root, ShipBlueprint * blueprint, Game * game);
 
 #endif

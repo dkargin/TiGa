@@ -410,6 +410,11 @@ public:
 	/// Constructor
 	Pose2z(const pose_type::pos3 &p,const pose_type::rot &r):position(p),orientation(r) {}
 
+	/// Get zero pose
+	static pose_type zero()
+	{
+		return pose_type(0,0,0,0);
+	}
 	/// Get pose origin
 	const pos &getPosition() const
 	{

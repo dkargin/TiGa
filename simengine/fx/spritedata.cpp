@@ -13,11 +13,11 @@
 namespace Fx
 {
 
-SpriteData::SpriteData(HTEXTURE texture, float texx, float texy, float w, float h)
+SpriteData::SpriteData(FxTextureId texture, float texx, float texy, float w, float h)
 {
 	float texx1, texy1, texx2, texy2;
 
-	hge=hgeCreate(HGE_VERSION);
+	//hge=hgeCreate(HGE_VERSION);
 	
 	tx=texx; ty=texy;
 	width=w; height=h;
@@ -38,7 +38,7 @@ SpriteData::SpriteData(HTEXTURE texture, float texx, float texy, float w, float 
 	bXFlip=false;
 	bYFlip=false;
 	bHSFlip=false;
-	quad.tex=texture;
+	tex=texture;
 
 	texx1=texx/tex_width;
 	texy1=texy/tex_height;
@@ -65,8 +65,9 @@ SpriteData::SpriteData(HTEXTURE texture, float texx, float texy, float w, float 
 
 SpriteData::SpriteData(const SpriteData &spr)
 {
-	memcpy(this, &spr, sizeof(SpriteData));
-	hge=hgeCreate(HGE_VERSION);
+	// TODO: Implement
+	//memcpy(this, &spr, sizeof(SpriteData));
+	//hge=hgeCreate(HGE_VERSION);
 }
 
 void SpriteData::Render(float x, float y)
@@ -284,20 +285,81 @@ void SpriteData::SetTextureRect(float x, float y, float w, float h, bool adjSize
 }
 
 
-void SpriteData::SetColor(FxRawColor col, int i)
+void SpriteData::SetColor(FxRawColor col)
 {
-	if(i != -1)
-		quad.v[i].col = col;
-	else
-		quad.v[0].col = quad.v[1].col = quad.v[2].col = quad.v[3].col = col;
+	color = col;
 }
 
-void SpriteData::SetZ(float z, int i)
+void SpriteData::SetZ(float z)
 {
-	if(i != -1)
-		quad.v[i].z = z;
-	else
-		quad.v[0].z = quad.v[1].z = quad.v[2].z = quad.v[3].z = z;
+	this->z = z;
+}
+
+void SpriteData::SetBlendMode(int blend)
+{
+	this->blend = blend;
+}
+
+void SpriteData::SetHotSpot(float x, float y)
+{
+	hotX=x;
+	hotY=y;
+}
+
+FxTextureId SpriteData::GetTexture() const
+{
+	return tex;
+}
+
+void SpriteData::GetTextureRect(float *x, float *y, float *w, float *h) const
+{
+	*x=tx;
+	*y=ty;
+	*w=width;
+	*h=height;
+}
+
+FxRawColor SpriteData::GetColor(int i=0) const
+{
+	return color;
+}
+
+float SpriteData::GetZ(int i=0) const
+{
+	return z;
+}
+
+int SpriteData::GetBlendMode() const
+{
+	return blend;
+}
+
+void SpriteData::GetHotSpot(float *x, float *y) const
+{
+	*x=hotX;
+	*y=hotY;
+}
+
+void SpriteData::GetFlip(bool *bX, bool *bY) const
+{
+	*bX=bXFlip;
+	*bY=bYFlip;
+}
+
+float SpriteData::GetWidth() const
+{
+	return width;
+}
+
+float SpriteData::GetHeight() const
+{
+	return height;
+}
+
+Rect* SpriteData::GetBoundingBox(float x, float y, Rect *rect) const
+{
+	rect->Set(x-hotX, y-hotY, x-hotX+width, y-hotY+height);
+	return rect;
 }
 
 }

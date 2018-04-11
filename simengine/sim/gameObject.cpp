@@ -32,6 +32,11 @@ ObjectType GameObject::getType() const
 	return typeVoid; 
 }
 
+Fx::EntityPtr GameObject::getGraphics()
+{
+	return fx_root.sharedMe();
+}
+
 Scripter * GameObject::getScripter()
 { 
 	return scene ? scene->getScripter() : NULL; 

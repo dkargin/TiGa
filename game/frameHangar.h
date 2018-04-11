@@ -1,22 +1,19 @@
-#ifndef _HANGAR_WINDOW_H_
-#define _HANGAR_WINDOW_H_
+#pragma once
 
 class HangarWindow : public GUI::Object
 {
-public:	
-	SharedPtr<GUI::Button> btnBack, btnEdit, btnRun, btnNext, btnPrevious;
-	SharedPtr<GUI::Frame> viewBlueprints;		/// current blueprints
-	Game * game;
+public:
 	HangarWindow(Game * core);
-
-	size_t currentBlueprint;	/// selected blueprint
 
 	ShipBlueprint * getSelectedBlueprint();
 	void frameBack();			/// back to menu
 	void frameEdit();			
 	void frameRun();
 
-	/// messages from the shipyard
+	std::shared_ptr<GUI::Button> btnBack, btnEdit, btnRun, btnNext, btnPrevious;
+	/// current blueprints
+	std::shared_ptr<GUI::Frame> viewBlueprints;
+	Game * game;
+	/// selected blueprint
+	size_t currentBlueprint;
 };
-
-#endif
