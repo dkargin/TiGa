@@ -1,4 +1,6 @@
 #pragma once
+#include <cstdint>
+#include "basetypes.h"
 
 namespace Fx
 {
@@ -8,11 +10,11 @@ namespace Fx
 	class SoundManager
 	{
 	public:
-		void Effect_Free(HEFFECT effect);
-		HEFFECT Effect_Load(const char* path);
-		HCHANNEL Effect_Play(HEFFECT sound);
-		void Channel_Stop(HCHANNEL channel);
-		Time_t Channel_GetLength(HCHANNEL channel);
-		void Channel_SetVolume(HCHANNEL channel, float volume);
+		void free(HEFFECT effect);
+		HEFFECT load(const char* path);
+		HCHANNEL play(HEFFECT sound);
+		void stop(HCHANNEL channel);
+		Time_t getLength(HCHANNEL channel);
+		void setVolume(HCHANNEL channel, float volume);
 	};
 }

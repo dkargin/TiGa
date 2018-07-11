@@ -64,17 +64,17 @@ namespace GUI
 			int handled;
 		};
 		/// send signal to parents
-		virtual bool	sendSignalUp(Signal &msg);
+		virtual bool sendSignalUp(Signal &msg);
 		/// send signal to children
-		virtual bool	sendSignalDown(Signal &msg);
+		virtual bool sendSignalDown(Signal &msg);
 		/// recieved signal from parent
-		virtual bool	onSignalUp(Signal & msg) { return false;}
+		virtual bool onSignalUp(Signal & msg) { return false;}
 		/// recieved signal from children
-		virtual bool	onSignalDown(Signal & msg) { return false;}
-		virtual void	onRender(Fx::RenderContext* rc) {}
-		virtual void	onUpdate(float dt) {} 
-		virtual void	onSize(float width, float height) {}
-		virtual bool	IsDone() { return true; }
+		virtual bool onSignalDown(Signal & msg) { return false;}
+		virtual void onRender(Fx::RenderContext* rc) {}
+		virtual void onUpdate(float dt) {}
+		virtual void onSize(float width, float height) {}
+		virtual bool IsDone() { return true; }
 	
 		virtual bool sizeFixed() const { return false; }
 		virtual void SetColor(Fx::FxRawColor color) { this->color=color; }
@@ -106,10 +106,11 @@ namespace GUI
 		void updateLayout();
 
 		typedef bool ObjectIterator(const Pointer& object);
-		void findObject(const uiVec & vec, bool forceAll, std::function<ObjectIterator> fn);
+		void findObject(const uiVec& vec, bool forceAll, std::function<ObjectIterator> fn);
+
 	protected:
 		//virtual void runLayout();
-		void calculateLayout(const Pointer & object);			// calculate layout for specific object
+		void calculateLayout(const Pointer& object);			// calculate layout for specific object
 		//virtual Fx::Rect calculateChildrenRect() const;
 		virtual Fx::Rect calculateContentsRect() const;
 		float desiredX, desiredY, desiredWidth, desiredHeight;	// desired control size
@@ -126,6 +127,7 @@ namespace GUI
 		bool visible;											//< if object is visible
 		bool enabled;											//< if object responds to events
 		bool contentsWidth, contentsHeight;						//< auto expand to contents size
+
 	private:
 		bool layoutChanged;	
 		bool layoutIsActive;

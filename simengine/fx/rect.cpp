@@ -7,6 +7,7 @@
 */
 
 #include <algorithm>
+#include <cmath>
 #include "rect.h"
 
 namespace Fx
@@ -26,10 +27,10 @@ Rect::Rect(const Rect & rc)
 
 Rect::Rect() 
 {
-	Clear();
+	clear();
 }
 
-void Rect::Clear()
+void Rect::clear()
 {
 	x1 = 0;
 	x2 = -1;
@@ -37,28 +38,27 @@ void Rect::Clear()
 	y2 = -1;	
 }
 
-bool Rect::IsClean() const
+bool Rect::isClean() const
 {
 	return x1 > x2 && y1 > y2;
 }
 
-void Rect::Set(float _x1, float _y1, float _x2, float _y2)
+void Rect::set(float _x1, float _y1, float _x2, float _y2)
 {
 	x1=_x1; x2=_x2; y1=_y1; y2=_y2; 
 }
 
-void Rect::SetRadius(float x, float y, float r)
+void Rect::setRadius(float x, float y, float r)
 { 
 	x1 = x-r; 
 	x2 = x+r; 
 	y1 = y-r; 
 	y2 = y+r;
 }
-	
 
-void Rect::Encapsulate(float x, float y)
+void Rect::encapsulate(float x, float y)
 {
-	if(IsClean())
+	if(isClean())
 	{
 		x1 = x2 = x;
 		y1 = y2 = y;
@@ -72,23 +72,23 @@ void Rect::Encapsulate(float x, float y)
 	}
 }
 
-bool Rect::TestPoint(float x, float y) const
+bool Rect::testPoint(float x, float y) const
 {
 	if(x>=x1 && x<x2 && y>=y1 && y<y2) return true;
 
 	return false;
 }
 
-bool Rect::Intersect(const Rect *rect) const
+bool Rect::intersect(const Rect& rect) const
 {
-	if(fabs(x1 + x2 - rect->x1 - rect->x2) < (x2 - x1 + rect->x2 - rect->x1))
-		if(fabs(y1 + y2 - rect->y1 - rect->y2) < (y2 - y1 + rect->y2 - rect->y1))
+	if(fabs(x1 + x2 - rect.x1 - rect.x2) < (x2 - x1 + rect.x2 - rect.x1))
+		if(fabs(y1 + y2 - rect.y1 - rect.y2) < (y2 - y1 + rect.y2 - rect.y1))
 			return true;
 
 	return false;
 }
 
-Rect Rect::Intersect(const Rect & a, const Rect & b)
+Rect Rect::intersect(const Rect& a, const Rect& b)
 {
 	Rect result;
 	result.x1 = std::max(a.x1, b.x1);
@@ -98,7 +98,7 @@ Rect Rect::Intersect(const Rect & a, const Rect & b)
 	return result;
 }
 
-Rect Rect::Merge(const Rect & a, const Rect & b)
+Rect Rect::merge(const Rect& a, const Rect& b)
 {
 	Rect result;
 	result.x1 = std::min(a.x1, b.x1);

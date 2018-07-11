@@ -4,12 +4,12 @@ namespace Fx
 {
 
 Entity::Entity()
-{	
+{
 	scale = 1.f;
-	visible = true;	
+	visible = true;
 }
 
-Entity::Entity(const Entity &effect)
+Entity::Entity(const Entity& effect)
 {
 	visible = effect.visible;
 	scale = effect.scale;
@@ -186,7 +186,7 @@ Rect Entity::getClipRect() const
 		if( first )
 			result = childRect;
 		else
-			result = Rect::Merge( result, childRect );
+			result = Rect::merge( result, childRect );
 	}
 	return result;
 }
@@ -228,4 +228,13 @@ void Entity::attach(EntityPtr obj)
 	obj->parent = thisptr;
 }
 
+void Entity::onAttach(Entity* other)
+{
+
+}
+
+void Entity::onDetach(Entity* other)
+{
+
+}
 }

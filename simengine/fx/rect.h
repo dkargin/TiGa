@@ -12,24 +12,24 @@
 namespace Fx 
 {
 
-class Rect
+struct Rect
 {
-public:
 	typedef float Scalar;
-	Scalar	x1, y1, x2, y2;
+	Scalar x1, y1, x2, y2;
 
 	Rect(Scalar _x1, Scalar _y1, Scalar _x2, Scalar _y2);
 	Rect();
-	Rect(const Rect & rc);
+	Rect(const Rect& rc);
 
-	void    Clear();
-	bool    IsClean() const;
-	void	Set(Scalar _x1, Scalar _y1, Scalar _x2, Scalar _y2);
-	void	SetRadius(Scalar x, Scalar y, Scalar r);
-	void	Encapsulate(Scalar x, Scalar y);
-	bool	TestPoint(Scalar x, Scalar y) const;
-	bool	Intersect(const Rect *rect) const;
-	Scalar	width() const
+	void clear();
+	bool isClean() const;
+	void set(Scalar _x1, Scalar _y1, Scalar _x2, Scalar _y2);
+	void setRadius(Scalar x, Scalar y, Scalar r);
+	void encapsulate(Scalar x, Scalar y);
+	bool testPoint(Scalar x, Scalar y) const;
+	bool intersect(const Rect& rect) const;
+
+	Scalar width() const
 	{
 		return x2 - x1;
 	}
@@ -41,14 +41,14 @@ public:
 	{
 		return width() * height();
 	}
-	void	move(Scalar x, Scalar y)
+	void move(Scalar x, Scalar y)
 	{
 		x1 += x;
 		y1 += y;
 		x2 += x;
 		y2 += y;
 	}
-	Rect & operator = (const Rect & rc)
+	Rect& operator = (const Rect& rc)
 	{
 		x1 = rc.x1;
 		y1 = rc.y1;
@@ -56,8 +56,8 @@ public:
 		y2 = rc.y2;
 		return *this;
 	}
-	static Rect Intersect(const Rect & a, const Rect & b);
-	static Rect Merge( const Rect & a, const Rect & b);
+	static Rect intersect(const Rect& a, const Rect& b);
+	static Rect merge(const Rect& a, const Rect& b);
 };
 
 }

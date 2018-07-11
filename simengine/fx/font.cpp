@@ -3,35 +3,28 @@
 ** Copyright (C) 2003-2007, Relish Games
 ** hge.relishgames.com
 **
-** hgeFont helper class implementation
+** Font helper class implementation
 */
 
-#include <hge_old/hgefont.h>
-
-#include "stdafx.h"
+#include "font.h"
 
 const char FNTHEADERTAG[] = "[HGEFONT]";
 const char FNTBITMAPTAG[] = "Bitmap";
 const char FNTCHARTAG[]   = "Char";
 
 
-HGE *hgeFont::hge=0;
-char hgeFont::buffer[1024];
-
-
-hgeFont::hgeFont(const char *szFont, bool bMipmap)
+namespace Fx
 {
-	void	*data;
-	DWORD	size;
-	char	*desc, *pdesc;
-	char	linebuf[256];
-	char	buf[MAX_PATH], *pbuf;
-	char	chr;
-	int		i, x, y, w, h, a, c;
 
-	// Setup variables
-	
-	hge=hgeCreate(HGE_VERSION);
+Font::Font(const char *szFont, bool bMipmap)
+{
+	void *data;
+	DWORD size;
+	char *desc, *pdesc;
+	char linebuf[256];
+	char buf[MAX_PATH], *pbuf;
+	char chr;
+	int i, x, y, w, h, a, c;
 
 	fHeight=0.0f;
 	fScale=1.0f;
@@ -52,7 +45,8 @@ hgeFont::hgeFont(const char *szFont, bool bMipmap)
 	// Load font description
 
 	data=hge->Resource_Load(szFont, &size);
-	if(!data) return;
+	if(!data)
+		return;
 
 	desc = new char[size+1];
 	memcpy(desc,data,size);
@@ -63,7 +57,7 @@ hgeFont::hgeFont(const char *szFont, bool bMipmap)
 	if(strcmp(linebuf, FNTHEADERTAG))
 	{
 		hge->System_Log("Font %s has incorrect format.", szFont);
-		delete[] desc;	
+		delete[] desc;
 		return;
 	}
 
@@ -78,7 +72,8 @@ hgeFont::hgeFont(const char *szFont, bool bMipmap)
 			if(!pbuf) pbuf=strrchr(buf,'/');
 			if(!pbuf) pbuf=buf;
 			else pbuf++;
-			if(!sscanf(linebuf, "Bitmap = %s", pbuf)) continue;
+			if(!sscanf(linebuf, "Bitmap = %s", pbuf))
+				continue;
 
 			hTexture=hge->Texture_Load(buf, 0, bMipmap);
 			if(!hTexture)
@@ -127,8 +122,7 @@ hgeFont::hgeFont(const char *szFont, bool bMipmap)
 	delete[] desc;	
 }
 
-
-hgeFont::~hgeFont()
+Font::~Font()
 {
 	for(int i=0; i<256; i++)
 		if(letters[i]) delete letters[i];
@@ -136,14 +130,16 @@ hgeFont::~hgeFont()
 	hge->Release();
 }
 
-void hgeFont::Render(float x, float y, int align, const char *string)
+void Font::Render(float x, float y, int align, const char *string)
 {
 	int i;
 	float	fx=x;
 
 	align &= HGETEXT_HORZMASK;
-	if(align==HGETEXT_RIGHT) fx-=GetStringWidth(string, false);
-	if(align==HGETEXT_CENTER) fx-=int(GetStringWidth(string, false)/2.0f);
+	if(align==HGETEXT_RIGHT)
+		fx-=GetStringWidth(string, false);
+	if(align==HGETEXT_CENTER)
+		fx-=int(GetStringWidth(string, false)/2.0f);
 
 	while(*string)
 	{
@@ -169,23 +165,22 @@ void hgeFont::Render(float x, float y, int align, const char *string)
 	}
 }
 
-void hgeFont::printf(float x, float y, int align, const char *format, ...)
+void Font::printf(float x, float y, int align, const char *format, ...)
 {
 	char	*pArg=(char *) &format+sizeof(format);
 
 	_vsnprintf(buffer, sizeof(buffer)-1, format, pArg);
 	buffer[sizeof(buffer)-1]=0;
 	//vsprintf(buffer, format, pArg);
-
 	Render(x,y,align,buffer);
 }
 
-void hgeFont::printfb(float x, float y, float w, float h, int align, const char *format, ...)
+void Font::printfb(float x, float y, float w, float h, int align, const char *format, ...)
 {
-	char	chr, *pbuf, *prevword, *linestart;
-	int		i,lines=0;
-	float	tx, ty, hh, ww;
-	char	*pArg=(char *) &format+sizeof(format);
+	char chr, *pbuf, *prevword, *linestart;
+	int i,lines=0;
+	float tx, ty, hh, ww;
+	char *pArg=(char *) &format+sizeof(format);
 
 	_vsnprintf(buffer, sizeof(buffer)-1, format, pArg);
 	buffer[sizeof(buffer)-1]=0;
@@ -257,7 +252,7 @@ void hgeFont::printfb(float x, float y, float w, float h, int align, const char 
 	Render(tx,ty,align,buffer);
 }
 
-float hgeFont::GetStringWidth(const char *string, bool bMultiline) const
+float Font::GetStringWidth(const char *string, bool bMultiline) const
 {
 	int i;
 	float linew, w = 0;
@@ -269,16 +264,19 @@ float hgeFont::GetStringWidth(const char *string, bool bMultiline) const
 		while(*string && *string != '\n')
 		{
 			i=(unsigned char)*string;
-			if(!letters[i]) i='?';
+			if(!letters[i])
+				i='?';
 			if(letters[i])
 				linew += letters[i]->GetWidth() + pre[i] + post[i] + fTracking;
 
 			string++;
 		}
 
-		if(!bMultiline) return linew*fScale*fProportion;
+		if(!bMultiline)
+			return linew*fScale*fProportion;
 
-		if(linew > w) w = linew;
+		if(linew > w)
+			w = linew;
 
 		while (*string == '\n' || *string == '\r') string++;
 	}
@@ -286,7 +284,7 @@ float hgeFont::GetStringWidth(const char *string, bool bMultiline) const
 	return w*fScale*fProportion;
 }
 
-void hgeFont::SetColor(DWORD col)
+void Font::SetColor(FxRawColor col)
 {
 	dwCol = col;
 
@@ -295,7 +293,7 @@ void hgeFont::SetColor(DWORD col)
 			letters[i]->SetColor(col);
 }
 
-void hgeFont::SetZ(float z)
+void Font::SetZ(float z)
 {
 	fZ = z;
 
@@ -304,7 +302,7 @@ void hgeFont::SetZ(float z)
 			letters[i]->SetZ(z);
 }
 
-void hgeFont::SetBlendMode(int blend)
+void Font::SetBlendMode(int blend)
 {
 	nBlend = blend;
 
@@ -313,7 +311,7 @@ void hgeFont::SetBlendMode(int blend)
 			letters[i]->SetBlendMode(blend);
 }
 
-char *hgeFont::_get_line(char *file, char *line)
+char *Font::_get_line(char *file, char *line)
 {
 	int i=0;
 
@@ -330,3 +328,5 @@ char *hgeFont::_get_line(char *file, char *line)
 
 	return file + i;
 }
+
+} // namespace Fx

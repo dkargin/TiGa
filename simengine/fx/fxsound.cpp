@@ -5,7 +5,6 @@ namespace Fx
 {
 
 FxSound::FxSound(SoundManager* sm)
-	:Entity()
 {
 	this->sm = sm;
 	sound = 0;
@@ -25,12 +24,12 @@ FxSound::FxSound(const FxSound &effect)
 
 FxSound::~FxSound()
 {
-	sm->Effect_Free(sound);
+	sm->free(sound);
 }
 
 void FxSound::init(const char * name)
 {
-	sound = sm->Effect_Load(name);
+	sound = sm->load(name);
 	this->name = name;
 }
 
@@ -39,7 +38,7 @@ void FxSound::start( AnimationMode mode )
 	// Start all children
 	Entity::start(mode);
 
-	channel = sm->Effect_Play(sound);
+	channel = sm->play(sound);
 }
 
 void FxSound::stop( bool immediate )
@@ -49,7 +48,7 @@ void FxSound::stop( bool immediate )
 
 	if(channel)
 	{
-		sm->Channel_Stop(channel);
+		sm->stop(channel);
 		channel = 0;
 	}
 }
@@ -57,7 +56,7 @@ void FxSound::stop( bool immediate )
 Time_t FxSound::duration() const
 {
 	if(channel)
-		return sm->Channel_GetLength(channel);
+		return sm->getLength(channel);
 	return 0;
 }
 

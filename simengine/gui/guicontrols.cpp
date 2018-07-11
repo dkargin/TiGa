@@ -39,17 +39,17 @@ Text::Text(const Fx::Rect & rect, FontPtr fnt)
 	text[0]=0;
 }
 
-void Text::SetMode(int _align)
+void Text::setMode(int _align)
 {
 	align=_align;
 }
 
-void Text::SetFont(FontPtr fnt)
+void Text::setFont(FontPtr fnt)
 {
 	font = fnt;
 }
 
-void Text::SetText(const char *_text)
+void Text::setText(const char *_text)
 {
 	strcpy(text, _text);
 }
@@ -64,14 +64,17 @@ void Text::printf(const char *format, ...)
   va_end (args);
 }
 
-void Text::onRender()
+void Text::onRender(Fx::RenderContext* rc)
 {
 	if(font)
 	{
 		float tx, ty;
-		if(align==HGETEXT_RIGHT) tx = windowRect.x2;
-		else if(align==HGETEXT_CENTER) tx = (windowRect.x1 + windowRect.x2)/2.0f;
-		else tx=windowRect.x1;
+		if(align==HGETEXT_RIGHT)
+			tx = windowRect.x2;
+		else if(align==HGETEXT_CENTER)
+			tx = (windowRect.x1 + windowRect.x2)/2.0f;
+		else
+			tx=windowRect.x1;
 
 		ty = windowRect.y1+(windowRect.y2 - windowRect.y1 - font->GetHeight())/2.0f;
 
@@ -113,9 +116,9 @@ void Button::onRender(Fx::RenderContext* rc)
 
 void Button::setText(const char * msg, FontPtr fnt)
 {
-	text->SetFont(fnt);
-	text->SetText(msg);
-	text->SetMode(HGETEXT_CENTER);
+	text->setFont(fnt);
+	text->setText(msg);
+	text->setMode(HGETEXT_CENTER);
 }
 
 bool Button::onMouse(int mouseId, int key, int state, const Button::uiVec & pos)
@@ -395,8 +398,8 @@ Listbox::Listbox(int _id, const Fx::Rect & rect, Fx::Font *fnt, Fx::FxRawColor t
 	//bVisible = true;
 	//bEnabled = true;
 	font=fnt;
-	sprHighlight = new Fx::SpriteData(0, 0, 0, (rect.x2 - rect.x1), fnt->GetHeight());
-	sprHighlight->SetColor(hColor);
+	sprHighlight = Fx::SpriteData(0, 0, 0, 0, 0, (rect.x2 - rect.x1), fnt->GetHeight());
+	sprHighlight.SetColor(hColor);
 	textColor=tColor;
 	texthilColor=thColor;
 	pItems=0;
@@ -410,7 +413,7 @@ Listbox::Listbox(int _id, const Fx::Rect & rect, Fx::Font *fnt, Fx::FxRawColor t
 Listbox::~Listbox()
 {
 	Clear();
-	if(sprHighlight) delete sprHighlight;
+	// TODO: Should free texture
 }
 
 
@@ -488,7 +491,7 @@ void Listbox::onRender(Fx::RenderContext* rc)
 		if(nTopItem+i == nSelectedItem)
 		{
 
-			rc->Render(sprHighlight, windowRect.x1,windowRect.y1+i*font->GetHeight());
+			rc->Render(&sprHighlight, windowRect.x1,windowRect.y1+i*font->GetHeight());
 			font->SetColor(texthilColor);
 		}
 		else

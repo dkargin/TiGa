@@ -22,7 +22,7 @@ There are some libraries, that are being stripped away
 		- implement proper wrappers for resource access: RenderContext, PolyBatch
 	- add proper HGE version. 			HGE is not going to work properly. We will move to SDL
 	- fix sim					In progress
-	- fix game
+	- fix game					Seems to be pointless to fix
 	- replace HGE stuff by SDL
 		- TextureManager
 		- Image loading

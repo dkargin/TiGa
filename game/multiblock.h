@@ -116,7 +116,7 @@ public:
 
 	struct LinkRef
 	{
-		Link * link;
+		Link* link;
 		int x, y;
 		AdjacentDirection dir;
 	};
@@ -174,6 +174,7 @@ public:
 	LinkRef getLinkRef( size_t linkIndex ) const
 	{
 		LinkRef result = {NULL, 0, 0, DirInvalid};
+
 		if( linkIndex >= 0 && linkIndex < MaxLinks )
 		{
 			result.link = (Link*)&links[linkIndex];
@@ -356,7 +357,7 @@ public:
 						Link & link = links[i];
 						if( link.state == Moving )
 						{
-							LinkRef & linkRef = getLinkRef(i);
+							LinkRef linkRef = getLinkRef(i);
 							fractured->createLink( offsetX + (linkRef.x - averageX),  offsetY + (linkRef.y - averageY), linkRef.dir);
 							onLinkDestroyed( linkRef.link, linkRef.x, linkRef.y, linkRef.dir, true);
 							link.state = Free;

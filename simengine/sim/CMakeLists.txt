@@ -26,6 +26,7 @@ add_library(sim
 	
 	debugDraw.cpp
 	client.cpp
+	luabox/scripter.cpp
 )
 
 target_link_libraries(sim lua)

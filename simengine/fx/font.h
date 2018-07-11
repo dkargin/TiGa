@@ -23,7 +23,7 @@ namespace Fx
 #define HGETEXT_VERTMASK	0x0C
 
 /*
-** HGE Font class
+** Font class
 */
 class Font
 {
@@ -31,57 +31,58 @@ public:
 	Font(const char *filename, bool bMipmap=false);
 	~Font();
 
-	void		Render(float x, float y, int align, const char *string);
-	void		printf(float x, float y, int align, const char *format, ...);
-	void		printfb(float x, float y, float w, float h, int align, const char *format, ...);
+	void Render(float x, float y, int align, const char *string);
+	void printf(float x, float y, int align, const char *format, ...);
+	void printfb(float x, float y, float w, float h, int align, const char *format, ...);
 
-	void		SetColor(FxRawColor col);
-	void		SetZ(float z);
-	void		SetBlendMode(int blend);
-	void		SetScale(float scale) {fScale=scale;}
-	void		SetProportion(float prop) { fProportion=prop; }
-	void		SetRotation(float rot) {fRot=rot;}
-	void		SetTracking(float tracking) {fTracking=tracking;}
-	void		SetSpacing(float spacing) {fSpacing=spacing;}
+	void SetColor(FxRawColor col);
+	void SetZ(float z);
+	void SetBlendMode(int blend);
+	void SetScale(float scale) {fScale=scale;}
+	void SetProportion(float prop) { fProportion=prop; }
+	void SetRotation(float rot) {fRot=rot;}
+	void SetTracking(float tracking) {fTracking=tracking;}
+	void SetSpacing(float spacing) {fSpacing=spacing;}
 
-	FxRawColor	GetColor() const {return dwCol;}
-	float		GetZ() const {return fZ;}
-	int			GetBlendMode() const {return nBlend;}
-	float		GetScale() const {return fScale;}
-	float		GetProportion() const { return fProportion; }
-	float		GetRotation() const {return fRot;}
-	float		GetTracking() const {return fTracking;}
-	float		GetSpacing() const {return fSpacing;}
+	FxRawColor GetColor() const {return dwCol;}
+	float GetZ() const {return fZ;}
+	int GetBlendMode() const {return nBlend;}
+	float GetScale() const {return fScale;}
+	float GetProportion() const { return fProportion; }
+	float GetRotation() const {return fRot;}
+	float GetTracking() const {return fTracking;}
+	float GetSpacing() const {return fSpacing;}
 
-	SpriteData*	GetSprite(char chr) const { return letters[(unsigned char)chr]; }
-	float		GetPreWidth(char chr) const { return pre[(unsigned char)chr]; }
-	float		GetPostWidth(char chr) const { return post[(unsigned char)chr]; }
-	float		GetHeight() const { return fHeight; }
-	float		GetStringWidth(const char *string, bool bMultiline=true) const;
+	SpriteData* GetSprite(char chr) const { return letters[(unsigned char)chr]; }
+	float GetPreWidth(char chr) const { return pre[(unsigned char)chr]; }
+	float GetPostWidth(char chr) const { return post[(unsigned char)chr]; }
+	float GetHeight() const { return fHeight; }
+	float GetStringWidth(const char *string, bool bMultiline=true) const;
 
 private:
 	Font();
 	Font(const Font &fnt);
-	Font&	operator= (const Font &fnt);
+	Font& operator= (const Font &fnt);
 
-	char*		_get_line(char *file, char *line);
+	char* _get_line(char *file, char *line);
 
-	static char	buffer[1024];
+	FxTextureId hTexture;
+	SpriteData* letters[256];
+	float pre[256];
+	float post[256];
+	float fHeight;
+	float fScale;
+	float fProportion;
+	float fRot;
+	float fTracking;
+	float fSpacing;
 
-	FxTextureId	hTexture;
-	SpriteData*	letters[256];
-	float		pre[256];
-	float		post[256];
-	float		fHeight;
-	float		fScale;
-	float		fProportion;
-	float		fRot;
-	float		fTracking;
-	float		fSpacing;
+	FxRawColor dwCol;
+	float fZ;
+	int nBlend;
 
-	FxRawColor		dwCol;
-	float		fZ;
-	int			nBlend;
+	// Buffer for string operations. Will we overflow it?
+	char buffer[1024];
 };
 
 } // namespace Fx

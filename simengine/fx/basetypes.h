@@ -146,13 +146,23 @@ struct UpdateContext
 	time_point system_time;
 	// Local time point, calculated from the start of application or game logic
 	time_point local_time;
+
 	// Delta time from last update, in seconds
 	std::chrono::duration<float> delta;	// delta time
 	// Index of current frame
 	int64_t frame;
 
-	float getDelta() const;
-	int32_t getDeltaMs() const;
+	// Get time from last frame, in seconds
+	float getDelta() const
+	{
+		return delta.count();
+	}
+
+	// Get delta time in milliseconds
+	int32_t getDeltaMs() const
+	{
+		return std::chrono::duration_cast<std::chrono::milliseconds>(delta).count();
+	}
 };
 
 }

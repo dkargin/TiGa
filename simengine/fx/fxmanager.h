@@ -69,35 +69,9 @@ public:
 	void clearObjects();												// release manufactured list
 	void clearResources();												// release all resources
 
-	Record & getTexture(const char *texture);							//
+	Record& getTexture(const char *texture);							//
 	int freeTexture(FxTextureId texture);									//
 
-
-
-	// Storage pool for scene objects
-	class Storage
-	{
-	public:
-		virtual ~Storage(){};
-		virtual bool allocateRaw(Entity *& effect) = 0;
-		virtual bool allocateRaw(FxSound *& effect) = 0;
-		virtual bool allocateRaw(FxSprite *& effect) = 0;
-		virtual bool allocateRaw(FxAnimation2 *& effect) = 0;
-		virtual bool allocateRaw(FxParticles *& effect) = 0;
-	};
-
-#ifdef FUCK_THIS
-	std::shared_ptr<Storage> storage;
-
-	// TODO: move it to source
-	template< class FxType> FxType * create()
-	{
-		FxType * result = NULL;
-		storage->allocateRaw(result);
-		new( result ) FxType(this);
-		return result;
-	}
-#endif
 	typedef std::shared_ptr<FxManager> SharedPtr;
 	typedef std::weak_ptr<FxManager> WeakPtr;
 protected:

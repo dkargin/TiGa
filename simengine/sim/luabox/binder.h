@@ -16,7 +16,7 @@ namespace LuaBox
 	const char wrapperEntry[]="_wrapper";
 }
 
-#include "../luabox/bindTypes.h"
+#include "bind_base.h"
 #include "../luabox/bindMethodHolder.h"
 #include "../luabox/bindFields.h"
 
@@ -175,7 +175,7 @@ namespace LuaBox
 
 template<class Base> class LuaWrap: public LuaBox::LuaWrapBase
 {	
-	struct LuaTypeRef: public LuaBox::TypeIO<Base&>
+	struct LuaTypeRef: public LuaBox::TypeBindings<Base&>
 	{
 		typedef typename TypeIO<Base&>::value_type value_type;
 		value_type get(lua_State *l,int i)
@@ -195,7 +195,7 @@ template<class Base> class LuaWrap: public LuaBox::LuaWrapBase
 			return 1;
 		}
 	}*typeRef;
-	struct LuaTypeCRef: public LuaBox::TypeIO<const Base&>
+	struct LuaTypeCRef: public LuaBox::TypeBindings<const Base&>
 	{
 		typedef typename TypeIO<const Base&>::value_type value_type;
 		value_type get(lua_State *l,int i)
@@ -215,7 +215,7 @@ template<class Base> class LuaWrap: public LuaBox::LuaWrapBase
 			return 1;
 		}
 	}*typeCRef;
-	struct LuaTypePtr: public LuaBox::TypeIO<Base*>
+	struct LuaTypePtr: public LuaBox::TypeBindings<Base*>
 	{
 		value_type get(lua_State *l,int i)
 		{	

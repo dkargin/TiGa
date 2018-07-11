@@ -57,15 +57,11 @@ FxAnimation2::FxAnimation2(FxManager *manager, FxTextureId tex, float x, float y
 	:Entity()
 	,fps(1.0f)
 	,mode(AnimationRepeat)
-	,current(0.0f)
-	,crop(false)
-	,run(false)
 	,drawRect(false)
-	,sprite(tex,x,y,w,h)	
-	,tiled(false)
-	,cropWidth(1.f)
-	,cropHeight(1.f)
-{}
+	,sprite(tex,0,0,x,y,w,h)
+	,manager(manager)
+{
+}
 
 FxAnimation2::FxAnimation2(const FxAnimation2 &effect)
 	:Entity(effect)
@@ -77,9 +73,16 @@ FxAnimation2::FxAnimation2(const FxAnimation2 &effect)
 	,width(effect.width),height(effect.height)
 	,cropWidth(effect.cropWidth),cropHeight(effect.cropHeight),crop(effect.crop),drawRect(false),tiled(effect.tiled)
 	,sprite(effect.sprite)
-{}
+{
+	manager = effect.manager;
+	tiledWidth = effect.tiledWidth;
+	tiledHeight = effect.tiledHeight;
+}
 
-FxAnimation2::~FxAnimation2(){}
+FxAnimation2::~FxAnimation2()
+{
+	// TODO: Release texture data
+}
 
 int FxAnimation2::addFrame(const Rect &rect)
 {
@@ -133,7 +136,8 @@ void FxAnimation2::addBlendMode(int mode)
 
 void FxAnimation2::setBlendMode(int mode)
 {
-	if(!valid())return;
+	if(!valid())
+		return;
 	sprite.SetBlendMode(mode);
 }
 
@@ -146,7 +150,8 @@ void FxAnimation2::setSize(float w,float h,bool mid)
 {
 	width=w;
 	height=h;
-	if(!valid())return;
+	if(!valid())
+		return;
 	if(mid)
 		sprite.SetHotSpot(w/2,h/2);
 	else

@@ -2,7 +2,7 @@
 #define LUABOX_BIND_METHOD_HOLDER
 namespace LuaBox
 {
-	template<class Type> inline TypeIO<Type> * getLuaType(TypeIO<Type> *newptr=NULL);
+	template<class Type> inline TypeBindings<Type> * getLuaType(TypeBindings<Type> *newptr=NULL);
 	template<class Type> inline bool setWrapMeta(lua_State *l);
 	// creates callable metauserdata. Would be <userdata> on LUA stack top
 	template<class Holder> static bool make_holder(Holder *holder,lua_State *vm)

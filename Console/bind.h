@@ -10,7 +10,7 @@ extern swig_type_info * swig_types[];
 #define SWIGTYPE_p_Derived swig_types[0]
 namespace LuaBox
 {
-	template<> struct TypeIO<Derived *>
+	template<> struct TypeBindings<Derived *>
 	{
 		typedef Derived * value_type;
 		static bool valid(Stream * l, int i)
@@ -31,7 +31,7 @@ namespace LuaBox
 #define SWIGTYPE_p_SharedPtrT_Derived_t swig_types[1]
 namespace LuaBox
 {
-	template<> struct TypeIO<SharedPtr< Derived > *>
+	template<> struct TypeBindings<SharedPtr< Derived > *>
 	{
 		typedef SharedPtr< Derived > * value_type;
 		static bool valid(Stream * l, int i)
@@ -52,7 +52,7 @@ namespace LuaBox
 #define SWIGTYPE_p_SharedPtrT_TestClass_t swig_types[2]
 namespace LuaBox
 {
-	template<> struct TypeIO<SharedPtr< TestClass > *>
+	template<> struct TypeBindings<SharedPtr< TestClass > *>
 	{
 		typedef SharedPtr< TestClass > * value_type;
 		static bool valid(Stream * l, int i)
@@ -74,7 +74,7 @@ namespace LuaBox
 #define SWIGTYPE_p_TestClass swig_types[4]
 namespace LuaBox
 {
-	template<> struct TypeIO<TestClass *>
+	template<> struct TypeBindings<TestClass *>
 	{
 		typedef TestClass * value_type;
 		static bool valid(Stream * l, int i)

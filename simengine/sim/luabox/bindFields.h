@@ -3,7 +3,7 @@
 
 namespace LuaBox
 {
-	template<class Type> inline TypeIO<Type> * getLuaType(TypeIO<Type> *newptr);
+	template<class Type> inline TypeBindings<Type> * getLuaType(TypeBindings<Type> *newptr);
 }
 
 struct Field
@@ -196,11 +196,11 @@ struct Field
 		bool write(Stream *stream,Target *base)
 		{	
 			//LuaBox::TypeIO<Type> *serialiser=LuaBox::getLuaType<Type>();
-			return LuaBox::TypeIO<Type>::write(stream,reference(base));
+			return LuaBox::TypeBindings<Type>::write(stream,reference(base));
 		}
 		bool read(Stream *stream,Target *base)
 		{	
-			reference(base)=LuaBox::TypeIO<Type>::get(stream,-1);
+			reference(base)=LuaBox::TypeBindings<Type>::get(stream,-1);
 			return true;
 		}
 	};
@@ -217,7 +217,7 @@ struct Field
 		}	
 		bool write(Stream *stream,Target *base)
 		{	
-			LuaBox::TypeIO<Type&> *serialiser=LuaBox::getLuaType<Type&>();
+			LuaBox::TypeBindings<Type&> *serialiser=LuaBox::getLuaType<Type&>();
 			return serialiser->write(stream,reference(base));
 		}
 		bool read(Stream *stream,Target *base)

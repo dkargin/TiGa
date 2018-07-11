@@ -286,7 +286,7 @@ void ObjectManager::addListener(ObjectManager::Listener * listener)
 	listeners.insert(listener);
 }
 
-void ObjectManager::removeListener(ObjectManager::Listener * listener)
+void ObjectManager::removeListener(ObjectManager::Listener* listener)
 {
 	listeners.erase(listener);
 }

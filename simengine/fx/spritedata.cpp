@@ -6,70 +6,50 @@
 ** SpriteData helper class implementation
 */
 
-#include "stdafx.h"
-#include <math.h>
-#include <spritedata.h>
+#include <cmath>
+#include "spritedata.h"
 
 namespace Fx
 {
 
-SpriteData::SpriteData(FxTextureId texture, float texx, float texy, float w, float h)
+SpriteData::SpriteData(FxTextureId texture, int texWidth_, int texHeight_, float texx, float texy, float w, float h)
 {
 	float texx1, texy1, texx2, texy2;
-
-	//hge=hgeCreate(HGE_VERSION);
 	
-	tx=texx; ty=texy;
-	width=w; height=h;
+	src.x1 = texx;
+	src.y1 = texy;
+	src.x2 = texx + w;
+	src.y2 = texy + h;
 
 	if(texture)
 	{
-		tex_width = (float)hge->Texture_GetWidth(texture);
-		tex_height = (float)hge->Texture_GetHeight(texture);
+		this->texWidth = texWidth_;
+		this->texHeight = texHeight_;
 	}
 	else
 	{
-		tex_width = 1.0f;
-		tex_height = 1.0f;
+		texWidth = 1.0f;
+		texHeight = 1.0f;
 	}
+
+	src.set(texx, texy, texx+w, texy+h);
 
 	hotX=0;
 	hotY=0;
-	bXFlip=false;
-	bYFlip=false;
-	bHSFlip=false;
 	tex=texture;
 
-	texx1=texx/tex_width;
-	texy1=texy/tex_height;
-	texx2=(texx+w)/tex_width;
-	texy2=(texy+h)/tex_height;
+	texx1=texx/texWidth;
+	texy1=texy/texHeight;
+	texx2=(texx+w)/texWidth;
+	texy2=(texy+h)/texHeight;
 
-	quad.v[0].tx = texx1; quad.v[0].ty = texy1;
-	quad.v[1].tx = texx2; quad.v[1].ty = texy1;
-	quad.v[2].tx = texx2; quad.v[2].ty = texy2;
-	quad.v[3].tx = texx1; quad.v[3].ty = texy2;
-
-	quad.v[0].z = 
-	quad.v[1].z = 
-	quad.v[2].z = 
-	quad.v[3].z = 0.5f;
-	
-	quad.v[0].col = 
-	quad.v[1].col = 
-	quad.v[2].col = 
-	quad.v[3].col = 0xffffffff;
-
-	quad.blend=BLEND_DEFAULT;
+	blend = BLEND_DEFAULT;
+	z = 0;
+	color = 0xffffffff;
+	blend = 0;
 }
 
-SpriteData::SpriteData(const SpriteData &spr)
-{
-	// TODO: Implement
-	//memcpy(this, &spr, sizeof(SpriteData));
-	//hge=hgeCreate(HGE_VERSION);
-}
-
+#ifdef DEPRECATED_CODE
 void SpriteData::Render(float x, float y)
 {
 	float tempx1, tempy1, tempx2, tempy2;
@@ -149,102 +129,66 @@ void SpriteData::Render4V(float x0, float y0, float x1, float y1, float x2, floa
 
 	hge->Gfx_RenderQuad(&quad);
 }
+#endif
 
-
-hgeRect* SpriteData::GetBoundingBoxEx(float x, float y, float rot, float hscale, float vscale, hgeRect *rect) const
+Rect* SpriteData::GetBoundingBoxEx(float x, float y, float rot, float hscale, float vscale, Rect *rect) const
 {
 	float tx1, ty1, tx2, ty2;
 	float sint, cost;
 
-	rect->Clear();
+	rect->clear();
 	
 	tx1 = -hotX*hscale;
 	ty1 = -hotY*vscale;
-	tx2 = (width-hotX)*hscale;
-	ty2 = (height-hotY)*vscale;
+	tx2 = (src.width()-hotX)*hscale;
+	ty2 = (src.height()-hotY)*vscale;
 
 	if (rot != 0.0f)
 	{
 		cost = cosf(rot);
 		sint = sinf(rot);
 			
-		rect->Encapsulate(tx1*cost - ty1*sint + x, tx1*sint + ty1*cost + y);	
-		rect->Encapsulate(tx2*cost - ty1*sint + x, tx2*sint + ty1*cost + y);	
-		rect->Encapsulate(tx2*cost - ty2*sint + x, tx2*sint + ty2*cost + y);	
-		rect->Encapsulate(tx1*cost - ty2*sint + x, tx1*sint + ty2*cost + y);	
+		rect->encapsulate(tx1*cost - ty1*sint + x, tx1*sint + ty1*cost + y);	
+		rect->encapsulate(tx2*cost - ty1*sint + x, tx2*sint + ty1*cost + y);	
+		rect->encapsulate(tx2*cost - ty2*sint + x, tx2*sint + ty2*cost + y);	
+		rect->encapsulate(tx1*cost - ty2*sint + x, tx1*sint + ty2*cost + y);	
 	}
 	else
 	{
-		rect->Encapsulate(tx1 + x, ty1 + y);
-		rect->Encapsulate(tx2 + x, ty1 + y);
-		rect->Encapsulate(tx2 + x, ty2 + y);
-		rect->Encapsulate(tx1 + x, ty2 + y);
+		rect->encapsulate(tx1 + x, ty1 + y);
+		rect->encapsulate(tx2 + x, ty1 + y);
+		rect->encapsulate(tx2 + x, ty2 + y);
+		rect->encapsulate(tx1 + x, ty2 + y);
 	}
 
 	return rect;
 }
 
-void SpriteData::SetFlip(bool bX, bool bY, bool bHotSpot)
-{
-	float tx, ty;
-
-	if(bHSFlip && bXFlip) hotX = width - hotX;
-	if(bHSFlip && bYFlip) hotY = height - hotY;
-
-	bHSFlip = bHotSpot;
-	
-	if(bHSFlip && bXFlip) hotX = width - hotX;
-	if(bHSFlip && bYFlip) hotY = height - hotY;
-
-	if(bX != bXFlip)
-	{
-		tx=quad.v[0].tx; quad.v[0].tx=quad.v[1].tx; quad.v[1].tx=tx;
-		ty=quad.v[0].ty; quad.v[0].ty=quad.v[1].ty; quad.v[1].ty=ty;
-		tx=quad.v[3].tx; quad.v[3].tx=quad.v[2].tx; quad.v[2].tx=tx;
-		ty=quad.v[3].ty; quad.v[3].ty=quad.v[2].ty; quad.v[2].ty=ty;
-
-		bXFlip=!bXFlip;
-	}
-
-	if(bY != bYFlip)
-	{
-		tx=quad.v[0].tx; quad.v[0].tx=quad.v[3].tx; quad.v[3].tx=tx;
-		ty=quad.v[0].ty; quad.v[0].ty=quad.v[3].ty; quad.v[3].ty=ty;
-		tx=quad.v[1].tx; quad.v[1].tx=quad.v[2].tx; quad.v[2].tx=tx;
-		ty=quad.v[1].ty; quad.v[1].ty=quad.v[2].ty; quad.v[2].ty=ty;
-
-		bYFlip=!bYFlip;
-	}
-}
-
-
-void SpriteData::SetTexture(HTEXTURE tex)
+void SpriteData::SetTexture(FxTextureId tex_, int width, int height)
 {
 	float tx1,ty1,tx2,ty2;
-	float tw,th;
 
-	quad.tex=tex;
+	tex = tex_;
 
 	if(tex)
 	{
-		tw = (float)hge->Texture_GetWidth(tex);
-		th = (float)hge->Texture_GetHeight(tex);
+		texWidth = width;
+		texHeight = width;
 	}
 	else
 	{
-		tw = 1.0f;
-		th = 1.0f;
+		texWidth = 1.0f;
+		texHeight = 1.0f;
 	}
 
-	if(tw!=tex_width || th!=tex_height)
+	/*
+	if(tw!=texWidth || th!=texHeight)
 	{
-		tx1=quad.v[0].tx*tex_width;
-		ty1=quad.v[0].ty*tex_height;
-		tx2=quad.v[2].tx*tex_width;
-		ty2=quad.v[2].ty*tex_height;
-
-		tex_width=tw;
-		tex_height=th;
+		// Doing recalculation for new size?
+		tx1=quad.v[0].tx*texWidth;
+		ty1=quad.v[0].ty*texHeight;
+		tx2=quad.v[2].tx*texWidth;
+		ty2=quad.v[2].ty*texHeight;
 
 		tx1/=tw; ty1/=th;
 		tx2/=tw; ty2/=th;
@@ -252,8 +196,9 @@ void SpriteData::SetTexture(HTEXTURE tex)
 		quad.v[0].tx=tx1; quad.v[0].ty=ty1; 
 		quad.v[1].tx=tx2; quad.v[1].ty=ty1; 
 		quad.v[2].tx=tx2; quad.v[2].ty=ty2; 
-		quad.v[3].tx=tx1; quad.v[3].ty=ty2; 
+		quad.v[3].tx=tx1; quad.v[3].ty=ty2;
 	}
+	*/
 }
 
 
@@ -262,26 +207,28 @@ void SpriteData::SetTextureRect(float x, float y, float w, float h, bool adjSize
 	float tx1, ty1, tx2, ty2;
 	bool bX,bY,bHS;
 
-	tx=x;
-	ty=y;
+	src.x1 = x;
+	src.y1 = y;
 	
 	if(adjSize)
 	{
-		width=w;
-		height=h;
+		//width = w;
+		//height = h;
 	}
 
-	tx1=tx/tex_width; ty1=ty/tex_height;
-	tx2=(tx+w)/tex_width; ty2=(ty+h)/tex_height;
+	tx1=src.x1/texWidth;
+	ty1=src.y1/texHeight;
+	tx2=(src.x1+w)/texWidth;
+	ty2=(src.y1+h)/texHeight;
 
+	/*
 	quad.v[0].tx=tx1; quad.v[0].ty=ty1; 
 	quad.v[1].tx=tx2; quad.v[1].ty=ty1; 
 	quad.v[2].tx=tx2; quad.v[2].ty=ty2; 
 	quad.v[3].tx=tx1; quad.v[3].ty=ty2; 
 
-	bX=bXFlip; bY=bYFlip; bHS=bHSFlip;
 	bXFlip=false; bYFlip=false;
-	SetFlip(bX,bY,bHS);
+	*/
 }
 
 
@@ -311,20 +258,17 @@ FxTextureId SpriteData::GetTexture() const
 	return tex;
 }
 
-void SpriteData::GetTextureRect(float *x, float *y, float *w, float *h) const
+Rect SpriteData::GetTextureRect() const
 {
-	*x=tx;
-	*y=ty;
-	*w=width;
-	*h=height;
+	return src;
 }
 
-FxRawColor SpriteData::GetColor(int i=0) const
+FxRawColor SpriteData::GetColor() const
 {
 	return color;
 }
 
-float SpriteData::GetZ(int i=0) const
+float SpriteData::GetZ() const
 {
 	return z;
 }
@@ -340,26 +284,21 @@ void SpriteData::GetHotSpot(float *x, float *y) const
 	*y=hotY;
 }
 
-void SpriteData::GetFlip(bool *bX, bool *bY) const
-{
-	*bX=bXFlip;
-	*bY=bYFlip;
-}
-
 float SpriteData::GetWidth() const
 {
-	return width;
+	return src.width();
 }
 
 float SpriteData::GetHeight() const
 {
-	return height;
+	return src.height();
 }
 
 Rect* SpriteData::GetBoundingBox(float x, float y, Rect *rect) const
 {
-	rect->Set(x-hotX, y-hotY, x-hotX+width, y-hotY+height);
+	rect->set(x-hotX, y-hotY, x-hotX+src.width(), y-hotY+src.height());
 	return rect;
 }
 
 }
+

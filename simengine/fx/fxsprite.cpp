@@ -1,5 +1,6 @@
 #include "fxobjects.h"
 #include "rendercontext.h"
+#include "fxmanager.h"
 
 namespace Fx
 {
@@ -7,23 +8,24 @@ namespace Fx
 // Sprite
 ///////////////////////////////////////////////////////
 FxSprite::FxSprite(FxManager *manager, FxTextureId texture, float texx, float texy, float w, float h)
-	:sprite(texture, texx, texy, w, h), scale_h(1.f)
+	:sprite(texture, 0, 0, texx, texy, w, h), scale_h(1.f), manager(manager)
 {
 }
 
 FxSprite::FxSprite(const FxSprite &spr)
-	:Entity(spr), sprite(spr.sprite), scale_h(spr.scale_h)
+	:Entity(spr), sprite(spr.sprite), scale_h(spr.scale_h), manager(spr.manager)
 {
 }
 
 FxSprite::FxSprite(FxManager * manager)
-	:sprite(0, 0, 0, 0, 0), scale_h(1.f)
+	:sprite(0, 0, 0, 0, 0, 0, 0), scale_h(1.f), manager(manager)
 {
 }
 
 FxSprite::~FxSprite()
 {
-	// TODO: release acquired texture object
+	if (manager)
+		manager->freeTexture(sprite.GetTexture());
 }
 
 bool FxSprite::valid() const
@@ -53,8 +55,8 @@ void FxSprite::setBlendMode(int mode)
 void FxSprite::flipHor()
 {
 	bool flipX = false, flipY = false;
-	sprite.GetFlip(&flipX, &flipY);
-	sprite.SetFlip(!flipX, flipY);
+	//sprite.GetFlip(&flipX, &flipY);
+	//sprite.SetFlip(!flipX, flipY);
 }
 
 Rect FxSprite::getLocalRect() const
@@ -71,8 +73,9 @@ Rect FxSprite::getLocalRect() const
 void FxSprite::flipVer()
 {
 	bool flipX = false, flipY = false;
-	sprite.GetFlip(&flipX, &flipY);
-	sprite.SetFlip(flipX, !flipY);
+	// TODO: implement
+	//sprite.GetFlip(&flipX, &flipY);
+	//sprite.SetFlip(flipX, !flipY);
 }
 
 void FxSprite::render(RenderContext* context, const Pose& base)
@@ -81,7 +84,8 @@ void FxSprite::render(RenderContext* context, const Pose& base)
 	Pose p = base*getPose();
 
 	int w = sprite.GetWidth();
-	int h = sprite.GetHeight();	
+	int h = sprite.GetHeight();
+
 	context->drawSprite(&sprite, p, w*0.5*scale, h*0.5*scale_h*scale, sprite.GetTexture() == 0);
 }
 

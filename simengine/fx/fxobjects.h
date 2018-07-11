@@ -130,7 +130,7 @@ public:
 	float getZ() const;
 	virtual void setPose(float x,float y,float r);
 	virtual void setScale(float s);
-	virtual float getScale() const;	
+	virtual float getScale() const;
 	virtual void setPose(const Pose::pos &v,const Pose::rot &r);
 	virtual void setPose(const Pose &p);
 	virtual const Pose & getPose() const;			// get pose relative to parent object
@@ -171,7 +171,6 @@ protected:
 	Pose pose;
 	float scale;
 	bool visible;
-
 	// Container structure stuff
 public:
 	typedef std::list<EntityPtr> Container;
@@ -244,18 +243,17 @@ protected:
 class FxSprite: public Entity
 {
 protected:
-	FxSprite();
-	FxSprite(FxManager *manager, FxTextureId tex, float x, float y, float w, float h);
+	FxSprite(FxManager* manager, FxTextureId tex, float x, float y, float w, float h);
 
 public:
 	FX_TYPE(FxSprite, EffectType::fxSprite);
 
 	//FxSprite(hgeResourceManager &manager,const char *name);
-	FxSprite(FxManager * manager);
+	FxSprite(FxManager* manager);
 
-	FxSprite(const FxSprite &spr);
+	FxSprite(const FxSprite& spr);
 	~FxSprite();
-	
+
 	void setBlendMode(int mode);
 	void addBlendMode(int mode);
 	void flipHor();
@@ -264,11 +262,12 @@ public:
 	virtual Rect getLocalRect() const;
 	virtual bool valid() const override;
 	virtual void update(float dt) override;
-	virtual void render(RenderContext* manager, const Pose &base) override;
+	virtual void render(RenderContext* manager, const Pose& base) override;
 
 protected:
 	SpriteData sprite;
-	float scale_h;	
+	float scale_h;
+	FxManager *manager = nullptr;
 };
 
 /**
@@ -279,8 +278,8 @@ protected:
 //
 class FxAnimation2: public Entity
 {
-	friend class FxManager;	
-public:	
+	friend class FxManager;
+public:
 	FX_TYPE(FxAnimation2, EffectType::fxAnimation2);
 
 	FxAnimation2(FxManager* manager);
@@ -303,22 +302,26 @@ public:
 	void setSize(float w,float h,bool mid=true);	// set tile size
 	void xTile(float length);						// enable tiled mode
 	bool isTiled()const;
-	
-	float cropWidth,cropHeight;	
-	bool crop;
-	bool drawRect;				//< draw bounding rect
-	float getWidth();			//< returns sprite width
-	float getHeight();		//< returns sprite height
-protected:	
+
+	float cropWidth = 1.0, cropHeight = 1.0;
+	bool crop = false;
+	bool drawRect; //< draw bounding rect
+
+	float getWidth(); //< returns sprite width
+	float getHeight(); //< returns sprite height
+
+protected:
 	SpriteData sprite;
-	float width,height;						//< world sprite size
-	float tiledWidth, tiledHeight;	//< Number of tiles to be rendered
-	bool tiled;									//< if tiled mode is active. Turned off by default
+	float width = 0,height = 0;							//< world sprite size
+	float tiledWidth = 0, tiledHeight = 0;	//< Number of tiles to be rendered
+	bool tiled=false;							//< if tiled mode is active. Turned off by default
 	std::vector<Rect> frames;		//< all frames
 	float fps;									//< frame rate
-	float current;							//< current frame
-	bool run;										//< is animation active
+	float current = 0.0;							//< current frame
+	bool run = false;										//< is animation active
 	AnimationMode mode;
+	// We need to keep a reference to a manager to release resources properly
+	FxManager* manager = nullptr;
 };
 
 }	// namespace Fx

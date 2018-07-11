@@ -12,7 +12,6 @@ GameObject::GameObject(GameObject* base)
 	prototype = base;
 	this->scene = scene;
 	maxHealth = 100;
-
 	attachBody(body.create());
 }
 

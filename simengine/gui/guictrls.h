@@ -7,7 +7,6 @@
 #include "fx/fxobjects.h"
 #include "fx/font.h"
 
-
 #define hgeButtonGetState(gui,id)		((hgeGUIButton*)gui->GetCtrl(id))->GetState()
 #define hgeButtonSetState(gui,id,b)		((hgeGUIButton*)gui->GetCtrl(id))->SetState(b)
 #define hgeSliderGetValue(gui,id)		((hgeGUISlider*)gui->GetCtrl(id))->GetValue()
@@ -29,12 +28,12 @@ namespace GUI
 		Text();
 		Text(const Fx::Rect & rect, FontPtr fnt);
 
-		void SetMode(int _align);
-		void SetText(const char *_text);
-		void SetFont(FontPtr font);
+		void setMode(int _align);
+		void setText(const char *_text);
+		void setFont(FontPtr font);
 		void printf(const char *format, ...);
 
-		virtual void onRender();
+		void onRender(Fx::RenderContext* rc) override;
 
 	private:
 		FontPtr font;
@@ -50,12 +49,12 @@ namespace GUI
 		Frame();
 		Frame(const Fx::Rect & rc);
 
-		virtual void onRender(Fx::RenderContext* rc) override;
+		void onRender(Fx::RenderContext* rc) override;
 		void setOffsetHor(float offset);
 		void setOffsetVer(float offset);
 
-		virtual bool	onMouseMove(int mouseId, const uiVec & vec, MoveState state);
-		virtual bool	onMouse(int mouseId, int key, int state, const uiVec & vec);
+		bool onMouseMove(int mouseId, const uiVec & vec, MoveState state) override;
+		bool onMouse(int mouseId, int key, int state, const uiVec & vec) override;
 
 		bool drawFrame;
 		bool drawBackground;
@@ -110,8 +109,8 @@ namespace GUI
 		void setState(bool _bPressed) { bPressed=_bPressed; }
 		bool setState() const { return bPressed; }
 
-		virtual void onRender(Fx::RenderContext* rc) override;
-		virtual bool onMouse(int mouseId, int key, int state, const uiVec & vec);
+		void onRender(Fx::RenderContext* rc) override;
+		bool onMouse(int mouseId, int key, int state, const uiVec & vec) override;
 
 		typedef void EventOnStateChange(bool down);
 		std::function<EventOnStateChange> onStateChange;
@@ -123,7 +122,7 @@ namespace GUI
 		FontPtr font;
 		bool useSprites;
 		std::shared_ptr<Text> text;
-		//Frame		frame;
+		//Frame frame;
 		bool useText;
 
 		bool bTrigger;
@@ -141,7 +140,7 @@ namespace GUI
 	public:
 		Image();
 		Fx::EntityPtr sprite;
-		virtual void onRender(Fx::RenderContext* rc) override;
+		void onRender(Fx::RenderContext* rc) override;
 	};
 
 	/*
@@ -162,19 +161,19 @@ namespace GUI
 		void setValue(float _fVal);
 		float setValue() const { return fVal; }
 
-		virtual bool onMouseMove(int mouseId, const uiVec & vec, MoveState state);
-		virtual void onRender(Fx::RenderContext* rc) override;
-		virtual bool onMouse(int mouseId, int key, int state, const uiVec & vec);
+		bool onMouseMove(int mouseId, const uiVec & vec, MoveState state) override;
+		void onRender(Fx::RenderContext* rc) override;
+		bool onMouse(int mouseId, int key, int state, const uiVec & vec) override;
 
 		typedef void EventOnStateChange(Slider * slider, float value, float min, float max);
 		std::function<EventOnStateChange> onStateChange;
 
 		Fx::FxSpritePtr sprite;
 	private:
-		bool			bPressed;
-		bool			bVertical;
-		int				mode;
-		float			fMin, fMax, fVal;		
+		bool bPressed;
+		bool bVertical;
+		int mode;
+		float fMin, fMax, fVal;
 	};
 	/*
 	** Listbox
@@ -203,17 +202,17 @@ namespace GUI
 		int GetNumRows() { return int((windowRect.y2-windowRect.y1)/font->GetHeight()); }
 		void Clear();
 
-		virtual void onRender(Fx::RenderContext* rc) override;
+		void onRender(Fx::RenderContext* rc) override;
 		virtual bool MouseMove(float x, float y) { mx=x; my=y; return false; }
 		virtual bool MouseLButton(bool bDown);
 		virtual bool MouseWheel(int nNotches);
 		virtual bool KeyClick(int key, int chr);
 
-		virtual void executeOnRClick(int element) {}
-		virtual void executeOnLClick(int element) {}
+		virtual void executeOnRClick(int element){}
+		virtual void executeOnLClick(int element){}
 		virtual void executeOnSelChange(int element) {}
 	private:
-		Fx::SpriteData *sprHighlight;
+		Fx::SpriteData sprHighlight;
 		Fx::Font *font;
 		Fx::FxRawColor textColor, texthilColor;
 

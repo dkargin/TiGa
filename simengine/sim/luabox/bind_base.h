@@ -35,22 +35,24 @@ namespace LuaBox
 	};
 
 	typedef lua_State Stream;
-    // This one is defined in swig
-    bool pushObjectPtr(lua_State *l,void *object,const char *name);
 
-    template<class Type> inline const char * typeName()
-    {
-        const std::type_info & info = typeid(Type);
-        const char *name= info.name();
-        return demangleName(name);
-    }
+	// This one is defined in swig
+	bool pushObjectPtr(lua_State *l,void *object,const char *name);
 
-    template<class Type> inline const char * typeName(Type *ptr)
-    {
-        return typeName<Type>();
-    }
+	template<class Type> inline const char * typeName()
+	{
+			const std::type_info & info = typeid(Type);
+			const char *name= info.name();
+			return demangleName(name);
+	}
 
-	template<class Type> struct TypeIO
+	template<class Type> inline const char * typeName(Type *ptr)
+	{
+			return typeName<Type>();
+	}
+
+	// This type will be specialized for SWIG-generated types
+	template<class Type> struct TypeBindings
 	{
 		typedef Type value_type;
 		static bool valid(lua_State *l,int i)
@@ -64,20 +66,21 @@ namespace LuaBox
 		}
 	private:
 		virtual value_type get(Stream *l,int i)=0;
-		virtual ~TypeIO(){}
+		virtual ~TypeBindings(){}
 	};
 
-	template<class Type> inline TypeIO<Type> * getLuaType(TypeIO<Type> *newptr)
+	template<class Type> inline TypeBindings<Type> * getLuaType(TypeBindings<Type> *newptr)
 	{
-		static TypeIO<Type> *storage=NULL;
+		static TypeBindings<Type> *storage=NULL;
 		if(newptr!=NULL)
 			storage=newptr;
 		return storage;
 	}
+	/*
+	 * Bindings for standard types
+	 */
 	///////////////////////////////////////////////////////////////
-	// Proxies for standart types
-	///////////////////////////////////////////////////////////////
-	template<> struct TypeIO<int>
+	template<> struct TypeBindings<int>
 	{
 		static inline int write(Stream *luaVM,const int &value)
 		{
@@ -90,7 +93,7 @@ namespace LuaBox
 			return lua_tointeger(l,i);
 		}
 	};
-	template<> struct TypeIO<float>
+	template<> struct TypeBindings<float>
 	{
 		static inline int write(Stream *luaVM,const float &value)
 		{
@@ -103,7 +106,7 @@ namespace LuaBox
 			return (float)lua_tonumber(l,i);
 		}
 	};
-	template<> struct TypeIO<NullType>
+	template<> struct TypeBindings<NullType>
 	{
 		static inline int write(Stream *luaVM,const NullType &value)
 		{
@@ -112,7 +115,7 @@ namespace LuaBox
 	private:
 		static inline NullType get(Stream *l,int i);
 	};
-	template<> struct TypeIO<double>
+	template<> struct TypeBindings<double>
 	{
 		static inline double get(Stream *l,int i)
 		{		
@@ -125,7 +128,7 @@ namespace LuaBox
 			return 1;
 		}
 	};
-	template<> struct TypeIO<bool>
+	template<> struct TypeBindings<bool>
 	{
 		static inline int write(Stream *luaVM,const bool &value)
 		{
@@ -138,7 +141,7 @@ namespace LuaBox
 			return lua_toboolean(l,i)!=0;
 		}
 	};
-	template<> struct TypeIO<std::string>
+	template<> struct TypeBindings<std::string>
 	{
 		static inline int write(Stream *luaVM,const std::string &value)
 		{
@@ -150,7 +153,7 @@ namespace LuaBox
 			return lua_tostring(l,i);
 		}
 	};
-	template<> struct TypeIO<const std::string &>
+	template<> struct TypeBindings<const std::string &>
 	{
 		static inline int write(Stream *luaVM,const std::string &value)
 		{
@@ -162,7 +165,7 @@ namespace LuaBox
 			return lua_tostring(l,i);
 		}
 	};
-	template<> struct TypeIO<const char*>
+	template<> struct TypeBindings<const char*>
 	{
 		static inline int write(Stream *luaVM,const char *value)
 		{
@@ -176,7 +179,7 @@ namespace LuaBox
 		}
 	};
 
-	template<> struct TypeIO<void>
+	template<> struct TypeBindings<void>
 	{
 		static inline int write(Stream *luaVM)
 		{
@@ -190,6 +193,21 @@ namespace LuaBox
 			//return lua_tostring(l,i);
 		}
 	};
+
+	// Utilities to push argument list to a lua stack
+	template<class T>
+	static int pushStack(lua_State* vm, T arg)
+	{
+		return TypeBindings<T>::write(vm, arg);
+	}
+
+	template<typename T, typename... Rest>
+	static int pushStack(lua_State* vm, T arg0, Rest... rest)
+	{
+		int result = TypeBindings<T>::write(vm,arg0);
+		result += pushStack(vm, rest...);
+		return result;
+	}
 }
 
 #endif

@@ -9,17 +9,6 @@
 namespace Fx
 {
 
-class HeapAllocator : public FxManager::Storage
-{
-public:
-	bool allocateRaw(Entity *& effect);
-	bool allocateRaw(FxSound *& effect);
-	bool allocateRaw(FxSprite *& effect);
-	bool allocateRaw(FxAnimation2 *& effect);
-	bool allocateRaw(FxParticles *& effect);
-};
-
-
 FxManager::FxManager()
 {
 	resetView();
@@ -45,7 +34,7 @@ void FxManager::clearObjects()
 void FxManager::clearResources()
 {
 	for(Records::iterator it = textures.begin();it != textures.end(); ++it)
-		textureManager->Texture_Free(it->handle);
+		textureManager->free(it->handle);
 	textures.clear();
 }
 
@@ -76,7 +65,7 @@ FxManager::Record & FxManager::getTexture(const char *texture)
 		record.file = texture;
 		record.handle = 0;
 		
-		if(!(record.handle = textureManager->Texture_Load(texture)))
+		if(!(record.handle = textureManager->loadFile(texture)))
 		{
 			//log->line(2,"Cannot load texture <%s>",texture);
 			throw (std::runtime_error("FxManager::getTexture(): cannot load texture"));
@@ -93,10 +82,10 @@ int FxManager::freeTexture(FxTextureId texture)
 {
 	auto it = find(texture);
 	if(it != textures.end())
-	{typedef int32_t HEFFECT;
+	{
 		if(--(it->ref))
 		{
-			textureManager->Texture_Free(it->handle);
+			textureManager->free(it->handle);
 			textures.erase(it);
 		}
 		else
@@ -114,7 +103,7 @@ FxSoundPtr FxManager::fxSound(const char * path)
 
 FxSpritePtr FxManager::fxSolidQuad( float width, float height, FxRawColor color )
 {
-	FxSprite * result = new FxSprite();
+	FxSprite * result = new FxSprite(this);
 	result->sprite.SetTextureRect(0, 0, width, height);
 	result->sprite.SetColor( color );
 	return FxSpritePtr(result);
@@ -127,8 +116,8 @@ FxSpritePtr FxManager::fxSprite(const char * texture,float x,float y,float width
 		return NULL;
 	if(width == 0 && height == 0 && x == 0 && y == 0)
 	{
-		width = textureManager->Texture_GetWidth(tex);
-		height= textureManager->Texture_GetHeight(tex);
+		width = textureManager->width(tex);
+		height= textureManager->height(tex);
 	}
 	FxSprite *result = new FxSprite(this, tex, x, y, width, height);
 	return FxSpritePtr(result);
@@ -151,7 +140,7 @@ FxParticlesPtr FxManager::fxParticles(FxSprite::Pointer sprite, ParticleSystemIn
 #endif
 
 EntityPtr FxManager::fxHolder()
-{	
+{
 	return EntityPtr(new Entity());
 }
 
@@ -163,8 +152,8 @@ FxAnimation2Ptr FxManager::createAnimation(const char *file, Rect rect, int fram
 	result->mode=mode;	
 	result->sprite.SetBlendMode(BLEND_COLORMUL|BLEND_ALPHAADD);
 	FxTextureId tex=result->sprite.GetTexture();
-	int texWidth = textureManager->Texture_GetWidth(tex);
-	int texHeight = textureManager->Texture_GetHeight(tex);
+	int texWidth = textureManager->width(tex);
+	int texHeight = textureManager->height(tex);
 	// 1. compute frames
 	if(rect.width() == 0 && rect.width() == 0)
 	{
@@ -202,12 +191,12 @@ FxAnimation2Ptr FxManager::createAnimationFull(const char *file, int frameWidth,
 	result->sprite.SetBlendMode(BLEND_COLORMUL|BLEND_ALPHAADD);
 	FxTextureId tex=result->sprite.GetTexture();
 	// 1. compute frames
-	int texWidth = textureManager->Texture_GetWidth(tex);
-	int texHeight = textureManager->Texture_GetHeight(tex);
+	int texWidth = textureManager->width(tex);
+	int texHeight = textureManager->height(tex);
 	if(frameWidth == 0 && frameHeight == 0)
 	{
-		frameWidth = textureManager->Texture_GetWidth(tex);
-		frameHeight = textureManager->Texture_GetHeight(tex);
+		frameWidth = textureManager->width(tex);
+		frameHeight = textureManager->height(tex);
 	}
 	int framesX = frameWidth?texWidth/frameWidth:frameWidth;
 	int framesY = frameHeight?texHeight/frameHeight:frameHeight;

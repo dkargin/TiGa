@@ -186,7 +186,7 @@ namespace GUI
 			}
 			else
 			{
-				result = Fx::Rect::Merge(result, childRect);
+				result = Fx::Rect::merge(result, childRect);
 			}
 		}
 		return result;
@@ -211,10 +211,10 @@ namespace GUI
 		if(layoutChanged)
 			updateLayout();
 
-		Fx::Rect clip = Fx::Rect::Intersect(getRect(),clipRect);
+		Fx::Rect clip = Fx::Rect::intersect(getRect(),clipRect);
 
 		// if avialable area is zero - return
-		if(clip.IsClean())
+		if(clip.isClean())
 			return;
 
 		// craw self
@@ -236,7 +236,7 @@ namespace GUI
 		{
 			assert(object);
 			object->callRender(context, clip);
-		}		
+		}
 	}
 
 	void Object::findObject( const uiVec& vec, bool forceAll, std::function<ObjectIterator> fn)
@@ -245,7 +245,7 @@ namespace GUI
 			return;
 		Fx::Rect rect = getRect();
 
-		if(!rect.TestPoint(vec[0], vec[1]))
+		if(!rect.testPoint(vec[0], vec[1]))
 			return;
 
 		if(fn && fn(shared_from_this()))
@@ -264,7 +264,7 @@ namespace GUI
 			return false;
 		Fx::Rect rect = getRect();
 		// test if point is outside
-		if(!rect.TestPoint(vec[0], vec[1]))
+		if(!rect.testPoint(vec[0], vec[1]))
 			return false;
 		// if we have any handler - use it, or update children instead
 		if(onMouseMove(mouseId, vec, state))
@@ -286,7 +286,7 @@ namespace GUI
 			return false;
 		Fx::Rect rect = getRect();
 		// test if point is outside
-		if(!rect.TestPoint(vec[0], vec[1]))
+		if(!rect.testPoint(vec[0], vec[1]))
 			return false;
 
 		// if we have any handler - use it, or update children instead

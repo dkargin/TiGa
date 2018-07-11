@@ -23,4 +23,5 @@ add_subdirectory(depend)
 
 add_subdirectory(simengine)
 include_directories(.)
-add_subdirectory(game)
+# Disabling it for now. It is non-functional anyways
+#add_subdirectory(game)

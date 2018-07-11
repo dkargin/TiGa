@@ -17,9 +17,14 @@ int gsystem(const char *format,...)
 */
 
 Level::Level(World & world)
-:body(NULL), world(world), wallMode(Transparent)
+:world(world), wallMode(Transparent)
 {
 	//pathing(NULL),quadder(NULL),
+}
+
+bool Level::isInside(int x, int y) const
+{
+	return x < blocks_w && y < blocks_h && x >= 0 && y >= 0;
 }
 
 Level::~Level()
@@ -343,6 +348,13 @@ int Level::init(const char * map, float size, bool rigid, const Pose &pose)
 		// read raw image header
 		fread(&header,sizeof(header),1,in);
 		cellSize = size;
+
+		// send data to map builder
+		auto buffer = new char[header.width * header.height];
+		fread(buffer,1,header.width*header.height,in);
+		fclose(in);
+
+		delete []buffer;
 #endif
 
 #ifdef FIX_PATHING
@@ -358,9 +370,7 @@ int Level::init(const char * map, float size, bool rigid, const Pose &pose)
 			Mt4x4 pose = Mt4x4::translate(- 0.5 * header.width * size ,0.5 * header.height * size,0);
 			pose.axisY(0,-1,0);
 			pathing->setMapOrientation(pose);
-			// send data to map builder
-			auto buffer = new char[header.width * header.height];
-			fread(buffer,1,header.width*header.height,in);
+
 			initBlocks(header.width,header.height);
 			const float robotSize = 0.6;
 			pathing->setSizeOffset(robotSize);
@@ -386,19 +396,18 @@ int Level::init(const char * map, float size, bool rigid, const Pose &pose)
 			}
 			//int mode = heuristicNone;
 			//pathCore.setParam(ppHeuristicMode,&mode);
-			delete []buffer;
 		}
-#endif`
+#endif
 		if(rigid)
 		{
 			//generateWallBlocks();
 			generateWallEdges();
 		}
-		fclose(in);
+
 		// init level sprite
 		Fx::FxSpritePtr ptr = world.gameObjects->fxManager->fxSprite(map,0,0,0,0);
-		float w = ptr->sprite.GetWidth();
-		float h = ptr->sprite.GetHeight();
+		float w = ptr->getWidth();
+		float h = ptr->getHeight();
 		ptr->setBlendMode(COLORMUL | ALPHAADD);
 		float scale = header.width / w;
 		ptr->setScale(scale*size);
@@ -434,9 +443,9 @@ void World::setWall(int x,int y,int z,int type)
 */
 int Level::getWall(int x,int y,int z)
 {
-	if(blocks.validPos(x,y))
+	if(isInside(x,y))
 	{
-		return blocks(x,y).flags;
+		return blocks[x + y*this->blocks_w].flags;
 	}
 	return -1;
 }

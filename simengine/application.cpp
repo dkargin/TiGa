@@ -137,7 +137,7 @@ void Application::uiProcessMouse(float mx, float my, int state)
 	bool findNew = false;
 	if( selected )
 	{
-		if( selected->getRect().TestPoint(mousePos[0], mousePos[1]) )
+		if( selected->getRect().testPoint(mousePos[0], mousePos[1]) )
 		{
 			if(!selected->onMouseMove(0, mousePos, GUI::Object::MoveRemain))
 				findNew = true;	// reset selection, so we would not change active window

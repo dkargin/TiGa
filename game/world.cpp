@@ -51,9 +51,6 @@ World::~World()
 		draw->hge->Target_Free(visionPass);
 #endif
 
-	if(draw)
-		delete draw;
-
 	while(!attachedEffects.empty())
 	{
 		auto it = attachedEffects.begin();
@@ -64,8 +61,7 @@ World::~World()
 	if(gameObjects)
 	{
 		gameObjects->removeListener(this);
-		delete gameObjects;
-		gameObjects = NULL;
+		gameObjects.release();
 	}
 }
 
@@ -376,6 +372,7 @@ void drawQuadMap()
 
 }
 #endif
+
 void World::renderObjects()
 {
 	gameObjects->fxManager->setView( draw->globalView );
@@ -444,7 +441,7 @@ void World::renderObjects()
 #endif
 
 	for(GameObjectPtr it: gameObjects->objects)
-		draw->drawObject(it);
+		draw->drawObject(it.get());
 
 	for(auto it = attachedEffects.begin(); it != attachedEffects.end(); it++)
 	{
@@ -473,7 +470,7 @@ void World::render()
 	if(!draw)
 		return;
 
-	HGE* hge = draw->hge;
+
 	//int i;
 	//bool visionRendered = false;
 	// Render graphics to the texture
@@ -487,7 +484,8 @@ void World::render()
 	//hge->Gfx_SetTransform();
 	renderObjects();
 
-
+#ifdef FIX_VISION
+	HGE* hge = draw->hge;
 	//world->renderVision();
 	hge->Gfx_SetTransform();
 	if(useVision)
@@ -496,15 +494,16 @@ void World::render()
 		visionLayer->Render(0,0);
 		//visionRendered = true;
 	}
+#endif
 	//gui->Render();
 	renderUI();
 	//hge->Gfx_EndScene();
 }
 
-FxPointer World::attachEffect(GameObjectPtr object, FxPointer effect)
+Fx::EntityPtr World::attachEffect(GameObjectPtr object, Fx::EntityPtr effect)
 {
-	FxPointer result = effect->clone();
-	attachedEffects.insert(std::make_pair(object,result));
+	auto result = effect->clone();
+	attachedEffects.insert({object,result});
 	return result;
 }
 
@@ -552,13 +551,14 @@ void World::update(float dt)
 		level.background->update(dt);
 
 	// update effects that are attached to some objects
+	// TODO: move this effects to Pyro
 	for(auto it = attachedEffects.begin(); it != attachedEffects.end();)
 	{
-		if(it->first == NULL)
+		if(it->first == nullptr)
 		{
 			auto toDelete = it;
 			it++;
-			delete toDelete->second;
+			//delete toDelete->second;
 			attachedEffects.erase(toDelete);
 		}
 		else
@@ -608,7 +608,7 @@ void World::initMap(const char * map,float size,bool rigid,const Pose &pose)
 void World::world2map(float worldCoords[2],int mapCoords[2])
 {
 //	LogFunction(*g_logger);
-	vec2f pos=vec2f(worldCoords)/level.cellSize+vec2f(level.blocks.size_x(),level.blocks.size_y())*0.5;
+	vec2f pos=vec2f(worldCoords)/level.cellSize+vec2f(level.size_x(),level.size_y())*0.5;
 	mapCoords[0]=pos[0];
 	mapCoords[1]=pos[1];
 }

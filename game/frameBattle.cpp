@@ -29,11 +29,13 @@ void GenerateShipGraphics(Fx::EntityPtr effect, ShipBlueprint * blueprint, Game 
 	}
 }
 
-void AddShipToWorld(World * world, ShipBlueprint * blueprint, Game * game)
+void AddShipToWorld(World* world, ShipBlueprint* blueprint, Game* game)
 {
-	sim::ObjectManager* manager = world->gameObjects;
+	//sim::ObjectManager* manager = world->gameObjects;
 	float tileSize = 50;
-	Multiblock* multiblock = new Multiblock(manager);
+
+	Multiblock* multiblock = new Multiblock();
+	// TODO: Should register this block somewhere
 	if(!blueprint->blocks.empty())
 	{
 		multiblock->init(Pose::zero(), world->dynamics);

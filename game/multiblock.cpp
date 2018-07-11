@@ -140,7 +140,7 @@ Multiblock::grid_type * Multiblock::fracture(int x, int y)
 	{
 		result = createFractureBody();
 		math3::Pose2z pose = GetPose(body);
-		pose.position = pose.transformPos( vec2f(x,y) * cellWidth );
+		pose.setPosition(pose.transformPos(vec2f(x,y) * cellWidth ));
 
 		result->init( pose, *body->GetWorld());
 		result->getBody()->SetLinearVelocity( body->GetLinearVelocityFromWorldPoint(sim::b2conv(pose.position)));

@@ -66,10 +66,10 @@ public:
 	std::string mapName;
 	float cellSize;
 	WallMode wallMode;
-	World & world;
+	World& world;
 	// derrived level parameters
 	// Solid body root
-	Solid * body;
+	Solid* body = nullptr;
 	//Raster<Tile> blocks;							///
 	//pathProject::Builder::MapBuilderImage * pathing;/// pathCore map builder
 	//pathProject::MapBuilderQuad * quadder;			/// quad map builder
@@ -80,7 +80,7 @@ public:
 
 	bool isSolid() const;
 
-	int init(const char * path, float cellSize, bool solid, const Pose & pose);
+	int init(const char* path, float cellSize, bool solid, const Pose & pose);
 
 	int size_x() const
 	{
@@ -101,6 +101,8 @@ public:
 
 	void saveState(sim::StreamOut &stream);
 	bool loadState(sim::StreamIn &stream);
+
+	bool isInside(int x, int y) const;
 protected:
 	void generateWallBlocks();
 	void generateWallEdges();
@@ -114,7 +116,7 @@ class Game;
 
 /// The place we play in
 class World:
-	//public ObjectManager::Listener,
+	public ObjectManager::Listener,
 	protected b2ContactFilter,
 	protected b2ContactListener
 {
@@ -124,7 +126,7 @@ public:
 
 	std::string name;
 	bool updateSystems = false;
-	sim::ObjectManager* gameObjects = nullptr;
+	std::unique_ptr<sim::ObjectManager> gameObjects;
 	Game * core;
 
 #ifdef FIX_THIS

@@ -10,7 +10,7 @@ extern swig_type_info * swig_types[];
 #define SWIGTYPE_p_BodyDesc swig_types[0]
 namespace LuaBox
 {
-	template<> struct TypeIO<BodyDesc *>
+	template<> struct TypeBindings<BodyDesc *>
 	{
 		typedef BodyDesc * value_type;
 		static bool valid(Stream * l, int i)
@@ -31,7 +31,7 @@ namespace LuaBox
 #define SWIGTYPE_p_Controller swig_types[1]
 namespace LuaBox
 {
-	template<> struct TypeIO<Controller *>
+	template<> struct TypeBindings<Controller *>
 	{
 		typedef Controller * value_type;
 		static bool valid(Stream * l, int i)
@@ -52,7 +52,7 @@ namespace LuaBox
 #define SWIGTYPE_p_Core swig_types[2]
 namespace LuaBox
 {
-	template<> struct TypeIO<Application *>
+	template<> struct TypeBindings<Application *>
 	{
 		typedef Application * value_type;
 		static bool valid(Stream * l, int i)
@@ -73,7 +73,7 @@ namespace LuaBox
 #define SWIGTYPE_p_CursorInfo swig_types[3]
 namespace LuaBox
 {
-	template<> struct TypeIO<CursorInfo *>
+	template<> struct TypeBindings<CursorInfo *>
 	{
 		typedef CursorInfo * value_type;
 		static bool valid(Stream * l, int i)
@@ -95,7 +95,7 @@ namespace LuaBox
 #define SWIGTYPE_p_Device swig_types[5]
 namespace LuaBox
 {
-	template<> struct TypeIO<Device *>
+	template<> struct TypeBindings<Device *>
 	{
 		typedef Device * value_type;
 		static bool valid(Stream * l, int i)
@@ -116,7 +116,7 @@ namespace LuaBox
 #define SWIGTYPE_p_DeviceDef swig_types[6]
 namespace LuaBox
 {
-	template<> struct TypeIO<DeviceDef *>
+	template<> struct TypeBindings<DeviceDef *>
 	{
 		typedef DeviceDef * value_type;
 		static bool valid(Stream * l, int i)
@@ -137,7 +137,7 @@ namespace LuaBox
 #define SWIGTYPE_p_Draw swig_types[7]
 namespace LuaBox
 {
-	template<> struct TypeIO<Draw *>
+	template<> struct TypeBindings<Draw *>
 	{
 		typedef Draw * value_type;
 		static bool valid(Stream * l, int i)
@@ -159,7 +159,7 @@ namespace LuaBox
 #define SWIGTYPE_p_ForceField swig_types[9]
 namespace LuaBox
 {
-	template<> struct TypeIO<ForceField *>
+	template<> struct TypeBindings<ForceField *>
 	{
 		typedef ForceField * value_type;
 		static bool valid(Stream * l, int i)
@@ -180,7 +180,7 @@ namespace LuaBox
 #define SWIGTYPE_p_ForceFieldDef swig_types[10]
 namespace LuaBox
 {
-	template<> struct TypeIO<ForceFieldDef *>
+	template<> struct TypeBindings<ForceFieldDef *>
 	{
 		typedef ForceFieldDef * value_type;
 		static bool valid(Stream * l, int i)
@@ -201,7 +201,7 @@ namespace LuaBox
 #define SWIGTYPE_p_FxAnimation swig_types[11]
 namespace LuaBox
 {
-	template<> struct TypeIO<FxAnimation *>
+	template<> struct TypeBindings<FxAnimation *>
 	{
 		typedef FxAnimation * value_type;
 		static bool valid(Stream * l, int i)
@@ -222,7 +222,7 @@ namespace LuaBox
 #define SWIGTYPE_p_FxAnimation2 swig_types[12]
 namespace LuaBox
 {
-	template<> struct TypeIO<FxAnimation2 *>
+	template<> struct TypeBindings<FxAnimation2 *>
 	{
 		typedef FxAnimation2 * value_type;
 		static bool valid(Stream * l, int i)
@@ -243,7 +243,7 @@ namespace LuaBox
 #define SWIGTYPE_p_FxEffect swig_types[13]
 namespace LuaBox
 {
-	template<> struct TypeIO<FxEffect *>
+	template<> struct TypeBindings<FxEffect *>
 	{
 		typedef FxEffect * value_type;
 		static bool valid(Stream * l, int i)
@@ -264,7 +264,7 @@ namespace LuaBox
 #define SWIGTYPE_p_FxHolder swig_types[14]
 namespace LuaBox
 {
-	template<> struct TypeIO<FxHolder *>
+	template<> struct TypeBindings<FxHolder *>
 	{
 		typedef FxHolder * value_type;
 		static bool valid(Stream * l, int i)
@@ -285,7 +285,7 @@ namespace LuaBox
 #define SWIGTYPE_p_FxManager swig_types[15]
 namespace LuaBox
 {
-	template<> struct TypeIO<FxManager *>
+	template<> struct TypeBindings<FxManager *>
 	{
 		typedef FxManager * value_type;
 		static bool valid(Stream * l, int i)
@@ -306,7 +306,7 @@ namespace LuaBox
 #define SWIGTYPE_p_FxParticles swig_types[16]
 namespace LuaBox
 {
-	template<> struct TypeIO<FxParticles *>
+	template<> struct TypeBindings<FxParticles *>
 	{
 		typedef FxParticles * value_type;
 		static bool valid(Stream * l, int i)
@@ -328,7 +328,7 @@ namespace LuaBox
 #define SWIGTYPE_p_FxSound swig_types[18]
 namespace LuaBox
 {
-	template<> struct TypeIO<FxSound *>
+	template<> struct TypeBindings<FxSound *>
 	{
 		typedef FxSound * value_type;
 		static bool valid(Stream * l, int i)
@@ -349,7 +349,7 @@ namespace LuaBox
 #define SWIGTYPE_p_FxSprite swig_types[19]
 namespace LuaBox
 {
-	template<> struct TypeIO<FxSprite *>
+	template<> struct TypeBindings<FxSprite *>
 	{
 		typedef FxSprite * value_type;
 		static bool valid(Stream * l, int i)
@@ -370,7 +370,7 @@ namespace LuaBox
 #define SWIGTYPE_p_GameObject swig_types[20]
 namespace LuaBox
 {
-	template<> struct TypeIO<GameObject *>
+	template<> struct TypeBindings<GameObject *>
 	{
 		typedef GameObject * value_type;
 		static bool valid(Stream * l, int i)
@@ -391,7 +391,7 @@ namespace LuaBox
 #define SWIGTYPE_p_GameObjectDef swig_types[21]
 namespace LuaBox
 {
-	template<> struct TypeIO<GameObjectDef *>
+	template<> struct TypeBindings<GameObjectDef *>
 	{
 		typedef GameObjectDef * value_type;
 		static bool valid(Stream * l, int i)
@@ -417,7 +417,7 @@ namespace LuaBox
 #define SWIGTYPE_p_IO__DataBuffer swig_types[27]
 namespace LuaBox
 {
-	template<> struct TypeIO<IO::DataBuffer *>
+	template<> struct TypeBindings<IO::DataBuffer *>
 	{
 		typedef IO::DataBuffer * value_type;
 		static bool valid(Stream * l, int i)
@@ -438,7 +438,7 @@ namespace LuaBox
 #define SWIGTYPE_p_IO__Stream swig_types[28]
 namespace LuaBox
 {
-	template<> struct TypeIO<IO::Stream *>
+	template<> struct TypeBindings<IO::Stream *>
 	{
 		typedef IO::Stream * value_type;
 		static bool valid(Stream * l, int i)
@@ -459,7 +459,7 @@ namespace LuaBox
 #define SWIGTYPE_p_IO__StreamIn swig_types[29]
 namespace LuaBox
 {
-	template<> struct TypeIO<IO::StreamIn *>
+	template<> struct TypeBindings<IO::StreamIn *>
 	{
 		typedef IO::StreamIn * value_type;
 		static bool valid(Stream * l, int i)
@@ -480,7 +480,7 @@ namespace LuaBox
 #define SWIGTYPE_p_IO__StreamOut swig_types[30]
 namespace LuaBox
 {
-	template<> struct TypeIO<IO::StreamOut *>
+	template<> struct TypeBindings<IO::StreamOut *>
 	{
 		typedef IO::StreamOut * value_type;
 		static bool valid(Stream * l, int i)
@@ -502,7 +502,7 @@ namespace LuaBox
 #define SWIGTYPE_p_Inventory swig_types[32]
 namespace LuaBox
 {
-	template<> struct TypeIO<Inventory *>
+	template<> struct TypeBindings<Inventory *>
 	{
 		typedef Inventory * value_type;
 		static bool valid(Stream * l, int i)
@@ -523,7 +523,7 @@ namespace LuaBox
 #define SWIGTYPE_p_InvokerContainer swig_types[33]
 namespace LuaBox
 {
-	template<> struct TypeIO<InvokerContainer *>
+	template<> struct TypeBindings<InvokerContainer *>
 	{
 		typedef InvokerContainer * value_type;
 		static bool valid(Stream * l, int i)
@@ -544,7 +544,7 @@ namespace LuaBox
 #define SWIGTYPE_p_Item swig_types[34]
 namespace LuaBox
 {
-	template<> struct TypeIO<Item *>
+	template<> struct TypeBindings<Item *>
 	{
 		typedef Item * value_type;
 		static bool valid(Stream * l, int i)
@@ -565,7 +565,7 @@ namespace LuaBox
 #define SWIGTYPE_p_ItemDef swig_types[35]
 namespace LuaBox
 {
-	template<> struct TypeIO<ItemDef *>
+	template<> struct TypeBindings<ItemDef *>
 	{
 		typedef ItemDef * value_type;
 		static bool valid(Stream * l, int i)
@@ -586,7 +586,7 @@ namespace LuaBox
 #define SWIGTYPE_p_Level swig_types[36]
 namespace LuaBox
 {
-	template<> struct TypeIO<Level *>
+	template<> struct TypeBindings<Level *>
 	{
 		typedef Level * value_type;
 		static bool valid(Stream * l, int i)
@@ -607,7 +607,7 @@ namespace LuaBox
 #define SWIGTYPE_p_Log swig_types[37]
 namespace LuaBox
 {
-	template<> struct TypeIO<Log *>
+	template<> struct TypeBindings<Log *>
 	{
 		typedef Log * value_type;
 		static bool valid(Stream * l, int i)
@@ -628,7 +628,7 @@ namespace LuaBox
 #define SWIGTYPE_p_LogFILE swig_types[38]
 namespace LuaBox
 {
-	template<> struct TypeIO<LogFILE *>
+	template<> struct TypeBindings<LogFILE *>
 	{
 		typedef LogFILE * value_type;
 		static bool valid(Stream * l, int i)
@@ -649,7 +649,7 @@ namespace LuaBox
 #define SWIGTYPE_p_LogTrace swig_types[39]
 namespace LuaBox
 {
-	template<> struct TypeIO<LogTrace *>
+	template<> struct TypeBindings<LogTrace *>
 	{
 		typedef LogTrace * value_type;
 		static bool valid(Stream * l, int i)
@@ -670,7 +670,7 @@ namespace LuaBox
 #define SWIGTYPE_p_LuaObject swig_types[40]
 namespace LuaBox
 {
-	template<> struct TypeIO<LuaObject *>
+	template<> struct TypeBindings<LuaObject *>
 	{
 		typedef LuaObject * value_type;
 		static bool valid(Stream * l, int i)
@@ -691,7 +691,7 @@ namespace LuaBox
 #define SWIGTYPE_p_MountDef swig_types[41]
 namespace LuaBox
 {
-	template<> struct TypeIO<MountDef *>
+	template<> struct TypeBindings<MountDef *>
 	{
 		typedef MountDef * value_type;
 		static bool valid(Stream * l, int i)
@@ -712,7 +712,7 @@ namespace LuaBox
 #define SWIGTYPE_p_Mover swig_types[42]
 namespace LuaBox
 {
-	template<> struct TypeIO<Mover *>
+	template<> struct TypeBindings<Mover *>
 	{
 		typedef Mover * value_type;
 		static bool valid(Stream * l, int i)
@@ -733,7 +733,7 @@ namespace LuaBox
 #define SWIGTYPE_p_MoverCharacterDef swig_types[43]
 namespace LuaBox
 {
-	template<> struct TypeIO<MoverCharacterDef *>
+	template<> struct TypeBindings<MoverCharacterDef *>
 	{
 		typedef MoverCharacterDef * value_type;
 		static bool valid(Stream * l, int i)
@@ -754,7 +754,7 @@ namespace LuaBox
 #define SWIGTYPE_p_MoverDef swig_types[44]
 namespace LuaBox
 {
-	template<> struct TypeIO<MoverDef *>
+	template<> struct TypeBindings<MoverDef *>
 	{
 		typedef MoverDef * value_type;
 		static bool valid(Stream * l, int i)
@@ -775,7 +775,7 @@ namespace LuaBox
 #define SWIGTYPE_p_MoverVehicle swig_types[45]
 namespace LuaBox
 {
-	template<> struct TypeIO<MoverVehicle *>
+	template<> struct TypeBindings<MoverVehicle *>
 	{
 		typedef MoverVehicle * value_type;
 		static bool valid(Stream * l, int i)
@@ -796,7 +796,7 @@ namespace LuaBox
 #define SWIGTYPE_p_MoverVehicleDef swig_types[46]
 namespace LuaBox
 {
-	template<> struct TypeIO<MoverVehicleDef *>
+	template<> struct TypeBindings<MoverVehicleDef *>
 	{
 		typedef MoverVehicleDef * value_type;
 		static bool valid(Stream * l, int i)
@@ -819,7 +819,7 @@ namespace LuaBox
 #define SWIGTYPE_p_ObjectIterator swig_types[49]
 namespace LuaBox
 {
-	template<> struct TypeIO<ObjectIterator *>
+	template<> struct TypeBindings<ObjectIterator *>
 	{
 		typedef ObjectIterator * value_type;
 		static bool valid(Stream * l, int i)
@@ -840,7 +840,7 @@ namespace LuaBox
 #define SWIGTYPE_p_ObjectManager swig_types[50]
 namespace LuaBox
 {
-	template<> struct TypeIO<ObjectManager *>
+	template<> struct TypeBindings<ObjectManager *>
 	{
 		typedef ObjectManager * value_type;
 		static bool valid(Stream * l, int i)
@@ -861,7 +861,7 @@ namespace LuaBox
 #define SWIGTYPE_p_PerceptionDef swig_types[51]
 namespace LuaBox
 {
-	template<> struct TypeIO<PerceptionDef *>
+	template<> struct TypeBindings<PerceptionDef *>
 	{
 		typedef PerceptionDef * value_type;
 		static bool valid(Stream * l, int i)
@@ -882,7 +882,7 @@ namespace LuaBox
 #define SWIGTYPE_p_PolyDesc swig_types[52]
 namespace LuaBox
 {
-	template<> struct TypeIO<PolyDesc *>
+	template<> struct TypeBindings<PolyDesc *>
 	{
 		typedef PolyDesc * value_type;
 		static bool valid(Stream * l, int i)
@@ -903,7 +903,7 @@ namespace LuaBox
 #define SWIGTYPE_p_Pose swig_types[53]
 namespace LuaBox
 {
-	template<> struct TypeIO<Pose *>
+	template<> struct TypeBindings<Pose *>
 	{
 		typedef Pose * value_type;
 		static bool valid(Stream * l, int i)
@@ -924,7 +924,7 @@ namespace LuaBox
 #define SWIGTYPE_p_Projectile swig_types[54]
 namespace LuaBox
 {
-	template<> struct TypeIO<Projectile *>
+	template<> struct TypeBindings<Projectile *>
 	{
 		typedef Projectile * value_type;
 		static bool valid(Stream * l, int i)
@@ -945,7 +945,7 @@ namespace LuaBox
 #define SWIGTYPE_p_ProjectileDef swig_types[55]
 namespace LuaBox
 {
-	template<> struct TypeIO<ProjectileDef *>
+	template<> struct TypeBindings<ProjectileDef *>
 	{
 		typedef ProjectileDef * value_type;
 		static bool valid(Stream * l, int i)
@@ -966,7 +966,7 @@ namespace LuaBox
 #define SWIGTYPE_p_Referenced swig_types[56]
 namespace LuaBox
 {
-	template<> struct TypeIO<Referenced *>
+	template<> struct TypeBindings<Referenced *>
 	{
 		typedef Referenced * value_type;
 		static bool valid(Stream * l, int i)
@@ -987,7 +987,7 @@ namespace LuaBox
 #define SWIGTYPE_p_SharedPtrT_FxEffect_t swig_types[57]
 namespace LuaBox
 {
-	template<> struct TypeIO<SharedPtr< FxEffect > *>
+	template<> struct TypeBindings<SharedPtr< FxEffect > *>
 	{
 		typedef SharedPtr< FxEffect > * value_type;
 		static bool valid(Stream * l, int i)
@@ -1008,7 +1008,7 @@ namespace LuaBox
 #define SWIGTYPE_p_SharedPtrT_FxSprite_t swig_types[58]
 namespace LuaBox
 {
-	template<> struct TypeIO<SharedPtr< FxSprite > *>
+	template<> struct TypeBindings<SharedPtr< FxSprite > *>
 	{
 		typedef SharedPtr< FxSprite > * value_type;
 		static bool valid(Stream * l, int i)
@@ -1031,7 +1031,7 @@ namespace LuaBox
 #define SWIGTYPE_p_TargetingSystemDef swig_types[61]
 namespace LuaBox
 {
-	template<> struct TypeIO<TargetingSystemDef *>
+	template<> struct TypeBindings<TargetingSystemDef *>
 	{
 		typedef TargetingSystemDef * value_type;
 		static bool valid(Stream * l, int i)
@@ -1052,7 +1052,7 @@ namespace LuaBox
 #define SWIGTYPE_p_ThrusterControlDef swig_types[62]
 namespace LuaBox
 {
-	template<> struct TypeIO<ThrusterControlDef *>
+	template<> struct TypeBindings<ThrusterControlDef *>
 	{
 		typedef ThrusterControlDef * value_type;
 		static bool valid(Stream * l, int i)
@@ -1073,7 +1073,7 @@ namespace LuaBox
 #define SWIGTYPE_p_ThrusterDef swig_types[63]
 namespace LuaBox
 {
-	template<> struct TypeIO<ThrusterDef *>
+	template<> struct TypeBindings<ThrusterDef *>
 	{
 		typedef ThrusterDef * value_type;
 		static bool valid(Stream * l, int i)
@@ -1094,7 +1094,7 @@ namespace LuaBox
 #define SWIGTYPE_p_Unit swig_types[64]
 namespace LuaBox
 {
-	template<> struct TypeIO<Unit *>
+	template<> struct TypeBindings<Unit *>
 	{
 		typedef Unit * value_type;
 		static bool valid(Stream * l, int i)
@@ -1115,7 +1115,7 @@ namespace LuaBox
 #define SWIGTYPE_p_UnitDef swig_types[65]
 namespace LuaBox
 {
-	template<> struct TypeIO<UnitDef *>
+	template<> struct TypeBindings<UnitDef *>
 	{
 		typedef UnitDef * value_type;
 		static bool valid(Stream * l, int i)
@@ -1137,7 +1137,7 @@ namespace LuaBox
 #define SWIGTYPE_p_Weapon swig_types[67]
 namespace LuaBox
 {
-	template<> struct TypeIO<Weapon *>
+	template<> struct TypeBindings<Weapon *>
 	{
 		typedef Weapon * value_type;
 		static bool valid(Stream * l, int i)
@@ -1158,7 +1158,7 @@ namespace LuaBox
 #define SWIGTYPE_p_WeaponDef swig_types[68]
 namespace LuaBox
 {
-	template<> struct TypeIO<WeaponDef *>
+	template<> struct TypeBindings<WeaponDef *>
 	{
 		typedef WeaponDef * value_type;
 		static bool valid(Stream * l, int i)
@@ -1179,7 +1179,7 @@ namespace LuaBox
 #define SWIGTYPE_p_WeaponTurret swig_types[69]
 namespace LuaBox
 {
-	template<> struct TypeIO<WeaponTurret *>
+	template<> struct TypeBindings<WeaponTurret *>
 	{
 		typedef WeaponTurret * value_type;
 		static bool valid(Stream * l, int i)
@@ -1200,7 +1200,7 @@ namespace LuaBox
 #define SWIGTYPE_p_WeaponTurretDef swig_types[70]
 namespace LuaBox
 {
-	template<> struct TypeIO<WeaponTurretDef *>
+	template<> struct TypeBindings<WeaponTurretDef *>
 	{
 		typedef WeaponTurretDef * value_type;
 		static bool valid(Stream * l, int i)
@@ -1221,7 +1221,7 @@ namespace LuaBox
 #define SWIGTYPE_p_World swig_types[71]
 namespace LuaBox
 {
-	template<> struct TypeIO<World *>
+	template<> struct TypeBindings<World *>
 	{
 		typedef World * value_type;
 		static bool valid(Stream * l, int i)
@@ -1244,7 +1244,7 @@ namespace LuaBox
 #define SWIGTYPE_p_b2BodyDef swig_types[74]
 namespace LuaBox
 {
-	template<> struct TypeIO<b2BodyDef *>
+	template<> struct TypeBindings<b2BodyDef *>
 	{
 		typedef b2BodyDef * value_type;
 		static bool valid(Stream * l, int i)
@@ -1269,7 +1269,7 @@ namespace LuaBox
 #define SWIGTYPE_p_fRect swig_types[79]
 namespace LuaBox
 {
-	template<> struct TypeIO<fRect *>
+	template<> struct TypeBindings<fRect *>
 	{
 		typedef fRect * value_type;
 		static bool valid(Stream * l, int i)
@@ -1292,7 +1292,7 @@ namespace LuaBox
 #define SWIGTYPE_p_hgeColorRGB swig_types[82]
 namespace LuaBox
 {
-	template<> struct TypeIO<hgeColorRGB *>
+	template<> struct TypeBindings<hgeColorRGB *>
 	{
 		typedef hgeColorRGB * value_type;
 		static bool valid(Stream * l, int i)
@@ -1313,7 +1313,7 @@ namespace LuaBox
 #define SWIGTYPE_p_hgeFont swig_types[83]
 namespace LuaBox
 {
-	template<> struct TypeIO<hgeFont *>
+	template<> struct TypeBindings<hgeFont *>
 	{
 		typedef hgeFont * value_type;
 		static bool valid(Stream * l, int i)
@@ -1334,7 +1334,7 @@ namespace LuaBox
 #define SWIGTYPE_p_hgeParticleSystemInfo swig_types[84]
 namespace LuaBox
 {
-	template<> struct TypeIO<hgeParticleSystemInfo *>
+	template<> struct TypeBindings<hgeParticleSystemInfo *>
 	{
 		typedef hgeParticleSystemInfo * value_type;
 		static bool valid(Stream * l, int i)
@@ -1356,7 +1356,7 @@ namespace LuaBox
 #define SWIGTYPE_p_hgeSprite swig_types[86]
 namespace LuaBox
 {
-	template<> struct TypeIO<hgeSprite *>
+	template<> struct TypeBindings<hgeSprite *>
 	{
 		typedef hgeSprite * value_type;
 		static bool valid(Stream * l, int i)
@@ -1378,7 +1378,7 @@ namespace LuaBox
 #define SWIGTYPE_p_lua_State swig_types[88]
 namespace LuaBox
 {
-	template<> struct TypeIO<lua_State *>
+	template<> struct TypeBindings<lua_State *>
 	{
 		typedef lua_State * value_type;
 		static bool valid(Stream * l, int i)
@@ -1404,7 +1404,7 @@ namespace LuaBox
 #define SWIGTYPE_p_std__string swig_types[94]
 namespace LuaBox
 {
-	template<> struct TypeIO<std::string *>
+	template<> struct TypeBindings<std::string *>
 	{
 		typedef std::string * value_type;
 		static bool valid(Stream * l, int i)
@@ -1427,7 +1427,7 @@ namespace LuaBox
 #define SWIGTYPE_p_vec2f swig_types[97]
 namespace LuaBox
 {
-	template<> struct TypeIO<Pose::vec *>
+	template<> struct TypeBindings<Pose::vec *>
 	{
 		typedef Pose::vec * value_type;
 		static bool valid(Stream * l, int i)
