@@ -3,7 +3,6 @@
 %include "stl.i"
 
 %{
-#include "stdafx.h"
 #include "iup.h"
 #include "iuplua.h"
 %}

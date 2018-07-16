@@ -107,6 +107,22 @@ template<class T> struct RectBase
 		y2 += y;
 	}
 
+	// Move rect with keeping the size
+	void moveTo(T x, T y)
+	{
+		x2 = x + x2 - x1;
+		y2 = y + y2 - y1;
+		x1 = x;
+		y1 = y;
+	}
+
+	// Change size
+	void setSize(T x, T y)
+	{
+		x2 = x1 + x;
+		y2 = y1 + y;
+	}
+
 	rect_type& operator = (const rect_type& rc)
 	{
 		x1 = rc.x1;

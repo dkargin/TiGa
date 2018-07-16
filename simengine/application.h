@@ -19,6 +19,33 @@ union SDL_Event;
 
 namespace sim
 {
+
+/// Mouse state
+struct MouseState
+{
+	bool moved;
+	int wheel;
+	vec2f position;
+};
+
+// We gather all frame events in this structure
+struct FrameEvents
+{
+	bool windowVisible = true;
+	bool windowMoved = false;
+	bool windowResized = false;
+	Fx::IntRect windowGeometry;
+	// Something mouse-specific happened
+	bool mouseMoved = false;
+	// Something keyboard-specific happened
+	bool keysChanged = false;
+	// Flag shows that application wants to exit
+	bool exit = false;
+	// Total number of events encountered
+	int eventCounter = 0;
+	// Updated mouse state
+	std::vector<MouseState> mouseState;
+};
 /**
  * Base application class
  * Deals with main window and wraps input
@@ -47,7 +74,7 @@ public:
 			Mouse,
 			Touch,
 		}type;
-	}cursor[MaxCursors];
+	};
 
 	Fx::EntityPtr defaultCursorEffect;
 
@@ -79,10 +106,6 @@ public:
 	void uiSetDefaultCursorEffect( Fx::EntityPtr effect );
 	size_t uiGetMaxCursors() const;
 
-	/// screen info
-	int getScreenWidth() const;
-	int getScreenHeight() const;
-
 	// root gui object
 	GUI::ObjectPtr guiRoot;
 	GUI::FontPtr font;
@@ -108,14 +131,6 @@ protected:
 	// Update cursor's screen position
 	void updateCursorPosition(float x, float y);
 
-	/// Mouse state
-	struct MouseState
-	{
-		bool moved;
-		int wheel;
-		vec2f position;
-	};
-
 protected:
 	bool iupRuns = false;
 	bool sdlRuns = false;
@@ -124,6 +139,8 @@ protected:
 	SDL_Window* window;
 	SDL_Renderer* renderer;
 
+	Cursor cursor[MaxCursors];
+
 	// Control flag for spinning application event loop
 	bool appRunning = false;
 	std::vector<MouseState> mouseState, newMouseState;
@@ -131,21 +148,6 @@ protected:
 	Fx::IntRect windowGeometry;
 	// Run SDL event loop
 	void spinSDL();
-
-	// We gather all frame events in this structure
-	struct FrameEvents
-	{
-		bool windowMoved = false;
-		bool windowResized = false;
-		Fx::IntRect windowGeometry;
-		bool mouseMoved = false;
-		bool keysChanged = false;
-		// Updated mouse state
-		std::vector<MouseState> mouseState;
-	};
-
-	void onWindowGeometryChanged(int wid, int x, int y, int width, int height, int flags);
-	void dispatchEvent(SDL_Event& event);
 };
 
 extern Application * core;

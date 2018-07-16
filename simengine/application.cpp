@@ -1,33 +1,6 @@
 #include <math.h>
-
 #include <SDL.h>
 
-#ifdef FUCK_THIS
-#include "../LuaBox/src/iup_class.h"
-#include "../LuaBox/src/iup_register.h"
-#endif
-
-#ifdef USE_IUP
-#pragma comment(lib, "Comctl32.lib")
-#pragma comment(lib, "lua51static_mt.lib")
-#pragma comment(lib, "iupcore.lib")
-#pragma comment(lib, "iupim.lib")
-#pragma comment(lib, "iup.lib")
-#pragma comment(lib, "iupimglib.lib")
-#pragma comment(lib, "iupgl.lib")
-#pragma comment(lib, "iupcontrols.lib")
-#pragma comment(lib, "iuplua51.lib")
-#pragma comment(lib, "iupluagl51.lib")
-#pragma comment(lib, "opengl32.lib")
-#pragma comment(lib, "iupluacontrols51.lib")
-#endif
-
-#ifdef FUCK_THIS
-#include "iuplua.h"
-#include "iupgl.h"
-#include "iupluagl.h"
-#endif
-//#include "iupluacontrols.h"
 #include "application.h"
 
 namespace sim
@@ -37,30 +10,7 @@ Application * core = nullptr;
 
 typedef float Scalar;
 
-inline Scalar NormalizeAngle( Scalar degrees )
-{
-	float integral;
-	float fractional = modff( degrees, &integral );
-	float normalizedAngle = (float)( (int)( fabs( integral ) ) % 360 );
-
-	if( degrees < 0 )
-		return 360.f - normalizedAngle + fractional;
-	else return normalizedAngle + fractional;
-}
-// returns minimal angular distance
-float AngleMinDelta(float a, float b)
-{
-	a = NormalizeAngle(a);
-	b = NormalizeAngle(b);
-	float delta = b - a;
-	if( delta > 180.f)
-		return -360.f + delta;
-	if( delta <-180.f)
-		return 360.f + delta;
-	return delta;
-}
-
-float screenWidth = 800,screenHeight = 600;
+void dispatchEvent(SDL_Event& event, FrameEvents& dispatched);
 
 //////////////////////////////////////////////////////////////////////////////////////////
 
@@ -253,16 +203,6 @@ void Application::uiUpdate(float dt)
 
 }
 
-int Application::getScreenWidth() const
-{
-	return screenWidth;
-}
-
-int Application::getScreenHeight() const
-{
-	return screenHeight;
-}
-
 void Application::uiSetCursorEffect( size_t id, Fx::EntityPtr effect )
 {
 	assert( id < uiGetMaxCursors() && cursor[id].type != Cursor::Disabled );
@@ -356,7 +296,6 @@ bool Application::initSDL()
 	fxManager.init();
 
 	guiRoot.reset(new GUI::Object(Fx::Rect(0,0,0,0)));
-	guiRoot->setRect(Fx::Rect(0,0, getScreenWidth(), getScreenHeight()));
 	cursor[0].type = Cursor::Mouse;
 
 	return true;
@@ -364,18 +303,32 @@ bool Application::initSDL()
 
 void Application::spinSDL()
 {
-	SDL_Event event;
-
 	appRunning = true;
 	while(appRunning)
 	{
-		while(SDL_PollEvent(&event))
-		{
-			dispatchEvent(event);
-		}
-
+		FrameEvents dispatched;
 		Fx::UpdateContext uc;
 
+		SDL_Event event;
+		while(SDL_PollEvent(&event))
+		{
+			dispatchEvent(event, dispatched);
+		}
+
+		if (dispatched.exit)
+		{
+			appRunning = false;
+			break;
+		}
+
+		if (dispatched.windowResized || dispatched.windowMoved)
+		{
+			int width = 0;
+			int height = 0;
+
+			SDL_GetRendererOutputSize(renderer, &width, &height);
+			guiRoot->setRect(Fx::Rect(0, 0, width, height));
+		}
 
 		uiProcessEvent();
 		uiUpdate(uc.getDelta());
@@ -392,23 +345,28 @@ void Application::spinSDL()
 	//OnCleanup();
 }
 
-void Application::onWindowEvent(SDL_Event& event)
+bool onWindowEvent(SDL_Event& event, FrameEvents& dispatched)
 {
 	int windowID = event.window.windowID;
-	switch(event.type)
+	switch(event.window.event)
 	{
 	case SDL_WINDOWEVENT_SHOWN:
 		SDL_Log("Window %d shown", windowID);
-		break;
+		dispatched.windowVisible = true;
+		return true;
 	case SDL_WINDOWEVENT_HIDDEN:
 		SDL_Log("Window %d hidden", windowID);
-		break;
+		dispatched.windowVisible = false;
+		return true;
 	case SDL_WINDOWEVENT_EXPOSED:
 		SDL_Log("Window %d exposed", windowID);
-		break;
+		dispatched.windowVisible = true;
+		return true;
 	case SDL_WINDOWEVENT_MOVED:
 		SDL_Log("Window %d moved to %d,%d", windowID, event.window.data1, event.window.data2);
-		break;
+		dispatched.windowMoved = true;
+		dispatched.windowGeometry.moveTo(event.window.data1, event.window.data2);
+		return true;
 	case SDL_WINDOWEVENT_MINIMIZED:
 		SDL_Log("Window %d minimized", windowID);
 		break;
@@ -420,10 +378,14 @@ void Application::onWindowEvent(SDL_Event& event)
 		break;
 	case SDL_WINDOWEVENT_RESIZED:
 		SDL_Log("Window %d resized to %dx%d", windowID, event.window.data1, event.window.data2);
-		break;
+		dispatched.windowResized = true;
+		dispatched.windowGeometry.setSize(event.window.data1, event.window.data2);
+		return true;
 	case SDL_WINDOWEVENT_SIZE_CHANGED:
 		SDL_Log("Window %d size changed to %dx%d", windowID, event.window.data1, event.window.data2);
-		break;
+		dispatched.windowResized = true;
+		dispatched.windowGeometry.setSize(event.window.data1, event.window.data2);
+		return true;
 	case SDL_WINDOWEVENT_ENTER:
 		SDL_Log("Mouse entered window %d", windowID);
 		break;
@@ -451,17 +413,18 @@ void Application::onWindowEvent(SDL_Event& event)
 		SDL_Log("Window %d got unknown event %d", windowID, event.window.event);
 		break;
 	}
+	return false;
 }
 
-void Application::dispatchEvent(SDL_Event& event)
+void dispatchEvent(SDL_Event& event, FrameEvents& dispatched)
 {
 	if (event.type == SDL_QUIT)
 	{
-		appRunning = false;
+		dispatched.exit = true;
 	}
 	else if (event.type == SDL_WINDOWEVENT)
 	{
-		onWindowEvent(event);
+		onWindowEvent(event, dispatched);
 	}
 }
 
