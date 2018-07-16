@@ -35,24 +35,6 @@ void boxCorners(const Pose &p,float width,float height, Pose::vec *result)
 	result[3] = p.coords(-width,-height);
 }
 
-// generate OBB and render sprite in it
-void drawSprite(RenderContext* rc, SpriteData *sprite,
-			const Pose &p, float width, float height,bool rect=false)
-{
-	Pose::vec c[]=
-	{
-		p.coords(-width, height),
-		p.coords( width, height),
-		p.coords( width,-height),
-		p.coords(-width,-height)
-	};
-
-	rc->Render4V(sprite,c[0][0],c[0][1],c[1][0],c[1][1],c[2][0],c[2][1],c[3][0],c[3][1]);
-
-	//if(rect)
-	//	drawPoints(rc,c,4);
-}
-
 FxAnimation2::FxAnimation2(FxManager *manager, FxTextureId tex, float x, float y, float w, float h)
 	:Entity()
 	,fps(1.0f)
@@ -131,14 +113,14 @@ void FxAnimation2::xTile(float length)
 void FxAnimation2::addBlendMode(int mode)
 {
 	if(!valid())return;
-	sprite.SetBlendMode(mode|sprite.GetBlendMode());
+	sprite.setBlendMode(mode|sprite.getBlendMode());
 }
 
 void FxAnimation2::setBlendMode(int mode)
 {
 	if(!valid())
 		return;
-	sprite.SetBlendMode(mode);
+	sprite.setBlendMode(mode);
 }
 
 float FxAnimation2::duration()const
@@ -153,9 +135,9 @@ void FxAnimation2::setSize(float w,float h,bool mid)
 	if(!valid())
 		return;
 	if(mid)
-		sprite.SetHotSpot(w/2,h/2);
+		sprite.setHotSpot(w/2,h/2);
 	else
-		sprite.SetHotSpot(0,0);
+		sprite.setHotSpot(0,0);
 }
 // here we just advance current frame and change state
 void FxAnimation2::update(float dt)
@@ -206,10 +188,10 @@ void FxAnimation2::render(RenderContext* context, const Pose& base)
 	{
 		//if(crop)
 		{
-			sprite.SetTextureRect(rc.x1,rc.y1, rc.width()*cropWidth,rc.height()*cropHeight);
-			sprite.SetHotSpot(rc.width()*cropWidth,rc.height()*cropHeight);
-			drawSprite(context, &sprite, p,
-					cropWidth*width*0.5*scale, cropHeight*height*0.5*scale, drawRect);
+			sprite.setTextureRect(rc.x1,rc.y1, rc.width()*cropWidth,rc.height()*cropHeight);
+			sprite.setHotSpot(rc.width()*cropWidth,rc.height()*cropHeight);
+			drawSprite(context, sprite, p,
+					cropWidth*width*0.5*scale, cropHeight*height*0.5*scale);
 		}
 		//else
 		//{			
@@ -240,10 +222,9 @@ void FxAnimation2::render(RenderContext* context, const Pose& base)
 
 				//if(crop)
 				{
-					sprite.SetTextureRect(rc.x1,rc.y1,rc.width()*cropWidth,rc.height()*cropHeight);
-					sprite.SetHotSpot(rc.width()*cropWidth,rc.height()*cropHeight);
-					drawSprite(context, &sprite, bpose,
-							cropWidth*width*0.5*scale,cropHeight*height*0.5*scale,drawRect);
+					sprite.setTextureRect(rc.x1,rc.y1,rc.width()*cropWidth,rc.height()*cropHeight);
+					sprite.setHotSpot(rc.width()*cropWidth,rc.height()*cropHeight);
+					drawSprite(context, sprite, bpose, cropWidth*width*0.5*scale,cropHeight*height*0.5*scale);
 				}
 				//else
 				//{			

@@ -10,7 +10,6 @@ set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/" ${CMAKE_MODULE_PATH})
 find_package(Lua)
 include_directories(${LUA_INCLUDE_DIR})
 
-#
 find_package(SWIG)
 
 

@@ -110,8 +110,9 @@ void Button::onRender(Fx::RenderContext* rc)
 		Fx::Pose pose(0.5 * (rect.x2 + rect.x1), 0.5 * (rect.y2 + rect.y1), 0, 0);
 		sprite->render(rc, pose);
 	}
+
 	if(bPressed)
-		rc->drawRectSolid(getRect(), Fx::MakeARGB(255,65,65,65));
+		Fx::drawRectSolid(rc, getRect(), Fx::MakeARGB(255,65,65,65));
 }
 
 void Button::setText(const char * msg, FontPtr fnt)
@@ -179,9 +180,9 @@ Frame::Frame(const Fx::Rect & rect)
 void Frame::onRender(Fx::RenderContext* rc)
 {
 	if(drawBackground)
-		rc->drawRectSolid(windowRect, color);
+		Fx::drawRectSolid(rc, windowRect, color);
 	if(drawFrame)
-		rc->drawRect(windowRect, clrFrame);
+		Fx::drawRect(rc,windowRect, clrFrame);
 }
 
 void Frame::setOffsetHor( float offset )
@@ -399,7 +400,7 @@ Listbox::Listbox(int _id, const Fx::Rect & rect, Fx::Font *fnt, Fx::FxRawColor t
 	//bEnabled = true;
 	font=fnt;
 	sprHighlight = Fx::SpriteData(0, 0, 0, 0, 0, (rect.x2 - rect.x1), fnt->GetHeight());
-	sprHighlight.SetColor(hColor);
+	sprHighlight.setColor(hColor);
 	textColor=tColor;
 	texthilColor=thColor;
 	pItems=0;
@@ -490,8 +491,8 @@ void Listbox::onRender(Fx::RenderContext* rc)
 
 		if(nTopItem+i == nSelectedItem)
 		{
-
-			rc->Render(&sprHighlight, windowRect.x1,windowRect.y1+i*font->GetHeight());
+			drawSprite(rc, sprHighlight, windowRect.x1,windowRect.y1+i*font->GetHeight());
+			//rc->Render(&sprHighlight, windowRect.x1,windowRect.y1+i*font->GetHeight());
 			font->SetColor(texthilColor);
 		}
 		else

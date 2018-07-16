@@ -158,7 +158,7 @@ void Font::Render(float x, float y, int align, const char *string)
 			{
 				fx += pre[i]*fScale*fProportion;
 				letters[i]->RenderEx(fx, y, fRot, fScale*fProportion, fScale);
-				fx += (letters[i]->GetWidth()+post[i]+fTracking)*fScale*fProportion;
+				fx += (letters[i]->getWidth()+post[i]+fTracking)*fScale*fProportion;
 			}
 		}
 		string++;
@@ -267,7 +267,7 @@ float Font::GetStringWidth(const char *string, bool bMultiline) const
 			if(!letters[i])
 				i='?';
 			if(letters[i])
-				linew += letters[i]->GetWidth() + pre[i] + post[i] + fTracking;
+				linew += letters[i]->getWidth() + pre[i] + post[i] + fTracking;
 
 			string++;
 		}
@@ -290,7 +290,7 @@ void Font::SetColor(FxRawColor col)
 
 	for(int i=0; i<256; i++)
 		if(letters[i])
-			letters[i]->SetColor(col);
+			letters[i]->setColor(col);
 }
 
 void Font::SetZ(float z)
@@ -299,7 +299,7 @@ void Font::SetZ(float z)
 
 	for(int i=0; i<256; i++)
 		if(letters[i])
-			letters[i]->SetZ(z);
+			letters[i]->setZ(z);
 }
 
 void Font::SetBlendMode(int blend)
@@ -308,7 +308,7 @@ void Font::SetBlendMode(int blend)
 
 	for(int i=0; i<256; i++)
 		if(letters[i])
-			letters[i]->SetBlendMode(blend);
+			letters[i]->setBlendMode(blend);
 }
 
 char *Font::_get_line(char *file, char *line)

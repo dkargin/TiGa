@@ -12,7 +12,7 @@ namespace sim
 class Draw: public b2Draw
 {
 public:
-	Fx::RenderContext* hge;
+	Fx::RenderContext* rc;
 	Fx::RenderQueue* queue;
 	//HTARGET* passVision;
 	Fx::FxView2 globalView;

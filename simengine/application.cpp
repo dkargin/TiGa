@@ -33,10 +33,6 @@
 namespace sim
 {
 
-int regStore(lua_State *l);	// store top stack object in lua registry
-int regGet(lua_State *l);	// get object from lua registry
-int regFree(lua_State *l);	// free lua registry object
-
 Application * core = nullptr;
 
 typedef float Scalar;
@@ -77,28 +73,34 @@ Application::Application()
 	timeAccumulator = 0.f;
 	core = this;
 	LogFunction(logger);
-	//g_logger = &logger;
-
 	logger.setThreat(1);
+
 	// init LUA virtual machine
+#ifdef USE_SWIG
 	initLuaWrap(scripter.getVM());
+#endif
 	
 	scripter.errorHandler = this;
 
-	hgeRuns = false;
+	sdlRuns = false;
 	iupRuns = false;
 	Surf_Display = nullptr;
 	renderer = nullptr;
 	window = nullptr;
-	running = false;
+	appRunning = false;
 }
 
 Application::~Application()
 {
-	releaseFxManager();
+	for( size_t i = 0; i < uiGetMaxCursors(); i++)
+		cursor[i].effect = NULL;
+	guiRoot = NULL;
+	fxManager.clearObjects();
+	fxManager.clearResources();
+
 	SDL_Quit();
 #ifdef FUCK_HGE
-	if(hgeRuns && hge)
+	if(sdlRuns && hge)
 	{		
 		hge->System_Shutdown();
 		hge->Release();
@@ -183,6 +185,9 @@ void Application::uiProcessMouse(float mx, float my, int state)
 
 void Application::uiProcessEvent()
 {
+	if (!guiRoot)
+		return;
+	// TODO: Replace it by SDL events
 #ifdef FUCK_HGE
 	/// Process key inputs
 	for(size_t i = 0; i < 255; ++i)
@@ -216,17 +221,16 @@ void Application::uiProcessEvent()
 
 void Application::uiRender()
 {
-	// TODO: Should obtain render context somewhere
-		Fx::RenderContext* rc = nullptr;
+	Fx::RenderContext rc(&fxManager);
 	// Render UI
-	guiRoot->callRender(rc, guiRoot->getRect());
+	guiRoot->callRender(&rc, guiRoot->getRect());
 
 	for( size_t i = 0; i < uiGetMaxCursors(); i++)	
 	{
 		if(cursor[i].type != Cursor::Disabled &&  cursor[i].effect != NULL)
 		{
 			Pose pose(cursor[i].screenPosition[0],cursor[i].screenPosition[1],0,0);
-			cursor[i].effect->render(rc, pose);
+			cursor[i].effect->render(&rc, pose);
 		}
 	}
 }
@@ -287,29 +291,6 @@ size_t Application::uiGetMaxCursors() const
 	return MaxCursors;
 }
 
-void Application::onUpdate()
-{
-	if( true )
-	{
-		Fx::UpdateContext uc;
-
-		core->uiProcessEvent();
-		core->uiUpdate(uc.getDelta());
-	}
-#ifdef USE_IUP
-	if(iupRuns)
-		IupLoopStep();
-#endif
-}
-
-void Application::onRender()
-{
-	//hge->Gfx_BeginScene();
-	//hge->Gfx_Clear(0);
-	uiRender();
-	//hge->Gfx_EndScene();
-}
-
 bool Application::onScripterError(sim::Scripter& scripter,const char *error)
 {
 	LogFunction(logger);
@@ -336,139 +317,19 @@ void Application::run()
 				// hge is ready
 				_isDataInitialized = true;
 			} 
-			hgeRuns = true;
+			sdlRuns = true;
 			hge->System_Start();			
 		}
 		updateWorld();		
 	}
+
 #endif
 	iupRuns = false;
-	printf("Main IUP loop ended\n");
+
 	spinSDL();
+	printf("Main SDL loop ended\n");
 	onExit();
 }
-
-void Application::initFxManager()
-{
-	if( fxManager == NULL )
-	{
-		fxManager.reset(new Fx::FxManager());
-		fxManager->init(nullptr);
-		guiRoot.reset(new GUI::Object(Fx::Rect(0,0,0,0)));
-		guiRoot->setRect(Fx::Rect(0,0, getScreenWidth(), getScreenHeight()));
-		cursor[0].type = Cursor::Mouse;
-	}
-}
-
-void Application::releaseFxManager()
-{
-	for( size_t i = 0; i < uiGetMaxCursors(); i++)	
-		cursor[i].effect = NULL;
-	guiRoot = NULL;
-	fxManager->clearObjects();
-	fxManager->clearResources();
-}
-
-#ifdef FUCK_HGE
-HGE * Application::BasicHGEInit()
-{
-	hge = hgeCreate(HGE_VERSION);
-
-	if(!hge)
-		throw(std::exception("Cannot create HGE instance"));
-
-	hge->System_SetState(HGE_LOGFILE, "TiGa.log");
-	hge->System_SetState(HGE_FRAMEFUNC, Application::FrameFunc);
-	hge->System_SetState(HGE_RENDERFUNC, Application::RenderFunc);
-	hge->System_SetState(HGE_GFXRESTOREFUNC, Application::RestoreFunc);
-	hge->System_SetState(HGE_TITLE, "TiGa");
-	hge->System_SetState(HGE_FPS, 60);
-	hge->System_SetState(HGE_SCREENBPP, 32);
-	
-	initFxManager();
-	this->hgeRuns = true;
-	return hge;
-}
-
-Ihandle * Application::startHGE(int width, int height, bool windowed)
-{
-	assert(!hge);
-
-	hge = BasicHGEInit();
-
-	screenWidth = width;
-	screenHeight = height;
-	
-	hge->System_SetState(HGE_WINDOWED, windowed);
-	hge->System_SetState(HGE_SCREENWIDTH, width);
-	hge->System_SetState(HGE_SCREENHEIGHT, height);	
-	
-	systemInitiated = hge->System_Initiate();
-	
-	return NULL;
-}
-
-void Application::startHGEChild(unsigned int wnd)
-{
-	assert(hge == NULL);
-	hge = BasicHGEInit();
-	
-	hge->System_SetState(HGE_GUEST, true);
-	hge->System_SetState(hgeHwndState::HGE_HWNDPARENT,(HWND)wnd);
-	hge->System_SetState(HGE_WINDOWED, true);
-		
-	if(hge->System_Initiate()) 
-	{	
-		hge->System_Start();
-	}
-	else
-		throw(std::exception("Cannot start HGE"));
-}
-
-
-void Application::exitHGE()
-{
-	hge->System_Shutdown();
-}
-//RECT iupGetRect(Ihandle * handle);
-bool Application::setHGEViewport(Ihandle * handle)
-{
-	//RECT rc = iupGetRect(handle);
-	//hge->Gfx_SetViewport(rc.left, rc.top, (rc.right - rc.left)/2, (rc.bottom - rc.top)/2);
-	//hge->Gfx_SetClipping(rc.left, rc.top, (rc.right - rc.left)/2, (rc.bottom - rc.top)/2);
-	return true;
-}
-
-void Application::runHGE()
-{
-	assert(systemInitiated);
-	hgeRuns = true;
-	hge->System_Start();
-}
-
-bool Application::FrameFunc()
-{
-	core->onUpdate();
-	return false;
-}
-
-bool Application::RenderFunc()
-{
-	core->onRender();
-	return false;
-}
-
-// This function will be called by HGE when
-// render targets were lost and have been just created
-// again. We use it here to update the render
-// target's texture handle that changes during recreation.
-bool Application::RestoreFunc()
-{
-	core->onRestore();
-	return false;
-}
-
-#endif
 
 bool Application::initSDL()
 {
@@ -492,6 +353,12 @@ bool Application::initSDL()
 		return false;
 	}
 
+	fxManager.init();
+
+	guiRoot.reset(new GUI::Object(Fx::Rect(0,0,0,0)));
+	guiRoot->setRect(Fx::Rect(0,0, getScreenWidth(), getScreenHeight()));
+	cursor[0].type = Cursor::Mouse;
+
 	return true;
 }
 
@@ -499,12 +366,25 @@ void Application::spinSDL()
 {
 	SDL_Event event;
 
-	while(running)
+	appRunning = true;
+	while(appRunning)
 	{
 		while(SDL_PollEvent(&event))
 		{
 			dispatchEvent(event);
 		}
+
+		Fx::UpdateContext uc;
+
+
+		uiProcessEvent();
+		uiUpdate(uc.getDelta());
+
+		onPreRender();
+
+		uiRender();
+
+		SDL_GL_SwapWindow(window);
 		//OnLoop();
 		//OnRender();
 	}
@@ -512,85 +392,77 @@ void Application::spinSDL()
 	//OnCleanup();
 }
 
-void Application::dispatchEvent(SDL_Event& event)
+void Application::onWindowEvent(SDL_Event& event)
 {
-	if(event.type == SDL_QUIT)
+	int windowID = event.window.windowID;
+	switch(event.type)
 	{
-		running = false;
+	case SDL_WINDOWEVENT_SHOWN:
+		SDL_Log("Window %d shown", windowID);
+		break;
+	case SDL_WINDOWEVENT_HIDDEN:
+		SDL_Log("Window %d hidden", windowID);
+		break;
+	case SDL_WINDOWEVENT_EXPOSED:
+		SDL_Log("Window %d exposed", windowID);
+		break;
+	case SDL_WINDOWEVENT_MOVED:
+		SDL_Log("Window %d moved to %d,%d", windowID, event.window.data1, event.window.data2);
+		break;
+	case SDL_WINDOWEVENT_MINIMIZED:
+		SDL_Log("Window %d minimized", windowID);
+		break;
+	case SDL_WINDOWEVENT_MAXIMIZED:
+		SDL_Log("Window %d maximized", windowID);
+		break;
+	case SDL_WINDOWEVENT_RESTORED:
+		SDL_Log("Window %d restored", windowID);
+		break;
+	case SDL_WINDOWEVENT_RESIZED:
+		SDL_Log("Window %d resized to %dx%d", windowID, event.window.data1, event.window.data2);
+		break;
+	case SDL_WINDOWEVENT_SIZE_CHANGED:
+		SDL_Log("Window %d size changed to %dx%d", windowID, event.window.data1, event.window.data2);
+		break;
+	case SDL_WINDOWEVENT_ENTER:
+		SDL_Log("Mouse entered window %d", windowID);
+		break;
+	case SDL_WINDOWEVENT_LEAVE:
+		SDL_Log("Mouse left window %d", windowID);
+		break;
+	case SDL_WINDOWEVENT_FOCUS_GAINED:
+		SDL_Log("Window %d gained keyboard focus", windowID);
+		break;
+	case SDL_WINDOWEVENT_FOCUS_LOST:
+		SDL_Log("Window %d lost keyboard focus", windowID);
+		break;
+	case SDL_WINDOWEVENT_CLOSE:
+		SDL_Log("Window %d closed", windowID);
+		break;
+#if SDL_VERSION_ATLEAST(2, 0, 5)
+	case SDL_WINDOWEVENT_TAKE_FOCUS:
+		SDL_Log("Window %d is offered a focus", windowID);
+		break;
+	case SDL_WINDOWEVENT_HIT_TEST:
+		SDL_Log("Window %d has a special hit test", windowID);
+		break;
+#endif
+	default:
+		SDL_Log("Window %d got unknown event %d", windowID, event.window.event);
+		break;
 	}
 }
 
-/*
-// Example of SDL2 window events
-void PrintEvent(const SDL_Event * event)
+void Application::dispatchEvent(SDL_Event& event)
 {
-    if (event->type == SDL_WINDOWEVENT) {
-        switch (event->window.event) {
-        case SDL_WINDOWEVENT_SHOWN:
-            SDL_Log("Window %d shown", event->window.windowID);
-            break;
-        case SDL_WINDOWEVENT_HIDDEN:
-            SDL_Log("Window %d hidden", event->window.windowID);
-            break;
-        case SDL_WINDOWEVENT_EXPOSED:
-            SDL_Log("Window %d exposed", event->window.windowID);
-            break;
-        case SDL_WINDOWEVENT_MOVED:
-            SDL_Log("Window %d moved to %d,%d",
-                    event->window.windowID, event->window.data1,
-                    event->window.data2);
-            break;
-        case SDL_WINDOWEVENT_RESIZED:
-            SDL_Log("Window %d resized to %dx%d",
-                    event->window.windowID, event->window.data1,
-                    event->window.data2);
-            break;
-        case SDL_WINDOWEVENT_SIZE_CHANGED:
-            SDL_Log("Window %d size changed to %dx%d",
-                    event->window.windowID, event->window.data1,
-                    event->window.data2);
-            break;
-        case SDL_WINDOWEVENT_MINIMIZED:
-            SDL_Log("Window %d minimized", event->window.windowID);
-            break;
-        case SDL_WINDOWEVENT_MAXIMIZED:
-            SDL_Log("Window %d maximized", event->window.windowID);
-            break;
-        case SDL_WINDOWEVENT_RESTORED:
-            SDL_Log("Window %d restored", event->window.windowID);
-            break;
-        case SDL_WINDOWEVENT_ENTER:
-            SDL_Log("Mouse entered window %d",
-                    event->window.windowID);
-            break;
-        case SDL_WINDOWEVENT_LEAVE:
-            SDL_Log("Mouse left window %d", event->window.windowID);
-            break;
-        case SDL_WINDOWEVENT_FOCUS_GAINED:
-            SDL_Log("Window %d gained keyboard focus",
-                    event->window.windowID);
-            break;
-        case SDL_WINDOWEVENT_FOCUS_LOST:
-            SDL_Log("Window %d lost keyboard focus",
-                    event->window.windowID);
-            break;
-        case SDL_WINDOWEVENT_CLOSE:
-            SDL_Log("Window %d closed", event->window.windowID);
-            break;
-#if SDL_VERSION_ATLEAST(2, 0, 5)
-        case SDL_WINDOWEVENT_TAKE_FOCUS:
-            SDL_Log("Window %d is offered a focus", event->window.windowID);
-            break;
-        case SDL_WINDOWEVENT_HIT_TEST:
-            SDL_Log("Window %d has a special hit test", event->window.windowID);
-            break;
-#endif
-        default:
-            SDL_Log("Window %d got unknown event %d",
-                    event->window.windowID, event->window.event);
-            break;
-        }
-    }
+	if (event.type == SDL_QUIT)
+	{
+		appRunning = false;
+	}
+	else if (event.type == SDL_WINDOWEVENT)
+	{
+		onWindowEvent(event);
+	}
 }
- */
+
 }

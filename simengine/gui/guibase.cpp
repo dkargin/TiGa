@@ -225,7 +225,8 @@ namespace GUI
 			context->setClipping(clip);
 
 		if(uiDebug)
-			context->drawRect(getRect(), Fx::MakeARGB(255,64,255,64));
+			Fx::drawRect(context, getRect(), Fx::MakeARGB(255,64,255,64));
+
 		onRender(context);
 		// turn off clipping
 		if( clipChildren )

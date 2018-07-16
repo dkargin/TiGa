@@ -17,25 +17,26 @@ public:
 	SpriteData(const SpriteData &spr) = default;
 	SpriteData() = default;
 
-	void SetTexture(FxTextureId tex, int texWidth, int texHeight);
-	void SetTextureRect(float x, float y, float w, float h, bool adjSize = true);
-	void SetColor(FxRawColor col);
-	void SetZ(float z);
-	void SetBlendMode(int blend);
-	void SetHotSpot(float x, float y);
+	void setTexture(FxTextureId tex, int texWidth, int texHeight);
+	void setTextureRect(float x, float y, float w, float h, bool adjSize = true);
+	void setColor(FxRawColor col);
+	void setZ(float z);
+	void setBlendMode(int blend);
+	void setHotSpot(float x, float y);
 
-	FxTextureId GetTexture() const;
-	Rect GetTextureRect() const;
-	FxRawColor GetColor() const;
-	float GetZ() const;
-	int GetBlendMode() const;
-	void GetHotSpot(float *x, float *y) const;
+	FxTextureId getTexture() const;
+	Rect getTextureRect() const;
+	FxRawColor getColor() const;
+	float getZ() const;
+	int getBlendMode() const;
+	void getHotSpot(float *x, float *y) const;
 
-	float GetWidth() const;
-	float GetHeight() const;
+	// This should be 'screen' size of a sprite
+	float getWidth() const;
+	float getHeight() const;
 
-	Rect* GetBoundingBox(float x, float y, Rect *rect) const;
-	Rect* GetBoundingBoxEx(float x, float y, float rot, float hscale, float vscale,  Rect *rect) const;
+	Rect* getBoundingBox(float x, float y, Rect *rect) const;
+	Rect* getBoundingBoxEx(float x, float y, float rot, float hscale, float vscale,  Rect *rect) const;
 
 protected:
 	// Blending mode

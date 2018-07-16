@@ -33,6 +33,8 @@ class TestApplication : public sim::Application
 int main(int argc, char** argv)
 {
 	TestApplication app;
+
+	app.initSDL();
 	// SDL_Init(SDL_INIT_VIDEO);
 #ifdef DISABLE_THIS
 	SDL_Window* wnd = SDL_CreateWindow("test", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,

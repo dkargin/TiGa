@@ -49,9 +49,8 @@ public:
 	FxManager();
 	~FxManager();
 
-	void init(HGE * hge);			/// init resource system
-
-	/// factory
+	/// init resource system
+	void init();
 
 	// Create animation from the part of texture
 	FxAnimation2Ptr createAnimation(const char *texture, Rect rect, int frameWidth, int frameHeight, float fps, AnimationMode mode);
@@ -71,15 +70,14 @@ public:
 
 	Record& getTexture(const char *texture);							//
 	int freeTexture(FxTextureId texture);									//
+	TextureManager* getTextureManager();
 
-	typedef std::shared_ptr<FxManager> SharedPtr;
-	typedef std::weak_ptr<FxManager> WeakPtr;
 protected:
 	Records::iterator find(const char *file);							//< Find resource by its filename
 	Records::iterator find(FxTextureId tex);							//< Find resource by its texture id
 	math3::Pose2z viewPose;
 	float viewScale;
-	TextureManager* textureManager;
+	std::unique_ptr<TextureManager> textureManager;
 };
 
 }

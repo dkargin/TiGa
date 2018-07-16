@@ -31,9 +31,6 @@ public:
 	frosttools::LogFILE logger;
 	sim::Scripter scripter;
 
-	bool iupRuns;
-	bool hgeRuns;
-
 	bool pause;
 	bool systemInitiated;
 	float timeAccumulator;
@@ -62,8 +59,6 @@ public:
 
 	virtual bool initSDL();
 
-	void initFxManager();
-	void releaseFxManager();
 	/// system startup
 	void initIup();
 	void executeScript(const char * file);
@@ -88,21 +83,21 @@ public:
 	int getScreenWidth() const;
 	int getScreenHeight() const;
 
-	// gui
-	GUI::ObjectPtr guiRoot;	// root gui object
+	// root gui object
+	GUI::ObjectPtr guiRoot;
 	GUI::FontPtr font;
 
-	Fx::FxManagerPtr fxManager;
+	Fx::FxManager fxManager;
 	
 	/// general callbacks, mostly from HGE
 	virtual void onPreRender(){}
-	virtual void onRender();
-	virtual void onUpdate();
 	virtual void onExit() {}
 	virtual void onRestore() {}
 
 	sim::Scripter * getScripter() { return &scripter;}
+
 protected:
+	// Gathers input state from HGE. Should be refactored to SDL
 	void uiProcessEvent();
 	void uiProcessMouse(float mx, float my, int state);
 	void uiRender();
@@ -112,15 +107,6 @@ protected:
 
 	// Update cursor's screen position
 	void updateCursorPosition(float x, float y);
-private:
-#ifdef FUCK_HGE
-	// HGE event handlers
-	static bool FrameFunc();
-	static bool RestoreFunc();
-	static bool RenderFunc();
-	HGE * BasicHGEInit();
-#endif
-private:
 
 	/// Mouse state
 	struct MouseState
@@ -130,19 +116,36 @@ private:
 		vec2f position;
 	};
 
-	std::vector<MouseState> mouseState, newMouseState;
-
-	int screenWidth = 0;
-	int screenHeight = 0;
+protected:
+	bool iupRuns = false;
+	bool sdlRuns = false;
 	// SDL stuff
 	SDL_Surface* Surf_Display;
 	SDL_Window* window;
 	SDL_Renderer* renderer;
+
 	// Control flag for spinning application event loop
-	bool running;
+	bool appRunning = false;
+	std::vector<MouseState> mouseState, newMouseState;
+
+	Fx::IntRect windowGeometry;
 	// Run SDL event loop
 	void spinSDL();
-	void dispatchEvent(SDL_Event& Event);
+
+	// We gather all frame events in this structure
+	struct FrameEvents
+	{
+		bool windowMoved = false;
+		bool windowResized = false;
+		Fx::IntRect windowGeometry;
+		bool mouseMoved = false;
+		bool keysChanged = false;
+		// Updated mouse state
+		std::vector<MouseState> mouseState;
+	};
+
+	void onWindowGeometryChanged(int wid, int x, int y, int width, int height, int flags);
+	void dispatchEvent(SDL_Event& event);
 };
 
 extern Application * core;

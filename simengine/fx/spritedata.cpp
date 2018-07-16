@@ -131,7 +131,7 @@ void SpriteData::Render4V(float x0, float y0, float x1, float y1, float x2, floa
 }
 #endif
 
-Rect* SpriteData::GetBoundingBoxEx(float x, float y, float rot, float hscale, float vscale, Rect *rect) const
+Rect* SpriteData::getBoundingBoxEx(float x, float y, float rot, float hscale, float vscale, Rect *rect) const
 {
 	float tx1, ty1, tx2, ty2;
 	float sint, cost;
@@ -164,7 +164,7 @@ Rect* SpriteData::GetBoundingBoxEx(float x, float y, float rot, float hscale, fl
 	return rect;
 }
 
-void SpriteData::SetTexture(FxTextureId tex_, int width, int height)
+void SpriteData::setTexture(FxTextureId tex_, int width, int height)
 {
 	float tx1,ty1,tx2,ty2;
 
@@ -202,7 +202,7 @@ void SpriteData::SetTexture(FxTextureId tex_, int width, int height)
 }
 
 
-void SpriteData::SetTextureRect(float x, float y, float w, float h, bool adjSize)
+void SpriteData::setTextureRect(float x, float y, float w, float h, bool adjSize)
 {
 	float tx1, ty1, tx2, ty2;
 	bool bX,bY,bHS;
@@ -232,69 +232,69 @@ void SpriteData::SetTextureRect(float x, float y, float w, float h, bool adjSize
 }
 
 
-void SpriteData::SetColor(FxRawColor col)
+void SpriteData::setColor(FxRawColor col)
 {
 	color = col;
 }
 
-void SpriteData::SetZ(float z)
+void SpriteData::setZ(float z)
 {
 	this->z = z;
 }
 
-void SpriteData::SetBlendMode(int blend)
+void SpriteData::setBlendMode(int blend)
 {
 	this->blend = blend;
 }
 
-void SpriteData::SetHotSpot(float x, float y)
+void SpriteData::setHotSpot(float x, float y)
 {
 	hotX=x;
 	hotY=y;
 }
 
-FxTextureId SpriteData::GetTexture() const
+FxTextureId SpriteData::getTexture() const
 {
 	return tex;
 }
 
-Rect SpriteData::GetTextureRect() const
+Rect SpriteData::getTextureRect() const
 {
 	return src;
 }
 
-FxRawColor SpriteData::GetColor() const
+FxRawColor SpriteData::getColor() const
 {
 	return color;
 }
 
-float SpriteData::GetZ() const
+float SpriteData::getZ() const
 {
 	return z;
 }
 
-int SpriteData::GetBlendMode() const
+int SpriteData::getBlendMode() const
 {
 	return blend;
 }
 
-void SpriteData::GetHotSpot(float *x, float *y) const
+void SpriteData::getHotSpot(float *x, float *y) const
 {
 	*x=hotX;
 	*y=hotY;
 }
 
-float SpriteData::GetWidth() const
+float SpriteData::getWidth() const
 {
 	return src.width();
 }
 
-float SpriteData::GetHeight() const
+float SpriteData::getHeight() const
 {
 	return src.height();
 }
 
-Rect* SpriteData::GetBoundingBox(float x, float y, Rect *rect) const
+Rect* SpriteData::getBoundingBox(float x, float y, Rect *rect) const
 {
 	rect->set(x-hotX, y-hotY, x-hotX+src.width(), y-hotY+src.height());
 	return rect;

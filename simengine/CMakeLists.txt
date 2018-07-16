@@ -27,7 +27,6 @@ include_directories(${SDL2_INCLUDE_DIRS})
 include_directories(${OPENGL_INCLUDE_DIR})
 
 add_library(fx
-	fx/rect.cpp
 	fx/spritedata.cpp
 	fx/fxentity.cpp
 	fx/fxanimation.cpp

@@ -309,7 +309,7 @@ template<class Type> inline void Scripter::addGlobal(const Type &value,const cha
 
 template<> struct TypeBindings<Scripter::Object*>
 {
-	static inline bool write(Stream *L,_Scripter::Object * value)
+	static inline bool write(Stream *L, Scripter::Object * value)
 	{
 		value->toStack();
 		return 1;

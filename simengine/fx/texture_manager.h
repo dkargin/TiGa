@@ -18,10 +18,9 @@ public:
 	void free(FxTextureId tex);
 	int width(FxTextureId tex, bool bOriginal=false);
 	int height(FxTextureId tex, bool bOriginal=false);
-	/*
-	uint32_t* Texture_Lock(FxTextureId tex, bool bReadOnly, int left, int top, int width, int height);
-	void Texture_Unlock(FxTextureId tex);
-	*/
+
+	// Binds specified texture and returns the previous one
+	FxTextureId bind(FxTextureId tex);
 };
 
 }

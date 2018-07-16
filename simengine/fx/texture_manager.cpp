@@ -103,6 +103,14 @@ FxTextureId TextureManager::loadFile(const char* filename, bool bMipmap)
 	return (FxTextureId) pTex;
 }
 
+FxTextureId TextureManager::bind(FxTextureId tex)
+{
+	GLint prevTex = 0;	//< Need this to restore previous texture
+	glGetIntegerv(GL_TEXTURE_BINDING_2D, &prevTex);
+	glBindTexture(GL_TEXTURE_2D, tex);
+	return (FxTextureId) prevTex;
+}
+
 void TextureManager::free(FxTextureId tex)
 {
 	GLuint id = tex;

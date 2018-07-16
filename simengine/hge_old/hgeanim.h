@@ -35,7 +35,7 @@ public:
 	bool		IsPlaying() const { return bPlaying; }
 
 	void		SetTexture(HTEXTURE tex) { SpriteData::SetTexture(tex); orig_width = hge->Texture_GetWidth(tex, true); }
-	void		SetTextureRect(float x1, float y1, float x2, float y2) { SpriteData::SetTextureRect(x1,y1,x2,y2); SetFrame(nCurFrame); }
+	void		SetTextureRect(float x1, float y1, float x2, float y2) { SpriteData::setTextureRect(x1,y1,x2,y2); SetFrame(nCurFrame); }
 	void		SetMode(int mode);
 	void		SetSpeed(float FPS) { fSpeed=1.0f/FPS; }
 	void		SetFrame(int n);

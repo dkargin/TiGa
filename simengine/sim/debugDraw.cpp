@@ -47,8 +47,8 @@ void Draw::DrawPolygon(const b2Vec2* vertices, int32 vertexCount, const b2Color&
 {
 #ifdef FIX_THIS
 	for (int32 i = 1; i <vertexCount; i++)
-		hge->Gfx_RenderLine(vertices[i-1].x, vertices[i-1].y,  vertices[i].x, vertices[i].y, Fx::MakeARGB(200,color.r*128,color.g*128,color.b*128));
-	hge->Gfx_RenderLine(vertices[vertexCount-1].x, vertices[vertexCount-1].y,  vertices[0].x, vertices[0].y, Fx::MakeARGB(200,color.r*128,color.g*128,color.b*128));
+		rc->Gfx_RenderLine(vertices[i-1].x, vertices[i-1].y,  vertices[i].x, vertices[i].y, Fx::MakeARGB(200,color.r*128,color.g*128,color.b*128));
+	rc->Gfx_RenderLine(vertices[vertexCount-1].x, vertices[vertexCount-1].y,  vertices[0].x, vertices[0].y, Fx::MakeARGB(200,color.r*128,color.g*128,color.b*128));
 #endif
 }
 
@@ -56,22 +56,22 @@ void Draw::DrawSolidPolygon(const b2Vec2* vertices, int32 vertexCount, const b2C
 {
 #ifdef FIX_THIS
 	for (int32 i = 1; i <vertexCount; i++)
-		hge->Gfx_RenderLine(vertices[i-1].x,  vertices[i-1].y, vertices[i].x, vertices[i].y, Fx::MakeARGB(200,color.r*128,color.g*128,color.b*128));
-	hge->Gfx_RenderLine(vertices[vertexCount-1].x,  vertices[vertexCount-1].y, vertices[0].x, vertices[0].y, Fx::MakeARGB(200,color.r*128,color.g*128,color.b*128));
+		rc->Gfx_RenderLine(vertices[i-1].x,  vertices[i-1].y, vertices[i].x, vertices[i].y, Fx::MakeARGB(200,color.r*128,color.g*128,color.b*128));
+	rc->Gfx_RenderLine(vertices[vertexCount-1].x,  vertices[vertexCount-1].y, vertices[0].x, vertices[0].y, Fx::MakeARGB(200,color.r*128,color.g*128,color.b*128));
 #endif
 }
 
 void Draw::DrawCircle(const b2Vec2& center, float32 radius, const b2Color& color)
 {
 #ifdef FIX_THIS
-   if(!hge) return;
+   if(!rc) return;
    int NUMPOINTS = 24+(int)radius/20;;
    //Set up vertices for a circle
    //Used <= in the for statement to ensure last point meets first point (closed circle)
    float deltaAngle=2*M_PI/NUMPOINTS;
    for(int i=0;i<NUMPOINTS;i++)
    {
-	   hge->Gfx_RenderLine(	center.x + radius*cosf(deltaAngle*i), 
+	   rc->Gfx_RenderLine(	center.x + radius*cosf(deltaAngle*i), 
 							center.y + radius*sinf(deltaAngle*i),
 							center.x + radius*cosf(deltaAngle*(i+1)), 
 							center.y + radius*sinf(deltaAngle*(i+1)), Fx::MakeARGB(255,color.r*255,color.g*255,color.b*255));
@@ -82,14 +82,14 @@ void Draw::DrawCircle(const b2Vec2& center, float32 radius, const b2Color& color
 void Draw::DrawSolidCircle(const b2Vec2& center, float32 radius, const b2Vec2& axis, const b2Color& color)
 {
 #ifdef FIX_THIS
-	if(!hge) return;
+	if(!rc) return;
 
 	int NUMPOINTS = 24+(int)radius/20;
 
 	float deltaAngle=2*M_PI/NUMPOINTS;
 	for(int i=0;i<NUMPOINTS;i++)
 	{
-		hge->Gfx_RenderLine(center.x + radius*cosf(deltaAngle*i),
+		rc->Gfx_RenderLine(center.x + radius*cosf(deltaAngle*i),
 						center.y + radius*sinf(deltaAngle*i),
 						center.x + radius*cosf(deltaAngle*(i+1)),
 						center.y + radius*sinf(deltaAngle*(i+1)), Fx::MakeARGB(255,color.r*255,color.g*255,color.b*255));
@@ -100,32 +100,32 @@ void Draw::DrawSolidCircle(const b2Vec2& center, float32 radius, const b2Vec2& a
 void Draw::DrawSegment(const b2Vec2& p1, const b2Vec2& p2, const b2Color& color)
 {
 #ifdef FIX_THIS
-   if(!hge)
+   if(!rc)
   	 return;
    Fx::FxRawColor raw = Fx::MakeARGB(255, color.r*255, color.g*255, color.b*255);
-   hge->Gfx_RenderLine(p1.x, p1.y, p2.x, p2.y, raw);
+   rc->Gfx_RenderLine(p1.x, p1.y, p2.x, p2.y, raw);
 #endif
 }
 
 void Draw::DrawTransform(const b2Transform& xf)
 {
 #ifdef FIX_THIS
-   if(!hge) return;
+   if(!rc) return;
 
    b2Vec2 p1 = xf.p, p2;
    const float32 k_axisScale = 0.4f;
    
    p2 = p1 + b2Vec2( xf.q.GetXAxis() );
-   hge->Gfx_RenderLine(p1.x,p1.y,p2.x,p2.y, Fx::MakeARGB(255,255,0,0));
+   rc->Gfx_RenderLine(p1.x,p1.y,p2.x,p2.y, Fx::MakeARGB(255,255,0,0));
 
    p2 = p1 + b2Vec2( xf.q.GetYAxis() );
-   hge->Gfx_RenderLine(p1.x,p1.y,p2.x,p2.y, Fx::MakeARGB(255,0,255,0));
+   rc->Gfx_RenderLine(p1.x,p1.y,p2.x,p2.y, Fx::MakeARGB(255,0,255,0));
 #endif
 }
 
 Draw::Draw()
 {
-	hge = nullptr;
+	rc = nullptr;
 	globalView.scale = 1.0;
 	drawDynamics = true;
 	drawDevices = false;
@@ -137,7 +137,7 @@ Draw::~Draw(void)
 
 void Draw::init(Fx::RenderContext* hge)
 {	
-	this->hge = hge;
+	this->rc = hge;
 }
 //
 //void Draw::begin()
@@ -214,7 +214,7 @@ void Draw::drawObject(GameObject* object)
 
 void Draw::drawSprite(const Pose &pose, const Fx::SpriteData *sprite)
 {
-	hge->RenderEx(sprite, pose.position[0],pose.position[1],pose.orientation);
+	Fx::drawSprite(rc, *sprite, pose);
 }
 
 void Draw::draw(Unit* unit)
@@ -232,12 +232,12 @@ void Draw::draw(Unit* unit)
 		{
 			device->effects.query(pose);
 			if( drawDevices )
-				device->render(hge);
+				device->render(rc);
 		}
 	}
 
 	if(unit->getController() && drawTasks)
-		unit->getController()->render(hge);	
+		unit->getController()->render(rc);	
 #endif
 }
 
@@ -307,11 +307,11 @@ void Draw::draw(const VisionManager::VisionDesc& vision)
 {
 	if(vision.fov < 360)
 	{
-		DrawCone(hge,vision.pose,0,vision.fov*M_PI/180.f,vision.distance, Fx::MakeRGB(255, 255, 255));
+		DrawCone(rc,vision.pose,0,vision.fov*M_PI/180.f,vision.distance, Fx::MakeRGB(255, 255, 255));
 	}
 	else
 	{
-		DrawCone(hge,vision.pose,0,2*M_PI,vision.distance, Fx::MakeRGB(255, 255, 255));
+		DrawCone(rc,vision.pose,0,2*M_PI,vision.distance, Fx::MakeRGB(255, 255, 255));
 		//DrawCircleArea(hge,vision.pose,vision.distance, Fx::MakeRGB(255, 255, 255));
 	}
 }

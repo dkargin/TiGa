@@ -1,54 +1,113 @@
-/*
-** Haaf's Game Engine 1.7
-** Copyright (C) 2003-2007, Relish Games
-** hge.relishgames.com
-**
-** hgeRect helper class
-*/
-
-
 #pragma once
+
+#include <algorithm>
+#include <cmath>
 
 namespace Fx 
 {
 
-struct Rect
+template<class T> struct RectBase
 {
-	typedef float Scalar;
-	Scalar x1, y1, x2, y2;
+	T x1, y1, x2, y2;
+	typedef RectBase<T> rect_type;
 
-	Rect(Scalar _x1, Scalar _y1, Scalar _x2, Scalar _y2);
-	Rect();
-	Rect(const Rect& rc);
+	RectBase(float _x1, float _y1, float _x2, float _y2)
+	{
+		x1=_x1;
+		y1=_y1;
+		x2=_x2;
+		y2=_y2;
+	}
 
-	void clear();
-	bool isClean() const;
-	void set(Scalar _x1, Scalar _y1, Scalar _x2, Scalar _y2);
-	void setRadius(Scalar x, Scalar y, Scalar r);
-	void encapsulate(Scalar x, Scalar y);
-	bool testPoint(Scalar x, Scalar y) const;
-	bool intersect(const Rect& rect) const;
+	template<class Other> RectBase(const RectBase<Other> & rc)
+		:x1(rc.x1), x2(rc.x2), y1(rc.y1), y2(rc.y2)
+	{}
 
-	Scalar width() const
+	RectBase()
+	{
+		clear();
+	}
+
+	void clear()
+	{
+		x1 = 0;
+		x2 = -1;
+		y1 = 0;
+		y2 = -1;
+	}
+
+	bool isClean() const
+	{
+		return x1 > x2 && y1 > y2;
+	}
+
+	void set(float _x1, float _y1, float _x2, float _y2)
+	{
+		x1=_x1; x2=_x2; y1=_y1; y2=_y2;
+	}
+
+	void setRadius(float x, float y, float r)
+	{
+		x1 = x-r;
+		x2 = x+r;
+		y1 = y-r;
+		y2 = y+r;
+	}
+
+	void encapsulate(float x, float y)
+	{
+		if(isClean())
+		{
+			x1 = x2 = x;
+			y1 = y2 = y;
+		}
+		else
+		{
+			if(x<x1) x1=x;
+			if(x>x2) x2=x;
+			if(y<y1) y1=y;
+			if(y>y2) y2=y;
+		}
+	}
+
+	bool testPoint(float x, float y) const
+	{
+		if(x>=x1 && x<x2 && y>=y1 && y<y2) return true;
+
+		return false;
+	}
+
+	bool intersect(const rect_type& rect) const
+	{
+		if(fabs(x1 + x2 - rect.x1 - rect.x2) < (x2 - x1 + rect.x2 - rect.x1))
+			if(fabs(y1 + y2 - rect.y1 - rect.y2) < (y2 - y1 + rect.y2 - rect.y1))
+				return true;
+
+		return false;
+	}
+
+	T width() const
 	{
 		return x2 - x1;
 	}
-	Scalar height() const
+	T height() const
 	{
 		return y2 - y1;
 	}
-	Scalar area() const
+	T area() const
 	{
 		return width() * height();
 	}
-	void move(Scalar x, Scalar y)
+
+	void move(T x, T y)
 	{
 		x1 += x;
 		y1 += y;
 		x2 += x;
 		y2 += y;
 	}
-	Rect& operator = (const Rect& rc)
+
+	rect_type& operator = (const rect_type& rc)
 	{
 		x1 = rc.x1;
 		y1 = rc.y1;
@@ -56,8 +115,28 @@ struct Rect
 		y2 = rc.y2;
 		return *this;
 	}
-	static Rect intersect(const Rect& a, const Rect& b);
-	static Rect merge(const Rect& a, const Rect& b);
+
+	static rect_type intersect(const rect_type& a, const rect_type& b)
+	{
+		rect_type result;
+		result.x1 = std::max(a.x1, b.x1);
+		result.y1 = std::max(a.y1, b.y1);
+		result.x2 = std::min(a.x2, b.x2);
+		result.y2 = std::min(a.y2, b.y2);
+		return result;
+	}
+
+	static rect_type merge(const rect_type& a, const rect_type& b)
+	{
+		rect_type result;
+		result.x1 = std::min(a.x1, b.x1);
+		result.y1 = std::min(a.y1, b.y1);
+		result.x2 = std::max(a.x2, b.x2);
+		result.y2 = std::max(a.y2, b.y2);
+		return result;
+	}
 };
 
+typedef RectBase<float> Rect;
+typedef RectBase<int> IntRect;
 }

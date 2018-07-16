@@ -12,9 +12,9 @@
 namespace Fx
 {
 
-/*
-** HGE Blending constants
-*/
+/**
+ * HGE Blending constants
+ */
 #define	BLEND_COLORADD		1
 #define	BLEND_COLORMUL		0
 #define	BLEND_ALPHABLEND	2
@@ -61,6 +61,16 @@ struct Vertex
 		return Vertex{x, y, 0.f, color, tx, ty};
 	}
 
+	static Vertex make2c(const float* p, FxRawColor color, float tx = 0, float ty = 1)
+	{
+		return Vertex{p[0], p[1], 0.f, color, tx, ty};
+	}
+
+	static Vertex make2c(const float p[2], FxRawColor color, float t[2])
+		{
+			return Vertex{p[0], p[1], 0.f, color, t[0], t[1]};
+		}
+
 	static Vertex make3c(float x, float y, float z, FxRawColor color, float tx = 0, float ty = 1)
 	{
 		return Vertex{x, y, z, color, tx, ty};
@@ -105,6 +115,7 @@ struct VertexBatch
 	}
 
 	// Append vertex data to a batch
+	// @returns number of primitives added to a batch
 	int append(std::initializer_list<Vertex>&& data)
 	{
 		if (primType == PRIM_INVALID)
@@ -138,7 +149,7 @@ typedef math3::Pose2z Pose;
 typedef math3::vec2f vec2f;
 typedef math3::vec3f vec3f;
 
-// Context for game update
+// Time context for game tick
 struct UpdateContext
 {
 	typedef std::chrono::time_point<std::chrono::system_clock> time_point;

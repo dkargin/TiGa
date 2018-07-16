@@ -117,17 +117,21 @@ namespace GUI
 		std::function<void ()> onPressed;
 		virtual void executeOnStateChange(bool down) {}
 
+		// Why is it public?
 		Fx::EntityPtr sprite;
-	private:
-		FontPtr font;
-		bool useSprites;
-		std::shared_ptr<Text> text;
-		//Frame frame;
-		bool useText;
 
-		bool bTrigger;
-		bool bPressed;
-		bool bOldState;
+	private:
+
+		FontPtr font;
+		bool useSprites = false;
+		std::shared_ptr<Text> text;
+
+		//Frame frame;
+		bool useText = false;
+
+		bool bTrigger = false;
+		bool bPressed = false;
+		bool bOldState = false;
 	};
 
 	typedef std::shared_ptr<Button> ButtonPtr;

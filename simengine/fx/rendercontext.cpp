@@ -6,6 +6,9 @@
  */
 
 #include "rendercontext.h"
+#include "fxmanager.h"
+#include "spritedata.h"
+
 #include "GL/gl.h"
 #include <string.h>
 
@@ -14,22 +17,38 @@
 namespace Fx
 {
 
+RenderContext::RenderContext(FxManager* manager)
+{
+	this->manager = manager;
+}
+
+RenderContext::~RenderContext()
+{
+
+}
+
 template <class T> static inline const T Min(const T a, const T b) { return a < b ? a : b; }
 template <class T> static inline const T Max(const T a, const T b) { return a > b ? a : b; }
 
 void RenderContext::_ActivateBatch(const Fx::VertexBatch& batch)
 {
-	currentBatch.primType = batch.primType;
+	if (!currentBatch)
+		return;
+	currentBatch->primType = batch.primType;
 
-	if(currentBatch.blend != batch.blend)
+	if(currentBatch->blend != batch.blend)
 	{
-		currentBatch.blend = updateBlendMode(batch.blend, currentBatch.blend);
+		currentBatch->blend = updateBlendMode(batch.blend, currentBatch->blend);
 	}
 
-	if (currentBatch.texture != batch.texture)
+	if (currentBatch->texture != batch.texture)
 	{
-		_BindTexture(batch.texture);
-		currentBatch.texture = batch.texture;
+		if(manager)
+		{
+			if (auto texManager = manager->getTextureManager())
+				texManager->bind(batch.texture);
+		}
+		currentBatch->texture = batch.texture;
 	}
 }
 
@@ -38,7 +57,7 @@ bool RenderContext::canMergeBatches(const Fx::VertexBatch& a, const Fx::VertexBa
 	return a.texture == b.texture && a.blend == b.blend && a.primType == b.primType;
 }
 
-bool RenderContext::_PrimsOutsideClipping(const Fx::Vertex *v, const int verts)
+bool RenderContext::checkPrimitivesClipping(const Fx::Vertex *v, const int verts)
 {
 #ifdef FUCK_THIS
 	if (bTransforming)
@@ -65,7 +84,7 @@ void CALL RenderContext::Gfx_RenderLine(float x1, float y1, float x2, float y2, 
 	{
 		if(CurPrimType!=HGEPRIM_LINES || nPrim>=VERTEX_BUFFER_SIZE/HGEPRIM_LINES || CurTexture || CurBlendMode!=BLEND_DEFAULT)
 		{
-			_render_batch();
+			_renderBatchImpl();
 
 			CurPrimType=HGEPRIM_LINES;
 			if(CurBlendMode != BLEND_DEFAULT)
@@ -81,7 +100,7 @@ void CALL RenderContext::Gfx_RenderLine(float x1, float y1, float x2, float y2, 
 		VertArray[i].tx    = VertArray[i+1].tx =
 		VertArray[i].ty    = VertArray[i+1].ty = 0.0f;
 
-		if (!_PrimsOutsideClipping(&VertArray[i], HGEPRIM_LINES))
+		if (!checkPrimitivesClipping(&VertArray[i], HGEPRIM_LINES))
 			nPrim++;
 	}
 }
@@ -96,7 +115,7 @@ void CALL RenderContext::Gfx_RenderTriple(const Fx::Triple* triple)
 
 	const Fx::Vertex* v = triple->v;
 
-	if (_PrimsOutsideClipping(v, 3))
+	if (checkPrimitivesClipping(v, 3))
 	{
 		// check for overlap, despite triangle points being outside clipping...
 		const int maxX = clipX + clipW;
@@ -114,7 +133,7 @@ void CALL RenderContext::Gfx_RenderTriple(const Fx::Triple* triple)
 
 	if (!batchesAreSimilar(newBatch, currentBatch) || nPrim>=VERTEX_BUFFER_SIZE/HGEPRIM_TRIPLES)
 	{
-		_render_batch();
+		_renderBatchImpl();
 		_ActivateBatch(batch);
 	}
 
@@ -130,7 +149,7 @@ void CALL RenderContext::Gfx_RenderQuad(const Fx::Quad *quad)
 	Batch newBatch = {HGEPRIM_QUADS, triple->blend, triple->tex};
 
 	const Fx::Vertex *v = quad->v;
-	if (_PrimsOutsideClipping(v, 4))
+	if (checkPrimitivesClipping(v, 4))
 	{
 		// check for overlap, despite quad points being outside clipping...
 		const int maxX = clipX + clipW;
@@ -149,7 +168,7 @@ void CALL RenderContext::Gfx_RenderQuad(const Fx::Quad *quad)
 	if (!batchesAreSimilar(newBatch, currentBatch) ||
 			nPrim >= VERTEX_BUFFER_SIZE/HGEPRIM_QUADS)
 	{
-		_render_batch();
+		_renderBatchImpl();
 		_ActivateBatch(newBatch);
 	}
 
@@ -161,7 +180,7 @@ Fx::Vertex* CALL RenderContext::Gfx_StartBatch(int prim_type, Fx::FxTextureId te
 {
 	if(VertArray)
 	{
-		_render_batch();
+		_renderBatchImpl();
 
 		CurPrimType=prim_type;
 
@@ -181,7 +200,7 @@ void CALL RenderContext::Gfx_FinishBatch(int nprim)
 }
 #endif
 
-void CALL RenderContext::Gfx_Clear(FxRawColor color)
+void CALL RenderContext::clearFrame(FxRawColor color)
 {
 	GLbitfield flags = GL_COLOR_BUFFER_BIT;
 	// TODO:
@@ -196,7 +215,7 @@ void CALL RenderContext::Gfx_Clear(FxRawColor color)
 	glClear(flags);
 }
 
-void CALL RenderContext::Gfx_SetClipping(int x, int y, int w, int h)
+void CALL RenderContext::setClipping(int x, int y, int w, int h)
 {
 	struct { int X; int Y; int Width; int Height; float MinZ; float MaxZ; } vp;
 
@@ -238,7 +257,8 @@ void CALL RenderContext::Gfx_SetClipping(int x, int y, int w, int h)
 	vp.MinZ=0.0f;
 	vp.MaxZ=1.0f;
 
-	_render_batch(currentBatch);
+	if (currentBatch)
+		_renderBatchImpl(*currentBatch.get());
 
 	clipX = vp.X;
 	clipY = vp.Y;
@@ -247,7 +267,12 @@ void CALL RenderContext::Gfx_SetClipping(int x, int y, int w, int h)
 	glScissor(vp.X, (scr_height-vp.Y)-vp.Height, vp.Width, vp.Height);
 }
 
-void RenderContext::_render_batch(Fx::VertexBatch& batch, bool bEndScene)
+void RenderContext::renderBatch(const Fx::VertexBatch& batch)
+{
+
+}
+
+void RenderContext::_renderBatchImpl(Fx::VertexBatch& batch, bool bEndScene)
 {
 	if(!VertArray)
 		return;
@@ -367,6 +392,65 @@ int RenderContext::updateBlendMode(int blend, int curBlend)
 	return blend;
 }
 
+void RenderContext::setClipping(const Rect& rect)
+{
+	// TODO: Implement
 }
+
+void RenderContext::disableClipping()
+{
+	// TODO: Implement
+}
+
+// generate OBB and render sprite in it
+void drawSprite(RenderContext* rc, const SpriteData& sprite,
+			const Pose &p, float width, float height)
+{
+	VertexBatch batch(VertexBatch::PRIM_QUADS);
+
+	auto trect = sprite.getTextureRect();
+	auto color = sprite.getColor();
+
+	batch += {
+		Vertex::make2c(p.coords(-width, height), color, vec2f(trect.x1, trect.y1)),
+		Vertex::make2c(p.coords( width, height), color, vec2f(trect.x2, trect.y1)),
+		Vertex::make2c(p.coords( width,-height), color, vec2f(trect.x2, trect.y2)),
+		Vertex::make2c(p.coords(-width,-height), color, vec2f(trect.x1, trect.y2)),
+	};
+
+	batch.blend = sprite.getBlendMode();
+	batch.texture = sprite.getTexture();
+	rc->renderBatch(batch);
+}
+
+void drawSprite(RenderContext* rc, const SpriteData& sprite, const Pose &p)
+{
+	float width = sprite.getWidth();
+	float height = sprite.getHeight();
+	drawSprite(rc, sprite, p, width, height);
+}
+
+void drawSprite(RenderContext* rc, const SpriteData& sprite, float x, float y)
+{
+	VertexBatch batch(VertexBatch::PRIM_QUADS);
+
+	auto trect = sprite.getTextureRect();
+	auto color = sprite.getColor();
+
+	float x1 = x + sprite.getWidth();
+	float y1 = y + sprite.getHeight();
+	batch += {
+		Vertex::make2c( x, y, color, trect.x1, trect.y1),
+		Vertex::make2c(x1, y, color, trect.x2, trect.y1),
+		Vertex::make2c(x1,y1, color, trect.x2, trect.y2),
+		Vertex::make2c( x,y1, color, trect.x1, trect.y2),
+	};
+
+	batch.blend = sprite.getBlendMode();
+	batch.texture = sprite.getTexture();
+	rc->renderBatch(batch);
+}
+
+} // namespace fx
 
 

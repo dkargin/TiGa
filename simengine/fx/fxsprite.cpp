@@ -1,5 +1,6 @@
 #include "fxobjects.h"
 #include "rendercontext.h"
+#include "spritedata.h"
 #include "fxmanager.h"
 
 namespace Fx
@@ -25,7 +26,7 @@ FxSprite::FxSprite(FxManager * manager)
 FxSprite::~FxSprite()
 {
 	if (manager)
-		manager->freeTexture(sprite.GetTexture());
+		manager->freeTexture(sprite.getTexture());
 }
 
 bool FxSprite::valid() const
@@ -42,14 +43,14 @@ void FxSprite::addBlendMode(int mode)
 {
 	if(!valid())
 		return;
-	sprite.SetBlendMode(mode|sprite.GetBlendMode());
+	sprite.setBlendMode(mode|sprite.getBlendMode());
 }
 
 void FxSprite::setBlendMode(int mode)
 {
 	if(!valid())
 		return;
-	sprite.SetBlendMode(mode);
+	sprite.setBlendMode(mode);
 }
 
 void FxSprite::flipHor()
@@ -63,10 +64,10 @@ Rect FxSprite::getLocalRect() const
 {
 	Rect result;
 	math3::vec2f pos = getPose().getPosition();
-	result.x1 = pos[0] - sprite.GetWidth() / 2;
-	result.x2 = pos[0] + sprite.GetWidth() / 2;
-	result.y1 = pos[1] - sprite.GetHeight() / 2;
-	result.y2 = pos[1] + sprite.GetHeight() / 2;
+	result.x1 = pos[0] - sprite.getWidth() / 2;
+	result.x2 = pos[0] + sprite.getWidth() / 2;
+	result.y1 = pos[1] - sprite.getHeight() / 2;
+	result.y2 = pos[1] + sprite.getHeight() / 2;
 	return result;
 }
 
@@ -83,10 +84,10 @@ void FxSprite::render(RenderContext* context, const Pose& base)
 	if(!valid() || !visible)return;
 	Pose p = base*getPose();
 
-	int w = sprite.GetWidth();
-	int h = sprite.GetHeight();
+	int w = sprite.getWidth();
+	int h = sprite.getHeight();
 
-	context->drawSprite(&sprite, p, w*0.5*scale, h*0.5*scale_h*scale, sprite.GetTexture() == 0);
+	drawSprite(context, sprite, p, w*0.5*scale, h*0.5*scale_h*scale);
 }
 
 }

@@ -13,18 +13,23 @@ FxManager::FxManager()
 {
 	resetView();
 	//storage = std::shared_ptr<Storage>(new HeapAllocator);
-	textureManager = nullptr;
 }
 
 FxManager::~FxManager()
 {
 	clearObjects();
-	clearResources();	
+	clearResources();
+	textureManager.reset(nullptr);
 }
 
-void FxManager::init( HGE * hge )
+void FxManager::init()
 {
-	//this->hge = hge;
+	textureManager.reset(new TextureManager());
+}
+
+TextureManager* FxManager::getTextureManager()
+{
+	return textureManager.get();
 }
 
 void FxManager::clearObjects()
@@ -104,8 +109,8 @@ FxSoundPtr FxManager::fxSound(const char * path)
 FxSpritePtr FxManager::fxSolidQuad( float width, float height, FxRawColor color )
 {
 	FxSprite * result = new FxSprite(this);
-	result->sprite.SetTextureRect(0, 0, width, height);
-	result->sprite.SetColor( color );
+	result->sprite.setTextureRect(0, 0, width, height);
+	result->sprite.setColor( color );
 	return FxSpritePtr(result);
 }
 
@@ -150,8 +155,8 @@ FxAnimation2Ptr FxManager::createAnimation(const char *file, Rect rect, int fram
 	FxAnimation2 * result=new FxAnimation2(this,getTexture(file).handle,0,0,64,64);
 	result->fps=fps;
 	result->mode=mode;	
-	result->sprite.SetBlendMode(BLEND_COLORMUL|BLEND_ALPHAADD);
-	FxTextureId tex=result->sprite.GetTexture();
+	result->sprite.setBlendMode(BLEND_COLORMUL|BLEND_ALPHAADD);
+	FxTextureId tex=result->sprite.getTexture();
 	int texWidth = textureManager->width(tex);
 	int texHeight = textureManager->height(tex);
 	// 1. compute frames
@@ -188,8 +193,8 @@ FxAnimation2Ptr FxManager::createAnimationFull(const char *file, int frameWidth,
 	FxAnimation2 * result = new FxAnimation2(this,getTexture(file).handle,0,0,64,64);
 	result->fps=fps;
 	result->mode=mode;	
-	result->sprite.SetBlendMode(BLEND_COLORMUL|BLEND_ALPHAADD);
-	FxTextureId tex=result->sprite.GetTexture();
+	result->sprite.setBlendMode(BLEND_COLORMUL|BLEND_ALPHAADD);
+	FxTextureId tex=result->sprite.getTexture();
 	// 1. compute frames
 	int texWidth = textureManager->width(tex);
 	int texHeight = textureManager->height(tex);

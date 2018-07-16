@@ -116,13 +116,13 @@ void FxSprite::update(float dt)
 void FxSprite::addBlendMode(int mode)
 {
 	if(!valid())return;
-	sprite.SetBlendMode(mode|sprite.GetBlendMode());
+	sprite.setBlendMode(mode|sprite.getBlendMode());
 }
 
 void FxSprite::setBlendMode(int mode)
 {
 	if(!valid())return;
-	sprite.SetBlendMode(mode);
+	sprite.setBlendMode(mode);
 }
 
 void drawSprite(HGE *hge,hgeSprite *sprite,const Entity::Pose &p,float width,float height,bool rect=false);
@@ -131,8 +131,8 @@ void FxSprite::render(const Pose &base)
 {
 	if(!valid() || !visible)return;
 	Pose p=base*getPose();
-	int w = sprite.GetWidth();
-	int h = sprite.GetHeight();	
+	int w = sprite.getWidth();
+	int h = sprite.getHeight();	
 	drawSprite(manager->hge,&sprite,p,w*0.5*scale,h*0.5*scale_h*scale,false);
 }
 
