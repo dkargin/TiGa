@@ -87,7 +87,6 @@ public:
 	virtual bool initSDL();
 
 	/// system startup
-	void initIup();
 	void executeScript(const char * file);
 	void run();	// run main script
 #ifdef FUCK_HGE
@@ -132,12 +131,12 @@ protected:
 	void updateCursorPosition(float x, float y);
 
 protected:
-	bool iupRuns = false;
 	bool sdlRuns = false;
+
 	// SDL stuff
-	SDL_Surface* Surf_Display;
-	SDL_Window* window;
-	SDL_Renderer* renderer;
+	SDL_Surface* Surf_Display = nullptr;
+	SDL_Window* window = nullptr;
+	SDL_Renderer* renderer = nullptr;
 
 	Cursor cursor[MaxCursors];
 

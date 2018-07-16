@@ -40,4 +40,6 @@ add_library(lua
 	lutf8lib.c
 	lvm.c
 	lzio.c
+# Custom stuff
+	scripter.cpp
 )

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "luabox/scripter.hpp"
+#include "luabox/scripter.h"
 #include "gameObject.h"
 #include "unit.h"
 #include "client.h"

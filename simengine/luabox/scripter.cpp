@@ -1,4 +1,5 @@
-#include "scripter.hpp"
+#include "scripter.h"
+
 #include "lua.h"
 #include "lauxlib.h"
 

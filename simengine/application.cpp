@@ -31,53 +31,19 @@ Application::Application()
 #endif
 	
 	scripter.errorHandler = this;
-
-	sdlRuns = false;
-	iupRuns = false;
-	Surf_Display = nullptr;
-	renderer = nullptr;
-	window = nullptr;
-	appRunning = false;
 }
 
 Application::~Application()
 {
 	for( size_t i = 0; i < uiGetMaxCursors(); i++)
 		cursor[i].effect = NULL;
-	guiRoot = NULL;
+
+	guiRoot = nullptr;
+
 	fxManager.clearObjects();
 	fxManager.clearResources();
 
 	SDL_Quit();
-#ifdef FUCK_HGE
-	if(sdlRuns && hge)
-	{		
-		hge->System_Shutdown();
-		hge->Release();
-	}	
-#endif
-#ifdef USE_IUP
-	if( iupRuns )
-		IupClose();
-#endif
-}
-
-void Application::initIup()
-{
-	iupRuns = false;
-#ifdef USE_IUP
-	iuplua_open(scripter.getVM());
-	iupgllua_open(scripter.getVM());
-
-	IupImageLibOpen();
-	//iupRegisterHGE();
-	//iupcontrolslua_open(l);
-	//cdlua_open(L);
-	//cdluaiup_open(L);
-	//cdInitContextPlus();
-	//iupcontrolslua_open(L);	
-#endif	
-	iupRuns = true;
 }
 
 void Application::uiProcessMouse(float mx, float my, int state)
@@ -245,27 +211,6 @@ void Application::executeScript( const char * file )
 
 void Application::run()
 {
-	bool _isDataInitialized = false;
-#ifdef USE_IUP
-	while(iupRuns && (IupLoopStep() != IUP_CLOSE))
-	{
-		iupRuns = true;
-		if(hge)
-		{
-			if (!_isDataInitialized && hge->System_GetState(HGE_HWND))
-			{
-				// hge is ready
-				_isDataInitialized = true;
-			} 
-			sdlRuns = true;
-			hge->System_Start();			
-		}
-		updateWorld();		
-	}
-
-#endif
-	iupRuns = false;
-
 	spinSDL();
 	printf("Main SDL loop ended\n");
 	onExit();

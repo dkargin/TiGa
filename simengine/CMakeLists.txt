@@ -46,6 +46,7 @@ add_library(gui
 	gui/guibase.cpp
 	gui/guicontrols.cpp)
 
+add_subdirectory(luabox)
 add_subdirectory(sim)
 
 add_library(simengine application.cpp)

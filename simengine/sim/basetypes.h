@@ -4,7 +4,7 @@
 #include <iobuffer.h>			//< from frosttools
 #include <math3/math.h>
 #include <math3/mathExtensions.hpp>
-#include "luabox/scripter.hpp"
+#include "luabox/scripter.h"
 
 
 /*
