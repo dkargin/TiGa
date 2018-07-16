@@ -8,7 +8,7 @@
 #include <stdint.h>
 #include <GL/gl.h>
 #include <SDL_image.h>
-#include "texture_manager.h"
+#include "texturemanager.h"
 
 namespace Fx
 {

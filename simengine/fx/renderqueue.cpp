@@ -6,52 +6,6 @@
 namespace Fx
 {
 
-#ifdef FUCK_THIS
-ObjectTracker ObjectTracked::effectTracker;
-//////////////////////////////////////////////////////////////////////////
-ObjectTracker::ID ObjectTracker::allocID()
-{
-	assigned.insert(lastID);
-	if(breaks.find(lastID) != breaks.end())
-		_CrtDbgBreak();
-	return lastID++;
-}
-
-void ObjectTracker::freeID(ID id)
-{
-	assigned.erase(id);
-}
-
-void ObjectTracker::check()
-{
-	//LogFunction(*g_logger);
-	bool entry = false;
-	for(auto it = assigned.begin(); it != assigned.end(); ++it)
-	{
-		if(!entry)
-		{
-			//g_logger->line(1,"objects in use: %d", *it);
-			entry = true;
-		}
-		else
-		{
-			//g_logger->line(1,"<%d>",*it);
-		}		
-		
-	}
-}
-
-ObjectTracked::ObjectTracked()
-{
-	id = effectTracker.allocID();
-}
-
-ObjectTracked::~ObjectTracked()
-{
-	effectTracker.freeID(id);
-}
-
-#endif
 /////////////////////////////////////////////////////////////////////////////////
 void Pyro::runEffect(EntityPtr effect)
 {

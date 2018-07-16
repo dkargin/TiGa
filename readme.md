@@ -6,6 +6,15 @@ This is an old sumulation/game platform that I used as a base for my graduation 
  - SDL2, SDL2\_image, SDL2_ttf
  
 I do use a local version of lua
+
+# Project structure #
+
+simengine/
+ - fx - contains primitive 2d sprite engine
+ - gui - GUI library based on `fx`
+ - luabox - LUA 5.3 + additional utilities. Build as a single library.
+ - sim - some game specific classes. Once upon a time it was used in my graduation project.
+game/ - was containing some real tanks-pew-pew stuff before I broke everything badly.
  
 # Current plan #
 
@@ -30,3 +39,4 @@ I do use a local version of lua
 1. Deal with SWIG/Lua. I want to get more direct bindings between simulation objects and lua scripts
 1. Implement delta-sync for sim objects. Making a special 'state sync' packet type for every object is very very bad idea. Not so bad, but it takes too much effort to extend it with new data, especially from scripts
 1. Implement spinner for lua coroutined scripts. Who needs scripts without proper async spinners?
+

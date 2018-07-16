@@ -3,7 +3,7 @@
 #include "fxobjects.h"
 #include "basetypes.h"
 
-#include "texture_manager.h"
+#include "texturemanager.h"
 
 namespace Fx
 {
@@ -43,7 +43,9 @@ public:
 
 	typedef std::list<Record> Records;				/// container type for all allocated resources
 	Records textures, sounds;		//< Storage of allocated resources
+	// To be moved to render context
 	RenderQueue renderQueue;
+	// This one should be moved to some game-specific class.
 	Pyro pyro;									//< stored effects will be destroyed when counter expires
 
 	FxManager();

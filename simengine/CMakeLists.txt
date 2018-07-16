@@ -36,7 +36,7 @@ add_library(fx
 	fx/manager.cpp
 	fx/renderqueue.cpp
 	fx/rendercontext.cpp
-	fx/texture_manager.cpp
+	fx/texturemanager.cpp
 	fx/soundmanager.cpp
 )
 
