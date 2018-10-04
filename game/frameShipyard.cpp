@@ -284,7 +284,7 @@ ShipyardWindow::ShipyardWindow(Game * game)
 {
 	shipyardArea = std::make_shared<ShipyardArea>(this);
 	setAlign(GUI::AlignExpand, GUI::AlignExpand);
-	color = Fx::MakeARGB(255,0,0,0);
+	color = Fx::makeARGB(255,0,0,0);
 	controlMode = Normal;
 
 	menu->setDesiredSize(buttonWidth, buttonHeight);
@@ -304,8 +304,8 @@ ShipyardWindow::ShipyardWindow(Game * game)
 
 	toolbox->drawFrame = true;
 
-	toolbox->color = Fx::MakeARGB(255,0,0,0);
-	toolbox->clrFrame = Fx::MakeARGB(255,0,255,0);
+	toolbox->color = Fx::makeARGB(255,0,0,0);
+	toolbox->clrFrame = Fx::makeARGB(255,0,255,0);
 	toolbox->slideVer = true;
 
 	font = game->font;
@@ -324,7 +324,7 @@ ShipyardWindow::ShipyardWindow(Game * game)
 	objects->setAlign(GUI::AlignMax, GUI::AlignMin);	
 	toolbox->insert(objects);
 
-	toolboxSlider->sprite = game->fxManager->fxSolidQuad(10, 50, Fx::MakeARGB(255,255,0,0));
+	toolboxSlider->sprite = game->fxManager->fxSolidQuad(10, 50, Fx::makeARGB(255,255,0,0));
 	toolboxSlider->setMode(0, 100, 0);
 	toolboxSlider->setDesiredPos( 0, 0 );
 	toolboxSlider->setDesiredSize( sliderWidth, 0 );

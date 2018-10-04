@@ -80,13 +80,13 @@ void MoverFlockingAI::render(Fx::RenderContext* rc)
 	Mover::Driver::render(rc);
 	Pose::pos p = mover->getPosition();
 	float forceScale=30;
-	drawArrow(rc, p, p + forceScale*fLeader, Fx::MakeRGB(255,0,0));
-	drawArrow(rc, p, p + forceScale*fPath, Fx::MakeRGB(0,255,0));
-	drawArrow(rc, p, p + forceScale*fObstacles, Fx::MakeRGB(255,0,255));
+	drawArrow(rc, p, p + forceScale*fLeader, Fx::makeRGB(255,0,0));
+	drawArrow(rc, p, p + forceScale*fPath, Fx::makeRGB(0,255,0));
+	drawArrow(rc, p, p + forceScale*fObstacles, Fx::makeRGB(255,0,255));
 
 	for(const auto& tr1: pairs)
 	{
-		drawPoint(rc, tr1.first, Fx::MakeRGB(0,255,0), 10);
+		drawPoint(rc, tr1.first, Fx::makeRGB(0,255,0), 10);
 	}
 
 	for(auto it = obstacles.begin();it!=obstacles.end();++it)

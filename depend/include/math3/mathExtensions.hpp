@@ -580,7 +580,7 @@ template<class Vector> int intersection(const _Edge<Vector> &a,const _Edge<Vecto
 	}
 	->t1 * (a.end-a.start)+t2 * (b.start-b.end)+a.start-b.start=0
 	*/
-	Matrix<value_type,3,Vector::D,true> equation;
+	Matrix<value_type,3,Vector::D> equation;
 	int order[Vector::D];
 
 

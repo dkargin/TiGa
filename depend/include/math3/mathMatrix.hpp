@@ -3,157 +3,144 @@
 
 namespace math3
 {
-/// Generic matrix accessor based on Real scalar type
-template<class Real,bool order> struct MatrixOrder
-{
-	/// typedef for size type
-	typedef typename MathTypes<Real>::size_type size_type;
-	/// get column from matrix
-	template<class R> inline static void getCol(const Real *data,size_type size,size_type c,R *col);
-	/// set column to matrix
-	template<class R> inline static void setCol(Real *data,size_type size,size_type c,const R *col);
-	/// get matrix row
-	template<class R> inline static void getRow(const Real *data,size_type size,size_type r,R *row);
-	/// set matrix row
-	template<class R> inline static void setRow(Real *data,size_type size,size_type r,const R *row);
-};
 
 /// Accessor specialization for row-ordered matrix
-template<class Real> struct MatrixOrder<Real,true>
+template<class Real> struct RowOrder
 {
-	/// index type
-	typedef typename MathTypes<Real>::size_type size_type;
-
 	/// get const matrix value
-	inline static const Real & get(const Real *data,size_type sx,size_type sy,size_type x,size_type y)
+	inline static const Real & get(const Real *data, int sx, int sy,
+			int x, int y)
 	{
-		assert(x>=0 && x<sx && y<sy && y>=0);
-		return data[x+sx*y];
+		assert(x >= 0 && x < sx && y < sy && y >= 0);
+		return data[x + sx * y];
 	}
 
 	/// get matrix value
-	inline static Real & get(Real *data,size_type sx,size_type sy,size_type x,size_type y)
+	inline static Real & get(Real *data, int sx, int sy, int x,
+			int y)
 	{
-		assert(x>=0 && x<sx && y<sy && y>=0);
-		return data[x+sx*y];
+		assert(x >= 0 && x < sx && y < sy && y >= 0);
+		return data[x + sx * y];
 	}
 	/// get matrix column
-	template<class R> inline static void getCol(const Real *data,size_type sx,size_type sy,size_type c,R *res)
+	template<class R> inline static void getCol(const Real *data, int sx,
+			int sy, int c, R *res)
 	{
-		assert(c<sx);
-		const Real *ptr=data+c;
-		for(size_type j=sy;j;j--,ptr+=sx)
-			*res++=*ptr;
+		assert(c < sx);
+		const Real *ptr = data + c;
+		for (int j = sy; j; j--, ptr += sx)
+			*res++ = *ptr;
 	}
 	/// set matrix column
-	template<class R> inline static void setCol(Real *data,size_type sx,size_type sy,size_type c,const R *res)
+	template<class R> inline static void setCol(Real *data, int sx,
+			int sy, int c, const R *res)
 	{
-		assert(c<sx);
-		Real *ptr=data+c;
-		for(size_type j=sy;j;j--,ptr+=sx)
-			*ptr=*res++;
+		assert(c < sx);
+		Real *ptr = data + c;
+		for (int j = sy; j; j--, ptr += sx)
+			*ptr = *res++;
 	}
 	/// get matrix row
-	template<typename R> inline static void getRow(const Real *data,size_type sx,size_type sy,size_type r,R *res)
+	template<typename R> inline static void getRow(const Real *data, int sx,
+			int sy, int r, R *res)
 	{
-		assert(r<sy);
-		for(size_type j=0;j<sx;j++)
-			res[j]=data[r*sx+j];
-	}	
+		assert(r < sy);
+		for (int j = 0; j < sx; j++)
+			res[j] = data[r * sx + j];
+	}
 	/// set matrix row
-	template<typename R> inline static void setRow(Real *data,size_type sx,size_type sy,size_type r,const R *res)
+	template<typename R> inline static void setRow(Real *data, int sx,
+			int sy, int r, const R *res)
 	{
-		assert(r<sy);
-		for(size_type j=0;j<sx;j++)
-			data[r*sx+j]=res[j];
+		assert(r < sy);
+		for (int j = 0; j < sx; j++)
+			data[r * sx + j] = res[j];
 	}
 };
-
 
 /// Accessor for column-ordered matrix
-template<class Real> struct MatrixOrder<Real,false>
+template<class Real> struct ColumnOrder
 {
-	/// index type
-	typedef typename MathTypes<Real>::size_type size_type;
 	/// get specific cell
-	inline static const Real & get(const Real *data,size_type sx,size_type sy,size_type x,size_type y)
+	inline static const Real & get(const Real *data, int sx, int sy,
+			int x, int y)
 	{
-		assert(x>=0 && x<sx && y<sy && y>=0);
-		return data[sy*x+y];
+		assert(x >= 0 && x < sx && y < sy && y >= 0);
+		return data[sy * x + y];
 	}
 	/// get specific cell reference
-	inline static Real & get(Real *data,size_type sx,size_type sy,size_type x,size_type y)
+	inline static Real & get(Real *data, int sx, int sy, int x,
+			int y)
 	{
-		assert(x>=0 && x<sx && y<sy && y>=0);
-		return data[sy*x+y];
+		assert(x >= 0 && x < sx && y < sy && y >= 0);
+		return data[sy * x + y];
 	}
 	/// get matrix column
-	template<typename R> inline static void getCol(const Real *data,size_type sx,size_type sy,size_type c,R *res)
+	template<typename R> inline static void getCol(const Real *data, int sx,
+			int sy, int c, R *res)
 	{
-		assert(c<sx);
-		const Real *ptr=data+c*sy;
-		for(size_type j=sx;j>0;j--)
-			*res++=*ptr++;
+		assert(c < sx);
+		const Real *ptr = data + c * sy;
+		for (int j = sx; j > 0; j--)
+			*res++ = *ptr++;
 	}
 	/// set matrix column
-	template<typename R> inline static void setCol(Real *data,size_type sx,size_type sy,size_type c,const R *res)
+	template<typename R> inline static void setCol(Real *data, int sx,
+			int sy, int c, const R *res)
 	{
-		assert(c<sx);
-		Real *ptr=data+c*sy;
-		for(size_type j=sx;j>0;j--)
-			*ptr++=*res++;
+		assert(c < sx);
+		Real *ptr = data + c * sy;
+		for (int j = sx; j > 0; j--)
+			*ptr++ = *res++;
 	}
 	/// get matrix row
-	template<typename R> inline static void getRow(const Real *data,size_type sx,size_type sy,size_type r,R *res)
+	template<typename R> inline static void getRow(const Real *data, int sx, int sy, int r, R *res)
 	{
-		assert(r<sy);
-		for(size_type j=0;j<sy;j++)
-			res[j]=data[j*sy+r];
-	}	
+		assert(r < sy);
+		for (int j = 0; j < sy; j++)
+			res[j] = data[j * sy + r];
+	}
 	/// set matrix row
-	template<typename R> inline static void setRow(Real *data,size_type sx,size_type sy,size_type r,const R *res)
+	template<typename R> inline static void setRow(Real *data, int sx, int sy, int r, const R *res)
 	{
-		assert(r<sy);
-		for(size_type j=0;j<sy;j++)
-			data[j*sy+r]=res[j];
+		assert(r < sy);
+		for (int j = 0; j < sy; j++)
+			data[j * sy + r] = res[j];
 	}
 };
 
+
 /// generic row order matrix
-template<class Storage,bool row_order> class MatrixBase: public Storage
+template<class Storage> class MatrixBase: public Storage
 {
 public:	
 	typedef typename Storage::col_type col_type;		///< Column type
 	typedef typename Storage::row_type row_type;		///< Row type
 	typedef typename Storage::value_type value_type;	///< Single value type
-	typedef int size_type;								///< Index type
 
-	typedef MatrixOrder<value_type,row_order> Order;	///< Accessor type
-	typedef MatrixBase<Storage,row_order> matrix_type;	///< Matrix type
-	typedef MatrixBase<Storage,row_order> my_type;		///< Own type
+	//typedef MatrixOrder<value_type,row_order> Order;	///< Accessor type
+	typedef MatrixBase<Storage> matrix_type;	///< Matrix type
+	typedef MatrixBase<Storage> my_type;		///< Own type
 
-	/// Get row order
-	inline static bool rowOrder()
-	{
-		return row_order;
-	}	
+	typedef RowOrder<value_type> Order;
+
 	/// Get cell value
-	value_type & operator()(size_type x,size_type y)
+	value_type & operator()(int x, int y)
 	{
 		return Order::get(this->c,Storage::cols(),Storage::rows(),x,y);
 	}
 	/// Get cell constant value
-	const value_type & operator()(size_type x,size_type y) const
+	const value_type & operator()(int x, int y) const
 	{
 		return Order::get(this->c,Storage::cols(),Storage::rows(),x,y);
 	}
 	/// Get cell value
-	value_type get(size_type x,size_type y) const
+	value_type get(int x, int y) const
 	{
 		return Order::get(this->c,Storage::cols(),Storage::rows(),x,y);
 	}
 	/// Set cell value
-	void set(size_type x,size_type y,const value_type &r)
+	void set(int x,int y,const value_type &r)
 	{
 		Order::get(this->c,Storage::cols(),Storage::rows(),x,y)=r;
 	}
@@ -268,7 +255,7 @@ public:
 /// MatrixNM
 /// Variable size matrix
 template<class Real>
-class MatrixNM: public MatrixBase<StorageDynamic<Real >,true>
+class MatrixNM: public MatrixBase<StorageDynamic<Real>>
 {
 public:
 	/// Default constructor
@@ -292,17 +279,17 @@ public:
 };
 
 /// Constant size matrix
-template<class Real,int _X,int _Y,bool order>
-class Matrix: public MatrixBase<StorageStatic<Real,_X,_Y>,order>
+template<class Real, int _X, int _Y>
+class Matrix: public MatrixBase<StorageStatic<Real,_X,_Y> >
 {
 public:
 	enum{X=_X,Y=_Y};
-	typedef int size_type;					///< index type
 	typedef Real value_type;				///< scalar type
-	typedef MatrixBase<StorageStatic<Real,X,Y>,order> parent_type;	///< parent type
-	typedef Matrix<Real,X,Y,order> my_type;							///< own type
+	// Parent type
+	typedef MatrixBase<StorageStatic<Real,X,Y> > parent_type;
+	typedef Matrix<Real,X,Y> my_type;							///< own type
 	typedef my_type matrix_type;										///< matrix type
-	typedef Matrix<Real,Y,X,order> transposed_type;					///< transposed type
+	typedef Matrix<Real,Y,X> transposed_type;					///< transposed type
 	
 	/// Assignment operator
 	my_type & operator = (const my_type &m)
@@ -311,26 +298,15 @@ public:
 		return *this;
 	}	
 	
-	/*template<typename Real,bool row_order>
-	typename Matrix<Real,N,M,row_order>::col_type operator *= ( const Matrix<Real,N,M,row_order>& m, const typename Matrix<Real,N,M,row_order>::row_type & v )
-	{
-		typename Matrix<Real,N,M,row_order>::col_type res=v[0]*m.col(0);
-		for(int i=1;i<m.cols();i++)
-		//{
-			//typename Matrix<Real,N,M,row_order>::col_type c=m.col(i);
-			res+=(v[i]*m.col(i));
-		//}
-		return *this;
-	}*/
 };
 ////////////////////////////////////////////////////////
 /// generic Square matrix
 ////////////////////////////////////////////////////////
-template<class Real,int N,bool order>
-class MatrixSquare: public Matrix<Real,N,N,order>
+template<class Real,int N>
+class MatrixSquare: public Matrix<Real,N,N>
 {
 public:
-	typedef MatrixSquare<Real,N,order> my_type;	///< Defines own type
+	typedef MatrixSquare<Real,N> my_type;	///< Defines own type
 	typedef my_type transposed_type;				///< Defines transposed type
 
 	/// Get identity matrix
@@ -558,9 +534,9 @@ template<class _Matrix> typename _Matrix::transposed_type transpose(const _Matri
 
 //template<class Storage,bool row_order>
 /// Multiply two matrices
-template<class Real,int X,int Y,int Z,bool order> Matrix<Real,X,Z,order> operator *( const Matrix<Real,X,Y,order> &a,const Matrix<Real,Y,Z,order> &b)
+template<class Real,int X,int Y,int Z> Matrix<Real,X,Z> operator *( const Matrix<Real,X,Y> &a,const Matrix<Real,Y,Z> &b)
 {
-	Matrix<Real,X,Z,order> res;
+	Matrix<Real,X,Z> res;
 	for(int i=0;i<X;i++)
 		for(int j=0;j<Y;j++)
 			res(i,j)=a.row(j)&b.col(i);
@@ -604,19 +580,17 @@ template<class Real,int X,int Y,int Z,bool order> Matrix<Real,X,Z,order> operato
 //
 // �������� ������� �� ������-�������.
 /// Multiply matrix and vector (row-vector)
-template<typename Real,int N,int M,bool row_order>
-typename Matrix<Real,N,M,row_order>::col_type operator * ( const Matrix<Real,N,M,row_order>& m, const typename Matrix<Real,N,M,row_order>::row_type & v )
+template<typename Real,int N,int M>
+typename Matrix<Real,N,M>::col_type operator * ( const Matrix<Real,N,M>& m, const typename Matrix<Real,N,M>::row_type & v )
 {
-	typename Matrix<Real,N,M,row_order>::col_type res=v[0]*m.col(0);
+	typename Matrix<Real,N,M>::col_type res=v[0]*m.col(0);
 	for(int i=1;i<m.cols();i++)
 	//{
-		//typename Matrix<Real,N,M,row_order>::col_type c=m.col(i);
+		//typename Matrix<Real,N,M>::col_type c=m.col(i);
 		res+=(v[i]*m.col(i));
 	//}
 	return res;
 }
 
-typedef Matrix<float,4,4,true> Mt4x4r;	///< float matrix[4][4], row order
-typedef Matrix<float,4,4,false> Mt4x4c;	///< float matrix[4][4], row column order
 //////////////////////// Derived functions /////////////////////////////
 }	// namespace math3

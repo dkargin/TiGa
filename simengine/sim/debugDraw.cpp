@@ -307,11 +307,11 @@ void Draw::draw(const VisionManager::VisionDesc& vision)
 {
 	if(vision.fov < 360)
 	{
-		DrawCone(rc,vision.pose,0,vision.fov*M_PI/180.f,vision.distance, Fx::MakeRGB(255, 255, 255));
+		DrawCone(rc,vision.pose,0,vision.fov*M_PI/180.f,vision.distance, Fx::makeRGB(255, 255, 255));
 	}
 	else
 	{
-		DrawCone(rc,vision.pose,0,2*M_PI,vision.distance, Fx::MakeRGB(255, 255, 255));
+		DrawCone(rc,vision.pose,0,2*M_PI,vision.distance, Fx::makeRGB(255, 255, 255));
 		//DrawCircleArea(hge,vision.pose,vision.distance, Fx::MakeRGB(255, 255, 255));
 	}
 }

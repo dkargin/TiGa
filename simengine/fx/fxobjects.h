@@ -46,7 +46,9 @@ typedef std::shared_ptr<FxManager> FxManagerPtr;
 struct FxView2
 {
 	math3::Pose2z pose;
-	float scale, zNear, zFar;
+	float scale = 1.f;
+	float zNear = -1.f;
+	float zFar = 1.f;
 	Fx::Rect viewport;
 };
 

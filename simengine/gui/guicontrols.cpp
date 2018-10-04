@@ -88,8 +88,8 @@ void Text::onRender(Fx::RenderContext* rc)
 Button::Button()
 	:Object(Fx::Rect(0,0,0,0)), font(NULL)
 {
-	text->setAlign(AlignExpand, AlignExpand);
-	insert(text);
+	text.setAlign(AlignExpand, AlignExpand);
+	insertWidget(&text);
 
 	visible = true;
 	enabled = true;
@@ -98,7 +98,7 @@ Button::Button()
 	bTrigger = false;	
 }
 
-Button::~Button(){}
+Button::~Button() {}
 
 void Button::onRender(Fx::RenderContext* rc)
 {
@@ -112,14 +112,14 @@ void Button::onRender(Fx::RenderContext* rc)
 	}
 
 	if(bPressed)
-		Fx::drawRectSolid(rc, getRect(), Fx::MakeARGB(255,65,65,65));
+		Fx::drawRectSolid(rc, getRect(), Fx::makeARGB(255,65,65,65));
 }
 
 void Button::setText(const char * msg, FontPtr fnt)
 {
-	text->setFont(fnt);
-	text->setText(msg);
-	text->setMode(HGETEXT_CENTER);
+	text.setFont(fnt);
+	text.setText(msg);
+	text.setMode(HGETEXT_CENTER);
 }
 
 bool Button::onMouse(int mouseId, int key, int state, const Button::uiVec & pos)
@@ -190,7 +190,7 @@ void Frame::setOffsetHor( float offset )
 	if( offset != offsetHor )
 	{
 		float delta = offset - offsetHor;
-		for(Pointer object: children)
+		for(auto object: children)
 		{
 			Fx::Rect rect = object->getRect();
 			object->setDesiredPos(rect.x1 + delta, rect.y1);
@@ -205,10 +205,9 @@ void Frame::setOffsetVer( float offset )
 	if( offset != offsetVer )
 	{
 		float delta = offset - offsetVer;
-		for(Object::Pointer object: children)
+		for (auto object: children)
 		{
 			Fx::Rect rect = object->getRect();
-			
 			object->setDesiredPos(rect.x1, rect.y1 + delta);
 			calculateLayout(object);
 		}

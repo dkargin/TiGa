@@ -59,7 +59,7 @@ protected:
 	const float buttonHeight = 20;
 	const float buttonSpacing = 5;
 
-	const Fx::FxRawColor clrButtons = Fx::MakeARGB(255,128,128,128);
+	const Fx::FxRawColor clrButtons = Fx::makeARGB(255,128,128,128);
 //}
 
 struct TileSectionDesc

@@ -5,7 +5,7 @@ MenuWindow::MenuWindow(Game * game)
 {
 	setAlign(GUI::AlignCenter, GUI::AlignExpand);
 
-	color = Fx::MakeARGB(255,128,128,128);
+	color = Fx::makeARGB(255,128,128,128);
 	setDesiredSize(300,300);
 	
 	float y = 0;

@@ -13,51 +13,52 @@
 namespace Fx
 {
 
-struct CTextureList
+TextureManager::TextureData* TextureManager::createTextureData()
 {
-	FxTextureId tex;
-	int width;
-	int height;
-	CTextureList* next;
-};
+	GLuint tex = 0;
+	glGenTextures(1, &tex);
+	auto it = textures.find(tex);
+	if (it != textures.end())
+	{
+		// This is strange.
+		it->second.refs++;
+		return &it->second;
+	}
+	TextureData& data = textures[tex];
+	data.texture = tex;
+	data.refs = 1;
+	return &data;
+}
 
-
-/*
-HTEXTURE CALL TextureManager::Target_GetTexture(HTARGET target)
+FxTextureId TextureManager::create(int width, int height, int format, int channels)
 {
-	CRenderTargetList *targ = (CRenderTargetList *) target;
-	if(target) return (HTEXTURE) targ->pTex;
-	else return 0;
-}*/
+	int fixedWidth = width;
+	int fixedHeight = height;
+	int pixelSize = sizeof(unsigned int) * channels;
 
-FxTextureId TextureManager::create(int width, int height)
-{
-	GLuint  pTex;
-	int fixed_width = width;//_FixedTextureSize(width);
-	int fixed_height = height;//_FixedTextureSize(height);
-	unsigned int *data; // used to create memory for texture area
+	// Total size in bytes
+	int totalSize = fixedWidth * fixedHeight * pixelSize;
 
-	data = (unsigned int *) new GLuint[((fixed_width * fixed_height) * 4 * sizeof(unsigned int))];
-	memset(data, 0, ((fixed_width * fixed_height) * 4 * sizeof(unsigned int)));
+	std::unique_ptr<unsigned int> data(new GLuint[totalSize]);
+	memset(data.get(), 0, totalSize * sizeof(unsigned int));
 
-	glGenTextures(1, &pTex);
-	glBindTexture(GL_TEXTURE_2D, pTex);
-	glTexImage2D(GL_TEXTURE_2D, 0, 4, fixed_width, fixed_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+	TextureData* td = createTextureData();
+	if (!td)
+		return 0;
+
+	glBindTexture(GL_TEXTURE_2D, td->texture);
+	glTexImage2D(GL_TEXTURE_2D, 0, 4, fixedWidth, fixedHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, data.get());
 	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
 
-	delete [] data;
+	td->width = fixedWidth;
+	td->height = fixedHeight;
 
-	return (FxTextureId) pTex;
+	return (FxTextureId) td->texture;
 }
 
 FxTextureId TextureManager::loadFile(const char* filename, bool bMipmap)
 {
-	int width, height;
-	void *data;
-	uint32_t _size;
-	CTextureList *texItem;
-
 	/*
 	// If I want to load from the memory
 	SDL_RWops *rw = SDL_RWFromMem(buff,size );
@@ -67,12 +68,17 @@ FxTextureId TextureManager::loadFile(const char* filename, bool bMipmap)
 	*/
 
 	int uiImageWidth, uiImageHeight, uiImageChannels;
-	GLuint pTex;
 
-	SDL_Surface* surf = IMG_Load( filename );
+	std::unique_ptr<SDL_Surface, void (*)(SDL_Surface*)> surf(IMG_Load(filename), SDL_FreeSurface);
 
 	if (surf == nullptr)
 		return 0;
+
+	TextureData* td = createTextureData();
+	if (!td)
+		return 0;
+
+	glBindTexture(GL_TEXTURE_2D, td->texture);
 
 	//unsigned char *PixelData = surf->pixels;//SOIL_load_image_from_memory((unsigned char *) data, _size, &uiImageWidth, &uiImageHeight, &uiImageChannels, SOIL_LOAD_RGBA);
 
@@ -81,12 +87,6 @@ FxTextureId TextureManager::loadFile(const char* filename, bool bMipmap)
 	if(surf->format->BytesPerPixel == 4)
 		colormode = GL_RGBA;
 
-	GLint prevTex;	//< Need this to restore previous texture
-	glGetIntegerv(GL_TEXTURE_BINDING_2D, &prevTex);
-
-	glGenTextures(1, &pTex);
-	glBindTexture(GL_TEXTURE_2D, pTex);
-
 	glTexImage2D(GL_TEXTURE_2D, 0, colormode, surf->w, surf->h, 0, colormode, GL_UNSIGNED_BYTE, surf->pixels);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -94,13 +94,12 @@ FxTextureId TextureManager::loadFile(const char* filename, bool bMipmap)
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
 	// TODO: We can need to keep this data in RAM
-	SDL_FreeSurface( surf );
+	//SDL_FreeSurface( surf );
 
-	width = uiImageWidth;
-	height = uiImageHeight;
+	td->width = uiImageWidth;
+	td->height = uiImageHeight;
 
-	glBindTexture(GL_TEXTURE_2D, prevTex);
-	return (FxTextureId) pTex;
+	return (FxTextureId) td->texture;
 }
 
 FxTextureId TextureManager::bind(FxTextureId tex)
@@ -118,90 +117,42 @@ void TextureManager::free(FxTextureId tex)
 		glDeleteTextures(1, &id);
 }
 
-int TextureManager::width(FxTextureId tex, bool bOriginal)
+int TextureManager::width(FxTextureId tex) const
 {
 	int width = 0;
 	GLuint pTex = (GLuint) tex;
 
-	if (bOriginal)
-	{
-		/*
-		CTextureList *texItem = textures;
-		while (texItem && width == 0)
-		{
-			if (texItem->tex == tex)
-			{
-				width = texItem->width;
-			}
+	GLfloat fWidth;
+	GLint curTex;
+	glGetIntegerv(GL_TEXTURE_BINDING_2D, &curTex);
 
-			texItem = texItem->next;
-		}*/
-	}
-	else
-	{
-		GLfloat fWidth;
-		GLint curTex;
-		glGetIntegerv(GL_TEXTURE_BINDING_2D, &curTex);
+	glBindTexture(GL_TEXTURE_2D, pTex);
+	glGetTexLevelParameterfv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &fWidth);
 
-		glBindTexture(GL_TEXTURE_2D, pTex);
-		glGetTexLevelParameterfv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &fWidth);
+	glBindTexture(GL_TEXTURE_2D, curTex);
 
-		glBindTexture(GL_TEXTURE_2D, curTex);
-
-		width = (int) fWidth;
-	}
+	width = (int) fWidth;
 
 	return width;
 }
 
-int TextureManager::height(FxTextureId tex, bool bOriginal)
+int TextureManager::height(FxTextureId tex) const
 {
 	GLuint pTex = (GLuint) tex;
 	int height = 0;
 
-	if (bOriginal)
-	{
-		/*
-		CTextureList *texItem = textures;
-		while (texItem && height == 0)
-		{
-			if (texItem->tex == tex)
-			{
-				height = texItem->height;
-			}
+	GLfloat fHeight;
+	GLint curTex;
+	glGetIntegerv(GL_TEXTURE_BINDING_2D, &curTex);
 
-			texItem = texItem->next;
-		}*/
-	}
-	else
-	{
-		GLfloat fHeight;
-		GLint curTex;
-		glGetIntegerv(GL_TEXTURE_BINDING_2D, &curTex);
+	glBindTexture(GL_TEXTURE_2D, pTex);
+	glGetTexLevelParameterfv(GL_TEXTURE_2D, 0, GL_TEXTURE_HEIGHT, &fHeight);
 
-		glBindTexture(GL_TEXTURE_2D, pTex);
-		glGetTexLevelParameterfv(GL_TEXTURE_2D, 0, GL_TEXTURE_HEIGHT, &fHeight);
+	glBindTexture(GL_TEXTURE_2D, curTex);
 
-		glBindTexture(GL_TEXTURE_2D, curTex);
-
-		height = (int) fHeight;
-	}
+	height = (int) fHeight;
 
 	return height;
 }
-
-/*
-int32_t* TextureManager::Texture_Lock(FxTextureId tex, bool bReadOnly, int left, int top, int width, int height)
-{
-	// not yet implemented
-	return nullptr;
-}
-
-
-void TextureManager::Texture_Unlock(FxTextureId tex)
-{
-	// not yet implemented
-}
-*/
 
 }

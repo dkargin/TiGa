@@ -64,9 +64,6 @@ public:
 	FxSoundPtr fxSound(const char * path);
 	EntityPtr fxHolder();
 
-	void setView( const FxView2& view, int screen_width, int screen_height);
-	void resetView();
-
 	void clearObjects();												// release manufactured list
 	void clearResources();												// release all resources
 
@@ -77,8 +74,6 @@ public:
 protected:
 	Records::iterator find(const char *file);							//< Find resource by its filename
 	Records::iterator find(FxTextureId tex);							//< Find resource by its texture id
-	math3::Pose2z viewPose;
-	float viewScale;
 	std::unique_ptr<TextureManager> textureManager;
 };
 

@@ -16,7 +16,7 @@ namespace GUI
 	size_t Object::globalControlLastId = 0;
 
 	Object::Object(const Fx::Rect & rc)
-	{ 
+	{
 		visible = true;
 		enabled = true;
 		alignHor = AlignManual;
@@ -27,7 +27,7 @@ namespace GUI
 		desiredY = rc.y1;
 		desiredWidth = rc.x2 - rc.x1;
 		desiredHeight = rc.y2 - rc.y1;
-		color = Fx::MakeARGB(255, 255, 255, 255);
+		color = Fx::makeARGB(255, 255, 255, 255);
 		clipChildren = false;
 		contentsWidth = false;
 		contentsHeight = false;
@@ -50,19 +50,18 @@ namespace GUI
 		detach();
 	}
 
-
 	void Object::detach()
 	{
-		if(auto ptr = parent.lock())
+		if (parent)
 		{
-			ptr->removeChild(shared_from_this());
-			parent.reset();
+			parent->removeWidget(this);
+			parent = nullptr;
 		}
 	}
 
 	bool Object::isRoot() const
 	{
-		return parent.expired();
+		return parent == nullptr;
 	}
 
 
@@ -78,23 +77,21 @@ namespace GUI
 	}
 
 
-	void Object::insert(Pointer object)
+	void Object::insertWidget(Object* object)
 	{
-		Pointer thisptr = shared_from_this();
-
-		assert(object != thisptr);
+		//Pointer thisptr = shared_from_this();
+		// TODO: Check itself in the hierarchy
+		assert(object != this);
 		children.push_back(object);
 
-		object->parent = thisptr;
+		object->parent = this;
 		object->layoutChanged = true;
 		if(contentsWidth || contentsHeight)
 			layoutChanged = true;
 		updateLayout();
 	}
 
-
-
-	void Object::removeChild(const Object::Pointer & object)
+	void Object::removeWidget(Object* object)
 	{
 		Children::iterator it = std::find(children.begin(), children.end(), object);
 		if(it != children.end())
@@ -108,12 +105,12 @@ namespace GUI
 		if (layoutIsActive == false || layoutChanged == false)
 			return;
 
-		if (Pointer parentPtr = parent.lock())
-			parentPtr->calculateLayout(shared_from_this());
+		if (parent)
+			parent->calculateLayout(this);
 
-		for(Pointer object: children)
+		for(auto object: children)
 		{
-			if( !object )
+			if (!object)
 				continue;
 			object->updateLayout();
 		}
@@ -128,10 +125,9 @@ namespace GUI
 
 		onUpdate(dt);
 
-		for(Children::iterator it = children.begin(); it != children.end(); ++it)
+		for (auto object: children)
 		{
-			Object * object = it->get();
-			if(object != NULL)
+			if(object != nullptr)
 				object->callUpdate(dt);
 		}
 	}
@@ -159,9 +155,8 @@ namespace GUI
 		Fx::Rect result;
 		bool first = true;
 
-		for(Children::const_iterator it = children.begin(); it != children.end(); ++it)
+		for (auto child: children)
 		{
-			Object * child = it->get();
 			Fx::Rect childRect = child->getRect();
 
 			if( child->contentsWidth || child->contentsHeight )
@@ -202,7 +197,6 @@ namespace GUI
 		}
 	}
 
-
 	void Object::callRender(Fx::RenderContext* context, const Fx::Rect & clipRect)
 	{
 		if(!visible)
@@ -225,7 +219,7 @@ namespace GUI
 			context->setClipping(clip);
 
 		if(uiDebug)
-			Fx::drawRect(context, getRect(), Fx::MakeARGB(255,64,255,64));
+			Fx::drawRect(context, getRect(), Fx::makeARGB(255,64,255,64));
 
 		onRender(context);
 		// turn off clipping
@@ -233,7 +227,7 @@ namespace GUI
 			context->disableClipping();
 
 		// render children
-		for(Pointer object: children)
+		for(auto object: children)
 		{
 			assert(object);
 			object->callRender(context, clip);
@@ -249,12 +243,11 @@ namespace GUI
 		if(!rect.testPoint(vec[0], vec[1]))
 			return;
 
-		if(fn && fn(shared_from_this()))
+		if(fn && fn(this))
 			return;
 
-		for(Children::iterator it = children.begin(); it != children.end(); ++it)
+		for(auto object: children)
 		{
-			Object * object = it->get();
 			object->findObject(vec, forceAll, fn);
 		}
 	}
@@ -272,9 +265,8 @@ namespace GUI
 			return true;
 		
 		// update children
-		for(Children::iterator it = children.begin(); it != children.end(); ++it)
+		for (auto object: children)
 		{
-			Object * object = it->get();
 			if( object->callMouseMove(mouseId, vec, state) )
 				return true;
 		}
@@ -293,12 +285,12 @@ namespace GUI
 		// if we have any handler - use it, or update children instead
 		if(onMouse(mouseId, key, state, vec))
 			return true;
+
 		// update children
 		bool res = false;
-		for(Children::iterator it = children.begin(); it != children.end(); ++it)
+		for (auto object: children)
 		{
-			Object * object = it->get();
-			if(object != NULL)
+			if(object != nullptr)
 				res = res || object->callMouse(mouseId, key, state, vec);
 			if( res )
 				break;
@@ -310,8 +302,7 @@ namespace GUI
 	{
 	}
 
-
-	void Object::calculateLayout(const Object::Pointer & object)
+	void Object::calculateLayout(Object* object)
 	{
 		Fx::Rect rect = getClientRect();
 		Fx::Rect newRect = object->getRect();
@@ -372,9 +363,9 @@ namespace GUI
 
 	bool Object::sendSignalUp(Object::Signal & msg)
 	{
-		if (!parent.expired())
+		if (parent)
 		{
-			auto ptr = parent.lock();
+			auto ptr = parent;
 			if(!ptr->onSignalUp(msg))
 				return ptr->sendSignalUp(msg);
 			else
@@ -386,16 +377,15 @@ namespace GUI
 	bool Object::sendSignalDown(Object::Signal & msg)
 	{
 		/// 1. notify immediate children
-		for( Children::iterator it = children.begin(); it != children.end(); ++it )
+		for (auto object: children)
 		{
-			Object::Pointer object = *it;
-			if( object && object->onSignalDown( msg ))	/// object can be occasionly dead
+			if (object && object->onSignalDown( msg ))
 				return true;
 		}
+
 		/// 2. propagate signal further to children
-		for( Children::iterator it = children.begin(); it != children.end(); ++it )
+		for (auto object: children)
 		{
-			Object::Pointer object = *it;
 			if (object && object->sendSignalDown(msg))
 				return true;
 		}
@@ -421,8 +411,8 @@ namespace GUI
 	{
 		Fx::Rect oldRect = getRect();
 		windowRect = rect;
-		for(Children::iterator it = children.begin(); it != children.end(); ++it)
-			calculateLayout(*it);
+		for(auto object: children)
+			calculateLayout(object);
 		onSize(rect.width(), rect.height());
 	}
 

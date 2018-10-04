@@ -388,7 +388,7 @@ void Mover::Driver::render(Fx::RenderContext* hge)
 		vec2f lastPos = mover->getMaster()->getPosition();
 		for(int i = pathCurrent; i < path.size(); i++)
 		{
-			drawLine(hge, lastPos, path[i].getPosition(), Fx::MakeRGB(100,0,1));
+			drawLine(hge, lastPos, path[i].getPosition(), Fx::makeRGB(100,0,1));
 			lastPos = path[i].getPosition();
 		}
 	}

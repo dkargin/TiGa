@@ -12,12 +12,12 @@ namespace math3
  * Defines rotation transforms for specified axis
  */
 template<class Real,bool row_order=true>
-class Matrix3: public MatrixSquare<Real,3,row_order>
+class Matrix3: public MatrixSquare<Real,3>
 {
 public:
 	static const int size=3;								///< Defines single dimension
 	typedef Matrix3<Real,row_order> my_type;				///< Defines own type
-	typedef MatrixSquare<Real,3,row_order> parent_type;	///< Defines parent type
+	typedef MatrixSquare<Real,3> parent_type;	///< Defines parent type
 	typedef typename parent_type::value_type value_type;	///< Defines scalar type
 
 	Matrix3 () {}

@@ -323,24 +323,24 @@ void drawArc(Fx::RenderContext* rc,const float center[2],float r,const math3::Se
 {
 	vec2f v(center[0],center[1]);
 	const int points=18;
-	drawLine(rc, v,v+r*vec2f(cosf(seg.min),sinf(seg.min)),Fx::MakeRGB(0,255,0));
-	drawLine(rc, v,v+r*vec2f(cosf(seg.max),sinf(seg.max)),Fx::MakeRGB(0,255,0));
+	drawLine(rc, v,v+r*vec2f(cosf(seg.min),sinf(seg.min)),Fx::makeRGB(0,255,0));
+	drawLine(rc, v,v+r*vec2f(cosf(seg.max),sinf(seg.max)),Fx::makeRGB(0,255,0));
 	float angle=seg.min;
 	float delta=seg.length()/points;
 	for(int i=0;i<points;i++)
 	{
-		drawLine(rc,v+r*vec2f(cosf(angle),sinf(angle)),v+r*vec2f(cosf(angle+delta),sinf(angle+delta)),Fx::MakeRGB(0,255,0));
+		drawLine(rc,v+r*vec2f(cosf(angle),sinf(angle)),v+r*vec2f(cosf(angle+delta),sinf(angle+delta)),Fx::makeRGB(0,255,0));
 		angle+=delta;
 	}
 }
 //
 void drawVO(Fx::RenderContext* rc,const VelocityObstacle &vo, float range, int steps)
 {
-	drawLine(rc, vo.apex,vo.apex+vo.dirLeft*range, Fx::MakeRGB(0,255,0));
-	drawLine(rc, vo.apex,vo.apex+vo.dirRight*range,Fx::MakeRGB(0,255,0));
+	drawLine(rc, vo.apex,vo.apex+vo.dirLeft*range, Fx::makeRGB(0,255,0));
+	drawLine(rc, vo.apex,vo.apex+vo.dirRight*range,Fx::makeRGB(0,255,0));
 	float delta = range / steps;
 	for(float t = delta; t < range; t+=delta)
-		drawLine(rc, vo.apex+vo.dirLeft*t,vo.apex+vo.dirRight*t,Fx::MakeRGB(0,255,0));
+		drawLine(rc, vo.apex+vo.dirLeft*t,vo.apex+vo.dirRight*t,Fx::makeRGB(0,255,0));
 }
 
 void VOController::render(Fx::RenderContext* rc)
@@ -354,7 +354,7 @@ void VOController::render(Fx::RenderContext* rc)
 	{
 		vec2f start = path[i-1].getPosition();
 		vec2f end = path[i].getPosition();
-		drawLine(rc, start, end, Fx::MakeRGB(255,0,0));
+		drawLine(rc, start, end, Fx::makeRGB(255,0,0));
 	}
 	for(auto it=obstacles.begin();it!=obstacles.end();++it)
 	{

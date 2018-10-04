@@ -62,10 +62,11 @@ namespace GUI
 
 		bool slideHor;
 		bool slideVer;
+
 	protected:
 		int slideMouseId;			//< if control is sliding right now
 		uiVec slideStart;			// 
-		float startOffsetHor, startOffsetVer;
+		float startOffsetHor = 0.f, startOffsetVer = 0.f;
 		float offsetHor, offsetVer;
 		bool blockMouse;
 	};
@@ -124,11 +125,10 @@ namespace GUI
 
 		FontPtr font;
 		bool useSprites = false;
-		std::shared_ptr<Text> text;
+		Text text;
 
 		//Frame frame;
 		bool useText = false;
-
 		bool bTrigger = false;
 		bool bPressed = false;
 		bool bOldState = false;
@@ -179,13 +179,14 @@ namespace GUI
 		int mode;
 		float fMin, fMax, fVal;
 	};
+
 	/*
 	** Listbox
 	*/
 	struct ListboxItem
 	{
-		char				text[64];
-		ListboxItem	*next;
+		char text[64];
+		ListboxItem* next;
 	};
 
 	class Listbox : public Object
@@ -215,6 +216,7 @@ namespace GUI
 		virtual void executeOnRClick(int element){}
 		virtual void executeOnLClick(int element){}
 		virtual void executeOnSelChange(int element) {}
+
 	private:
 		Fx::SpriteData sprHighlight;
 		Fx::Font *font;
@@ -230,12 +232,15 @@ namespace GUI
 	public:
 		Tabs();
 		~Tabs();
+
+		// TODO: Find a bette way to wrap it
 		struct TabData
 		{
 			Button button;
 			Frame frame;
 		};
-		Frame * addTab(const char * name);
+
+		Frame* addTab(const char * name);
 		void removeTab(const char * name);
 
 		std::map<std::string, TabData *> tabs;

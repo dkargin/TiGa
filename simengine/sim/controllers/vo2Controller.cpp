@@ -298,7 +298,7 @@ void drawRangeSet(Fx::RenderContext* rc, const vec2f & pos, const RangeSet &rs,f
 {
 	float cs=cosf(angle),sn=sinf(angle);
 
-	Fx::FxRawColor color = Fx::MakeRGB(255, 255, 255);
+	Fx::FxRawColor color = Fx::makeRGB(255, 255, 255);
 	Fx::VertexBatch batch(Fx::VertexBatch::PRIM_LINES);
 
 	const float veryFar = 60.f;

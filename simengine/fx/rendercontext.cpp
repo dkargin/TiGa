@@ -200,6 +200,34 @@ void CALL RenderContext::Gfx_FinishBatch(int nprim)
 }
 #endif
 
+void RenderContext::setView( const FxView2 & view, int screenWidth, int screenHeight )
+{
+	viewPose = view.pose;
+	viewScale = view.scale;
+	float x = -viewPose.position[0];
+	float y = -viewPose.position[1];
+	float z = -viewPose.position[2];
+
+	float angle = viewPose.orientation * 180/M_PI;
+	// TODO: Should replace this by manual matrix calculation
+	glMatrixMode(GL_PROJECTION);
+	glPushMatrix();
+	glLoadIdentity();
+	glOrtho(-screenWidth/2,screenWidth/2,screenHeight/2,-screenHeight/2,-1,1);
+	glScalef(viewScale, viewScale,1);
+	glRotatef(-angle,0,0,1);
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
+
+	glTranslatef(x,y,z);
+}
+
+void RenderContext::resetView()
+{
+	viewPose = math3::Pose2z(0,0,0,0);
+	viewScale = 1.0;
+}
+
 void CALL RenderContext::clearFrame(FxRawColor color)
 {
 	GLbitfield flags = GL_COLOR_BUFFER_BIT;
@@ -269,13 +297,16 @@ void CALL RenderContext::setClipping(int x, int y, int w, int h)
 
 void RenderContext::renderBatch(const Fx::VertexBatch& batch)
 {
-
+	if(batch.prims == 0)
+		return;
+	_renderBatchImpl(batch, false);
 }
 
-void RenderContext::_renderBatchImpl(Fx::VertexBatch& batch, bool bEndScene)
+void RenderContext::_renderBatchImpl(const Fx::VertexBatch& batch, bool bEndScene)
 {
-	if(!VertArray)
-		return;
+	// VertArray is disabled right now
+	//if(!VertArray)
+	//	return;
 
 	if (batch.prims > 0)
 	{
@@ -354,7 +385,7 @@ void RenderContext::_renderBatchImpl(Fx::VertexBatch& batch, bool bEndScene)
 				glDrawArrays(GL_LINES, 0, batch.prims * 2);
 				break;
 		}
-		batch.prims = 0;
+		//batch.prims = 0;
 	}
 
 	if(bEndScene)
@@ -450,6 +481,56 @@ void drawSprite(RenderContext* rc, const SpriteData& sprite, float x, float y)
 	batch.texture = sprite.getTexture();
 	rc->renderBatch(batch);
 }
+
+void drawRect(RenderContext* rc, const Fx::Rect& rect, Fx::FxRawColor color)
+{
+	VertexBatch batch(VertexBatch::PRIM_LINES);
+
+	float x1 = rect.x1;
+	float y1 = rect.y1;
+	float x2 = rect.x2;
+	float y2 = rect.y2;
+
+	batch += {
+		Vertex::make2c(x1, y1, color, 0.0, 0.0),
+		Vertex::make2c(x2, y1, color, 1.0, 0.0),
+
+		Vertex::make2c(x2, y1, color, 1.0, 0.0),
+		Vertex::make2c(x2, y2, color, 1.0, 1.0),
+
+		Vertex::make2c(x2, y2, color, 1.0, 1.0),
+		Vertex::make2c(x1, y2, color, 0.0, 1.0),
+
+		Vertex::make2c(x1, y2, color, 0.0, 1.0),
+		Vertex::make2c(x1, y1, color, 0.0, 0.0),
+	};
+
+	//batch.blend = sprite.getBlendMode();
+	batch.texture = 0;
+	rc->renderBatch(batch);
+}
+
+void drawRectSolid(RenderContext* rc, const Fx::Rect& rect, Fx::FxRawColor color)
+{
+	VertexBatch batch(VertexBatch::PRIM_QUADS);
+
+	float x1 = rect.x1;
+	float y1 = rect.y1;
+	float x2 = rect.x2;
+	float y2 = rect.y2;
+
+	batch += {
+		Vertex::make2c(x1, y1, color, 0.0, 0.0),
+		Vertex::make2c(x2, y1, color, 1.0, 0.0),
+		Vertex::make2c(x2, y2, color, 1.0, 1.0),
+		Vertex::make2c(x1, y2, color, 0.0, 1.0),
+	};
+
+	//batch.blend = sprite.getBlendMode();
+	batch.texture = 0;
+	rc->renderBatch(batch);
+}
+
 
 } // namespace fx
 

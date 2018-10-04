@@ -29,18 +29,15 @@ namespace Fx
 typedef float Time_t;
 typedef uint32_t FxRawColor;
 
-inline FxRawColor MakeARGB(int a, int r,int g, int b)
+inline FxRawColor makeARGB(int a, int r,int g, int b)
 {
-	return
-		static_cast<FxRawColor>((a&0xff)<<24) |
-		static_cast<FxRawColor>((r&0xff)<<16) |
-		static_cast<FxRawColor>((g&0xff)<<8) |
-		static_cast<FxRawColor>((b&0xff));
+	int color = ((a&0xff)<<24) | ((r&0xff)<<16) | ((g&0xff)<<8) | (b&0xff);
+	return static_cast<FxRawColor>(color);
 }
 
-inline FxRawColor MakeRGB(int r,int g, int b)
+inline FxRawColor makeRGB(int r,int g, int b)
 {
-	return MakeARGB(255, r, g, b);
+	return makeARGB(255, r, g, b);
 }
 
 

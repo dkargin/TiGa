@@ -13,7 +13,7 @@ HangarWindow::HangarWindow(Game * game)
 	background->setAlign(GUI::AlignExpand, GUI::AlignExpand);
 	insert(background);
 	currentBlueprint = 0;
-	color = Fx::MakeARGB(255,128,128,128);
+	color = Fx::makeARGB(255,128,128,128);
 	float y = 0;
 
 	const float menuOffsetHor = 200;

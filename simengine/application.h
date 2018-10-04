@@ -14,7 +14,6 @@ const int MaxCursors = 1;
 // Some forward declarations from SDL
 class SDL_Surface;
 class SDL_Window;
-class SDL_Renderer;
 union SDL_Event;
 
 namespace sim
@@ -45,6 +44,8 @@ struct FrameEvents
 	int eventCounter = 0;
 	// Updated mouse state
 	std::vector<MouseState> mouseState;
+
+	std::map<int, char> keyState;
 };
 /**
  * Base application class
@@ -67,7 +68,7 @@ public:
 		sim::vec2f screenPosition;
 		Fx::EntityPtr effect;
 		// Selected gui object
-		GUI::ObjectWPtr selected;
+		GUI::Object* selected;
 		enum Type
 		{
 			Disabled,
@@ -84,7 +85,7 @@ public:
 	Application();
 	virtual ~Application();
 
-	virtual bool initSDL();
+	virtual bool init();
 
 	/// system startup
 	void executeScript(const char * file);
@@ -112,6 +113,7 @@ public:
 	Fx::FxManager fxManager;
 	
 	/// general callbacks, mostly from HGE
+	virtual void onInit() {}
 	virtual void onPreRender(){}
 	virtual void onExit() {}
 	virtual void onRestore() {}
@@ -134,9 +136,9 @@ protected:
 	bool sdlRuns = false;
 
 	// SDL stuff
-	SDL_Surface* Surf_Display = nullptr;
 	SDL_Window* window = nullptr;
-	SDL_Renderer* renderer = nullptr;
+	// Our opengl context handle
+	void* glContext = nullptr;
 
 	Cursor cursor[MaxCursors];
 

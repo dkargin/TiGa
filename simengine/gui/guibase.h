@@ -28,8 +28,9 @@ namespace GUI
 	/*
 	 * Object
 	 * Base GUI class and layout container as well
+	 * Please no std::enable_shared_from_this<Object>
 	 */
-	class Object : public std::enable_shared_from_this<Object>
+	class Object
 	{
 	public:
 		typedef math3::vec2f uiVec;
@@ -40,10 +41,11 @@ namespace GUI
 
 		void detach();			/// detach from parent
 		bool isRoot() const;
-		// manual align
-		void insert(Pointer ptr);
 
-		void removeChild(const Pointer & object);
+		// manual align
+		void insertWidget(Object* ptr);
+
+		void removeWidget(Object* object);
 
 		void setAlign( AlignType hor, AlignType ver );
 		// set rect
@@ -105,35 +107,40 @@ namespace GUI
 		void enableLayouting(bool flag );
 		void updateLayout();
 
-		typedef bool ObjectIterator(const Pointer& object);
+		typedef bool ObjectIterator(Object* object);
 		void findObject(const uiVec& vec, bool forceAll, std::function<ObjectIterator> fn);
 
 	protected:
-		//virtual void runLayout();
-		void calculateLayout(const Pointer& object);			// calculate layout for specific object
+		// calculate layout for specific object
+		void calculateLayout(Object* object);
 		//virtual Fx::Rect calculateChildrenRect() const;
 		virtual Fx::Rect calculateContentsRect() const;
 		float desiredX, desiredY, desiredWidth, desiredHeight;	// desired control size
 		AlignType alignHor, alignVer;							// alignment to parent
 		float borderSize, margin;
-		
-		typedef std::list<Pointer> Children;
+
+		typedef std::list<Object*> Children;
 		Children children;
-		std::weak_ptr<Object> parent;			//< parent object
-		std::weak_ptr<Object> modal;			//< modal child
+		// Parent object
+		Object* parent = nullptr;
+		// Modal child. All input is redirected to this object
+		Object* modal = nullptr;
 		// Cell parameters for grid layout
 		int cellX = 0, cellY = 0, cellWidth = 1, cellHeight = 1;
 		bool clipChildren;
-		bool visible;											//< if object is visible
-		bool enabled;											//< if object responds to events
-		bool contentsWidth, contentsHeight;						//< auto expand to contents size
+		// Check if object is visible
+		bool visible;
+		// Check if object responds to events
+		bool enabled;
+		// Auto expand to contents size
+		bool contentsWidth, contentsHeight;
 
 	private:
 		bool layoutChanged;	
 		bool layoutIsActive;
- 		static size_t globalControlLastId;
+		static size_t globalControlLastId;
 		size_t globalControlId;
-		
+
 		// do not use it
 		Object(const Object& go);
 		Object& operator=(const Object& go);

@@ -11,8 +11,23 @@ namespace Fx
 
 FxManager::FxManager()
 {
-	resetView();
 	//storage = std::shared_ptr<Storage>(new HeapAllocator);
+
+	// Shader sources
+	const GLchar* vertexSource = R"(
+	attribute vec4 position;
+	void main()
+	{
+		 gl_Position = vec4(position.xyz, 1.0);
+	})";
+
+	const GLchar* fragmentSource = R"(
+	precision mediump float;
+	void main()
+	{
+	  gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0 );
+	})";
+
 }
 
 FxManager::~FxManager()
@@ -218,34 +233,6 @@ FxAnimation2Ptr FxManager::createAnimationFull(const char *file, int frameWidth,
 
 	result->setSize(frameWidth,frameHeight);
 	return FxAnimation2Ptr(result);
-}
-
-void FxManager::setView( const FxView2 & view, int screenWidth, int screenHeight )
-{
-	viewPose = view.pose;
-	viewScale = view.scale;
-	float x = -viewPose.position[0];
-	float y = -viewPose.position[1];
-	float z = -viewPose.position[2];
-
-	// TODO: PORT: replace direct OGL calls to HGE calls
-	float angle = viewPose.orientation * 180/M_PI;
-	glMatrixMode(GL_PROJECTION);
-	glPushMatrix();
-	glLoadIdentity();
-	glOrtho(-screenWidth/2,screenWidth/2,screenHeight/2,-screenHeight/2,-1,1);	
-	glScalef(viewScale, viewScale,1);
-	glRotatef(-angle,0,0,1);
-	glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity();
-
-	glTranslatef(x,y,z);
-}
-
-void FxManager::resetView()
-{
-	viewPose = math3::Pose2z(0,0,0,0);
-	viewScale = 1.0;
 }
 
 } // namespace Fx

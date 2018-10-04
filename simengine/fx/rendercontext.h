@@ -2,7 +2,7 @@
 
 #include <memory>	// for shared_ptr/unique_ptr
 #include "basetypes.h"
-
+#include "fxobjects.h"
 
 namespace Fx
 {
@@ -12,7 +12,8 @@ class FxManager;
 
 /**
  * RenderContext class
- * Wraps rendering pass
+ * Implements context for current render operation.
+ * It can be created for every render operation.
  * Any object rendering should receive pointer to instance of RenderContext
  */
 class RenderContext
@@ -23,6 +24,9 @@ public:
 
 	// Get current viewport size, in pixels
 	vec2f getViewportSize() const;
+
+	void setView( const FxView2& view, int screen_width, int screen_height);
+	void resetView();
 
 	/// Should be moved to batch->render as well
 	/*
@@ -66,7 +70,7 @@ protected:
 	int updateBlendMode(int blend, int curBlend);
 
 	void _ActivateBatch(const Fx::VertexBatch& batch);
-	void _renderBatchImpl(Fx::VertexBatch& batch, bool bEndScene=false);
+	void _renderBatchImpl(const Fx::VertexBatch& batch, bool bEndScene=false);
 
 	// Viewport width and height
 	int scr_width = 0, scr_height = 0;
@@ -84,6 +88,14 @@ protected:
 	std::unique_ptr<Fx::VertexBatch> currentBatch;
 
 	int VERTEX_BUFFER_SIZE = 1024;
+
+	math3::Pose2z viewPose;
+	float viewScale;
+
+	// Maps world coordinates to basic screen coordinates
+	math3::Mt4x4 modelview;
+	// Projects basic screen to actual viewport
+	math3::Mt4x4 projection;
 
 	FxManager* manager;
 };

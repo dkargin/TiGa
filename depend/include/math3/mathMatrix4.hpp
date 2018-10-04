@@ -7,17 +7,18 @@ namespace math3
 {
 
 /// 4-dimensinal matrix
-template <typename Real,bool row_order=false>
-class Matrix4 : public MatrixSquare<Real,4,row_order>
+template <typename Real>
+class Matrix4 : public MatrixSquare<Real,4>
 {
 public:
-	typedef MatrixSquare<Real,4,row_order> parent_type;	///< Defines parent type
+	// Defines parent type
+	typedef MatrixSquare<Real,4> parent_type;
 	typedef typename parent_type::value_type value_type;	///< Defines scalar types
-	typedef Matrix4<Real,row_order> my_type;				///< Defines own type
+	typedef Matrix4<Real> my_type;				///< Defines own type
 	/// Default constructor
 	Matrix4 () {}
 	/// copy constructor
-	Matrix4 (const Matrix<Real,4,4,row_order> &m)
+	Matrix4 (const Matrix<Real,4,4> &m)
 	{
 		this->assign((const Real*)m);
 	}
@@ -192,6 +193,7 @@ public:
 	}
 };
 
+#ifdef FUCK_THIS
 /// cast static array to a matrix
 template<typename Real>
 Matrix4<Real,false> & attachMt4c(Real source[16])
@@ -206,7 +208,7 @@ Matrix4<Real,true> & attachMt4r(Real source[16])
 	return *new (source) Matrix4<Real, true>;
 }
 
-
+#endif
 /*
 template<typename Real>
 Matrix3<Real,true> getRotation(const Matrix4<Real> mt4)
@@ -234,16 +236,16 @@ Matrix4<Real> setRotation(Matrix4<Real,false> mt4,Matrix3<Real,true> rot)
 	return mt4;
 }
 */
-template<typename Real,bool order> Matrix4<Real,order> Matrix4<Real,order>::translate ( const vec3f& loc )
+template<typename Real> Matrix4<Real> Matrix4<Real>::translate ( const vec3f& loc )
 {
-	Matrix4<Real,order> res = my_type::identity();
+	Matrix4<Real> res = my_type::identity();
 
 	res.origin(loc);
 	return res;
 }
-template<typename Real,bool order> Matrix4<Real,order>	Matrix4<Real,order>::scale ( float x, float y, float z)
+template<typename Real> Matrix4<Real>	Matrix4<Real>::scale ( float x, float y, float z)
 {
-	Matrix4<Real,order> res = my_type::identity();
+	Matrix4<Real> res = my_type::identity();
 
 	res(0,0) = x;
 	res(1,1) = y;
@@ -252,9 +254,9 @@ template<typename Real,bool order> Matrix4<Real,order>	Matrix4<Real,order>::scal
 	return res;
 }
 
-template<typename Real,bool order> Matrix4<Real,order>	Matrix4<Real,order>::scale ( const vec3f& v )
+template<typename Real> Matrix4<Real>	Matrix4<Real>::scale ( const vec3f& v )
 {
-	Matrix4<Real,order> res = my_type::identity();
+	Matrix4<Real> res = my_type::identity();
 
 	res(0,0) = v[0];
 	res(1,1) = v[1];
@@ -262,8 +264,8 @@ template<typename Real,bool order> Matrix4<Real,order>	Matrix4<Real,order>::scal
 	return res;
 }
 
-template<typename Real,bool order>
-Matrix4<Real,order>	Matrix4<Real,order>::rotateX ( float angle )
+template<typename Real>
+Matrix4<Real>	Matrix4<Real>::rotateX ( float angle )
 {
 	my_type res = my_type::identity();
 	float  cosine = cos ( angle );
@@ -276,8 +278,8 @@ Matrix4<Real,order>	Matrix4<Real,order>::rotateX ( float angle )
 
 	return res;
 }
-template<typename Real,bool order>
-Matrix4<Real,order>	Matrix4<Real,order>::rotateY ( float angle )
+template<typename Real>
+Matrix4<Real>	Matrix4<Real>::rotateY ( float angle )
 {
 	my_type res=my_type::identity();
 	float  cosine = cos ( angle );
@@ -290,8 +292,8 @@ Matrix4<Real,order>	Matrix4<Real,order>::rotateY ( float angle )
 
 	return res;
 }
-template<typename Real,bool order>
-Matrix4<Real,order>	Matrix4<Real,order>::rotateZ ( float angle )
+template<typename Real>
+Matrix4<Real>	Matrix4<Real>::rotateZ ( float angle )
 {
 	my_type res=my_type::identity();
 	float  cosine = cos ( angle );
@@ -309,8 +311,8 @@ Matrix4<Real,order>	Matrix4<Real,order>::rotateZ ( float angle )
 	return res;
 }
 
-template<typename Real,bool order>
-Matrix4<Real,order>	Matrix4<Real,order>::rotate ( const vec3f& axis, float angle )
+template<typename Real>
+Matrix4<Real>	Matrix4<Real>::rotate ( const vec3f& axis, float angle )
 {
 	my_type res=my_type::identity();
 	float  cosine = cos ( angle );
@@ -366,8 +368,8 @@ Matrix4<Real,order>	Matrix4<Real,order>::rotate ( const vec3f& axis, float angle
 //}
 
 /// Transform point by a matrix
-template<typename Real,bool order>
-Vector3D<Real> operator * ( const Matrix4<Real,order>& m, const Vector3D<Real>& v )
+template<typename Real>
+Vector3D<Real> operator * ( const Matrix4<Real>& m, const Vector3D<Real>& v )
 {
 	//Vector3D<Real> res;
 
@@ -382,8 +384,8 @@ Vector3D<Real> operator * ( const Matrix4<Real,order>& m, const Vector3D<Real>& 
 	return transform(m,v);
 }
 
-template<class Real,bool order>
-inline Matrix4<Real,order> & Matrix4<Real,order>::setRotationDegrees( const float *angles )
+template<class Real>
+inline Matrix4<Real> & Matrix4<Real>::setRotationDegrees( const float *angles )
 {
 	const float m_180_pi=180.0/M_PI;
 	float vec[3];
@@ -393,8 +395,8 @@ inline Matrix4<Real,order> & Matrix4<Real,order>::setRotationDegrees( const floa
 	return setRotationRadians( vec );
 }
 
-template<class Real,bool order>
-inline Matrix4<Real,order> &Matrix4<Real,order>::setInverseRotationDegrees( const float *angles )
+template<class Real>
+inline Matrix4<Real> &Matrix4<Real>::setInverseRotationDegrees( const float *angles )
 {
 	const float m_180_pi=180.0/M_PI;
 	float vec[3];
@@ -404,8 +406,8 @@ inline Matrix4<Real,order> &Matrix4<Real,order>::setInverseRotationDegrees( cons
 	return setInverseRotationRadians( vec );
 }
 
-template<class Real,bool order>
-Matrix4<Real,order> &Matrix4<Real,order>::setRotationRadians( const float *angles )
+template<class Real>
+Matrix4<Real> &Matrix4<Real>::setRotationRadians( const float *angles )
 {
 	value_type *c=(value_type*)this;
 	//Matrix4<Real> m_matrix;
@@ -450,11 +452,10 @@ Matrix4<Real,order> &Matrix4<Real,order>::setRotationRadians( const float *angle
 	return *this;
 }
 
-template<class Real,bool order>
-Matrix4<Real,order>& Matrix4<Real,order>::setInverseRotationRadians( const float *angles )
+#ifdef FUCK_THIS
+template<class Real>
+Matrix4<Real>& Matrix4<Real>::setInverseRotationRadians(const float *angles)
 {
-	assert(false);// no column order
-	//_CrtDbgBreak();
 	//Matrix4<Real> m_matrix;
 	value_type *c=(value_type*)this;
 	float cr = cos( angles[0] );
@@ -487,6 +488,6 @@ Matrix4<Real,order>& Matrix4<Real,order>::setInverseRotationRadians( const float
 	c[6] = Real( crsp*sy-sr*cy );
 	c[10] = Real( cr*cp );
 	return *this;
-	//Matrix4<Real> m_matrix;
 }
+#endif
 }	// namespace frosttools

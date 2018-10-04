@@ -773,7 +773,7 @@ void RVO2::Pilot::render(Fx::RenderContext* rc)
 	for(auto it = orcaLines.begin(); it != orcaLines.end(); ++it)
 	{
 		Line & line = *it;
-		drawLine(rc, position + line.point, position + line.point + line.direction * radius * 10, Fx::MakeRGB(255,0,127));
+		drawLine(rc, position + line.point, position + line.point + line.direction * radius * 10, Fx::makeRGB(255,0,127));
 	}
 }
 

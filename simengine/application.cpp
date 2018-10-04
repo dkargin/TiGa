@@ -1,5 +1,5 @@
-#include <math.h>
 #include <SDL.h>
+#include <SDL_video.h>
 
 #include "application.h"
 
@@ -50,7 +50,7 @@ void Application::uiProcessMouse(float mx, float my, int state)
 {
 	vec2f mousePos(mx, my);
 	// Process mouse picks
-	GUI::ObjectPtr selected = cursor[0].selected.lock();
+	GUI::Object* selected = cursor[0].selected;
 	
 	bool findNew = false;
 	if( selected )
@@ -75,9 +75,9 @@ void Application::uiProcessMouse(float mx, float my, int state)
 	/// if <selected> is not empty, we try to find another window 
 	if(findNew)
 	{
-		GUI::ObjectPtr newSelected = selected;
+		GUI::Object* newSelected = selected;
 
-		auto filter = [&newSelected, mousePos](GUI::ObjectPtr object)->bool
+		auto filter = [&newSelected, mousePos](GUI::Object* object)->bool
 		{
 			if( object != newSelected)
 			{
@@ -95,7 +95,7 @@ void Application::uiProcessMouse(float mx, float my, int state)
 		if( selected != newSelected )
 			cursor[0].selected = newSelected;
 		else
-			cursor[0].selected.reset();
+			cursor[0].selected = nullptr;
 	}
 }
 
@@ -216,32 +216,74 @@ void Application::run()
 	onExit();
 }
 
-bool Application::initSDL()
+bool SetOpenGLAttributes()
+{
+	// Set our OpenGL version.
+	// SDL_GL_CONTEXT_CORE gives us only the newer version, deprecated functions are disabled
+	if (SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE) != 0)
+		return false;
+
+	// 3.2 is part of the modern versions of OpenGL, but most video cards whould be able to run it
+	if (SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3) != 0)
+		return false;
+
+	if (SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 2) != 0)
+		return false;
+	// Turn on double buffering with a 24bit Z buffer.
+	// You may need to change this to 16 or 32 for your system
+	if (SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1) != 0)
+		return false;
+
+	return true;
+}
+
+bool Application::init()
 {
 	if(SDL_Init(SDL_INIT_EVERYTHING) < 0)
 	{
 		return false;
 	}
 
-	window = SDL_CreateWindow("An SDL2 window", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
-			640, 480 ,0);
+	int width = 640;
+	int height = 480;
+	int left = SDL_WINDOWPOS_CENTERED;
+	int top = SDL_WINDOWPOS_CENTERED;
+
+	int flags = SDL_WINDOW_OPENGL;
+	window = SDL_CreateWindow("An SDL2 window", left, top, width, height, flags);
 
 	if (window == nullptr)
 	{
 		return false;
 	}
 
-	renderer = SDL_CreateRenderer(window, -1, 0);
+	// Create our opengl context and attach it to our window
+	glContext = SDL_GL_CreateContext(window);
 
-	if(renderer == nullptr)
+	if (!SetOpenGLAttributes())
 	{
+		printf("Failed to set GL attributes\n");
 		return false;
 	}
+
+	// This makes our buffer swap syncronized with the monitor's vertical refresh
+	SDL_GL_SetSwapInterval(1);
+
+	// Init GLEW
+	// Apparently, this is needed for Apple. Thanks to Ross Vander for letting me know
+	/*
+	#ifndef __APPLE__
+		glewExperimental = GL_TRUE;
+		glewInit();
+	#endif
+	*/
 
 	fxManager.init();
 
 	guiRoot.reset(new GUI::Object(Fx::Rect(0,0,0,0)));
 	cursor[0].type = Cursor::Mouse;
+
+	onInit();
 
 	return true;
 }
@@ -271,7 +313,7 @@ void Application::spinSDL()
 			int width = 0;
 			int height = 0;
 
-			SDL_GetRendererOutputSize(renderer, &width, &height);
+			SDL_GL_GetDrawableSize(window, &width, &height);
 			guiRoot->setRect(Fx::Rect(0, 0, width, height));
 		}
 
@@ -361,16 +403,70 @@ bool onWindowEvent(SDL_Event& event, FrameEvents& dispatched)
 	return false;
 }
 
+void processKeyboard(SDL_Event& event, FrameEvents& dispatched)
+{
+	/*
+	{
+	// SDL_NUM_SCANCODES;
+
+	switch (event.key.keysym.sym)
+	{
+	case SDLK_ESCAPE:
+		dispatched.exit = true;
+		break;
+	case SDLK_r:
+		// Cover with red and update
+		glClearColor(1.0, 0.0, 0.0, 1.0);
+		glClear(GL_COLOR_BUFFER_BIT);
+		SDL_GL_SwapWindow(window);
+		break;
+	case SDLK_g:
+		// Cover with green and update
+		glClearColor(0.0, 1.0, 0.0, 1.0);
+		glClear(GL_COLOR_BUFFER_BIT);
+		SDL_GL_SwapWindow(window);
+		break;
+	case SDLK_b:
+		// Cover with blue and update
+		glClearColor(0.0, 0.0, 1.0, 1.0);
+		glClear(GL_COLOR_BUFFER_BIT);
+		SDL_GL_SwapWindow(window);
+		break;
+	default:
+		break;
+	}*/
+}
+
+void processMouse(SDL_Event& event, FrameEvents& dispatched)
+{
+
+}
+
+
 void dispatchEvent(SDL_Event& event, FrameEvents& dispatched)
 {
-	if (event.type == SDL_QUIT)
+	switch(event.type)
 	{
+	case SDL_QUIT:
 		dispatched.exit = true;
-	}
-	else if (event.type == SDL_WINDOWEVENT)
-	{
+		break;
+
+	case SDL_KEYDOWN:
+	case SDL_KEYUP:
+		processKeyboard(event, dispatched);
+		break;
+	case SDL_MOUSEMOTION: /**< Mouse moved */
+	case SDL_MOUSEBUTTONDOWN: /**< Mouse button pressed */
+	case SDL_MOUSEBUTTONUP: /**< Mouse button released */
+	case SDL_MOUSEWHEEL: /**< Mouse wheel motion */
+		processMouse(event, dispatched);
+		break;
+	case SDL_WINDOWEVENT:
 		onWindowEvent(event, dispatched);
+		break;
 	}
 }
 
-}
+} // namespace sim
+
+

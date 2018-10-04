@@ -32,12 +32,13 @@ add_library(fx
 	fx/fxanimation.cpp
 	fx/fxsound.cpp
 	fx/fxsprite.cpp
-
+	fx/font.cpp
 	fx/manager.cpp
 	fx/renderqueue.cpp
 	fx/rendercontext.cpp
 	fx/texturemanager.cpp
 	fx/soundmanager.cpp
+	fx/shader.cpp
 )
 
 target_link_libraries(fx ${OPENGL_LIBRARIES} ${SDL2_IMAGE_LIBRARIES})

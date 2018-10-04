@@ -8,6 +8,9 @@
 
 #include "font.h"
 
+#include <stdio.h>
+#include <memory.h>
+
 const char FNTHEADERTAG[] = "[HGEFONT]";
 const char FNTBITMAPTAG[] = "Bitmap";
 const char FNTCHARTAG[]   = "Char";
@@ -18,11 +21,10 @@ namespace Fx
 
 Font::Font(const char *szFont, bool bMipmap)
 {
-	void *data;
-	DWORD size;
+	uint32_t size;
 	char *desc, *pdesc;
 	char linebuf[256];
-	char buf[MAX_PATH], *pbuf;
+	//char buf[MAX_PATH], *pbuf;
 	char chr;
 	int i, x, y, w, h, a, c;
 
@@ -37,19 +39,19 @@ Font::Font(const char *szFont, bool bMipmap)
 	fZ=0.5f;
 	nBlend=BLEND_COLORMUL | BLEND_ALPHABLEND | BLEND_NOZWRITE;
 	dwCol=0xFFFFFFFF;
-
-	ZeroMemory( &letters, sizeof(letters) );
-	ZeroMemory( &pre, sizeof(letters) );
-	ZeroMemory( &post, sizeof(letters) );
+#ifdef TO_BE_REFACTORED
+	memset( &letters, 0, sizeof(letters) );
+	memset( &pre, 0, sizeof(letters) );
+	memset( &post, 0, sizeof(letters) );
 	
 	// Load font description
 
-	data=hge->Resource_Load(szFont, &size);
+	void* data = hge->Resource_Load(szFont, &size);
 	if(!data)
 		return;
 
 	desc = new char[size+1];
-	memcpy(desc,data,size);
+	memcpy(desc, data,size);
 	desc[size]=0;
 	hge->Resource_Free(data);
 
@@ -63,7 +65,7 @@ Font::Font(const char *szFont, bool bMipmap)
 
 	// Parse font description
 
-	while(pdesc = _get_line(pdesc,linebuf))
+	while(pdesc = _get_line(pdesc, linebuf))
 	{
 		if(!strncmp(linebuf, FNTBITMAPTAG, sizeof(FNTBITMAPTAG)-1 ))
 		{
@@ -119,26 +121,31 @@ Font::Font(const char *szFont, bool bMipmap)
 		}
 	}
 
-	delete[] desc;	
+	delete[] desc;
+#endif
 }
 
 Font::~Font()
 {
 	for(int i=0; i<256; i++)
-		if(letters[i]) delete letters[i];
-	if(hTexture) hge->Texture_Free(hTexture);
-	hge->Release();
+		if(letters[i])
+			delete letters[i];
+	//if(hTexture)
+	//	hge->Texture_Free(hTexture);
+	//hge->Release();
 }
 
-void Font::Render(float x, float y, int align, const char *string)
+
+Fx::VertexBatch Font::Render(float x, float y, int align, const char *string)
 {
-	int i;
-	float	fx=x;
+	VertexBatch result(VertexBatch::PRIM_QUADS);
+
+	float fx=x;
 
 	align &= HGETEXT_HORZMASK;
-	if(align==HGETEXT_RIGHT)
+	if(align == HGETEXT_RIGHT)
 		fx-=GetStringWidth(string, false);
-	if(align==HGETEXT_CENTER)
+	if(align == HGETEXT_CENTER)
 		fx-=int(GetStringWidth(string, false)/2.0f);
 
 	while(*string)
@@ -152,37 +159,42 @@ void Font::Render(float x, float y, int align, const char *string)
 		}
 		else
 		{
-			i=(unsigned char)*string;
-			if(!letters[i]) i='?';
+			auto i=(unsigned char)*string;
+			if(!letters[i])
+				i='?';
 			if(letters[i])
 			{
 				fx += pre[i]*fScale*fProportion;
-				letters[i]->RenderEx(fx, y, fRot, fScale*fProportion, fScale);
+				// TODO: Reimplement it properly
+				//letters[i]->RenderEx(fx, y, fRot, fScale*fProportion, fScale);
+
 				fx += (letters[i]->getWidth()+post[i]+fTracking)*fScale*fProportion;
 			}
 		}
 		string++;
 	}
+
+	return std::move(result);
 }
 
-void Font::printf(float x, float y, int align, const char *format, ...)
+VertexBatch Font::printf(float x, float y, int align, const char *format, ...)
 {
 	char	*pArg=(char *) &format+sizeof(format);
 
-	_vsnprintf(buffer, sizeof(buffer)-1, format, pArg);
+	snprintf(buffer, sizeof(buffer)-1, format, pArg);
 	buffer[sizeof(buffer)-1]=0;
 	//vsprintf(buffer, format, pArg);
-	Render(x,y,align,buffer);
+	return Render(x,y,align,buffer);
 }
 
-void Font::printfb(float x, float y, float w, float h, int align, const char *format, ...)
+VertexBatch Font::printfb(float x, float y, float w, float h, int align, const char *format, ...)
 {
 	char chr, *pbuf, *prevword, *linestart;
 	int i,lines=0;
 	float tx, ty, hh, ww;
 	char *pArg=(char *) &format+sizeof(format);
 
-	_vsnprintf(buffer, sizeof(buffer)-1, format, pArg);
+	snprintf(buffer, sizeof(buffer)-1, format, pArg);
 	buffer[sizeof(buffer)-1]=0;
 	//vsprintf(buffer, format, pArg);
 
@@ -249,7 +261,7 @@ void Font::printfb(float x, float y, float w, float h, int align, const char *fo
 		case HGETEXT_MIDDLE: ty+=int((h-hh)/2); break;
 	}
 
-	Render(tx,ty,align,buffer);
+	return Render(tx,ty,align,buffer);
 }
 
 float Font::GetStringWidth(const char *string, bool bMultiline) const

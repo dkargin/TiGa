@@ -306,15 +306,15 @@ protected:
 namespace math3
 {
 /// Apply only rotation part from 4x4 mathix to 3D vector
-template<typename Real,bool order>
-Vector3D<Real> transform3 ( const Matrix4<Real,order>& m, const Vector3D<Real>& v )
+template<typename Real>
+Vector3D<Real> transform3 ( const Matrix4<Real>& m, const Vector3D<Real>& v )
 {
 	return Vector3D<Real>((Real*)Vector<Real,4>(m.col(0)*v[0]+m.col(1)*v[1]+m.col(2)*v[2]));
 }
 
 /// Apply affine transform for 3D vector
-template<typename Real,bool order>
-Vector3D<Real> transform( const Matrix4<Real,order>& m, const Vector3D<Real>& v )
+template<typename Real>
+Vector3D<Real> transform( const Matrix4<Real>& m, const Vector3D<Real>& v )
 {
 	return Vector3D<Real>((Real*)Vector<Real,4>(m.col(0)*v[0]+m.col(1)*v[1]+m.col(2)*v[2]+m.col(3)));
 }
@@ -328,7 +328,7 @@ Vector3D<Real> getVec3(const Vector<Real,4> &v)
 
 /// Apply inverse rotation for 3D vector using rotation component of 4x4 matrix
 template<class Real>
-Vector3D<Real> inverseRotateVect( const Matrix4<Real,true>& m, const Vector3D<Real>& v  )
+Vector3D<Real> inverseRotateVect( const Matrix4<Real>& m, const Vector3D<Real>& v  )
 {
 	//   row|   col
 	// 0 1 2| 0 3 6
@@ -367,10 +367,8 @@ template<class Type> const Vector2D<Type> & vec3to2(const Vector3D<Type> & v)
 	return (Vector2D<Type>&)v;
 }
 
-typedef Matrix3<float,Math::RowOrder> Mt3x3;	///< specialized float 3x3 row order matrix
-typedef Matrix4<float,Math::RowOrder> Mt4x4;	///< specialized float 4x4 row order matrix
-//typedef Matrix4<float,Math::RowOrder> COORDSYS;
-
+typedef Matrix3<float> Mt3x3;
+typedef Matrix4<float> Mt4x4;
 
 /// Handles local coordinate system, in form of position+rotation+z
 class Pose2z
